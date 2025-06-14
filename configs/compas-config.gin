@@ -3,6 +3,7 @@
 ##########################################
 
 # the parsing model: {ucinlp/compas-t5-small, ucinlp/compas-t5-large}
+# or "mp+:E:/models/Mistral-7B-Instruct" for MP+
 ExplainBot.parsing_model_name = "ucinlp/compas-t5-small"
 
 # set skip_prompts to true for quicker startup for finetuned models

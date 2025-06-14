@@ -4,6 +4,7 @@
 
 # Name of the parsing model: {ucinlp/diabetes-t5-small, ucinlp/diabetes-t5-large}
 # for few shot, e.g., "EleutherAI/gpt-neo-2.7B"
+# or for MP+ with a local model "mp+:E:/models/Mistral-7B-Instruct"
 ExplainBot.parsing_model_name = "ucinlp/diabetes-t5-small"
 #ExplainBot.parsing_model_name = "EleutherAI/gpt-neo-2.7B"
 
