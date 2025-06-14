@@ -119,6 +119,8 @@ and changing `{demo}` to one of `diabetes`, `compas`, or `german` respectively. 
 ExplainBot.parsing_model_name = "ucinlp/{demo}-t5-small"
 # For the t5 large model
 ExplainBot.parsing_model_name = "ucinlp/{demo}-t5-large"
+# To use the MP+ strategy with a local model
+ExplainBot.parsing_model_name = "mp+:E:/models/Mistral-7B-Instruct"
 ```
 
 and the respective parsing model will be downloaded from the hub automatically.
