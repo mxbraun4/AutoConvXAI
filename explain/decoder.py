@@ -62,7 +62,19 @@ class Decoder:
         if no_init:
             return
 
-        if "gpt" in parsing_model_name:
+        if parsing_model_name.startswith("mp+"):
+            from parsing.mp_plus.mp_plus_inference import get_mp_plus_predict_f
+            if ":" in parsing_model_name:
+                base_model = parsing_model_name.split(":", 1)[1]
+            else:
+                raise ValueError("mp+ parsing_model_name must be formatted as 'mp+:<model_path>'")
+
+            predict_f = get_mp_plus_predict_f(model=base_model,
+                                              use_guided_decoding=self.use_guided_dec)
+
+            def complete(prompt, grammar):
+                return predict_f(prompt=prompt, grammar=grammar)
+        elif "gpt" in parsing_model_name:
             from parsing.gpt.few_shot_inference import get_few_shot_predict_f
             predict_f = get_few_shot_predict_f(model=parsing_model_name,
                                                use_guided_decoding=self.use_guided_dec)
