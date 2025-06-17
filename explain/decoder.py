@@ -63,7 +63,7 @@ class Decoder:
             return
 
         if parsing_model_name.startswith("mp+"):
-            from parsing.mp_plus.mp_plus_inference import get_mp_plus_predict_f
+            from parsing.mp_plus.prompting_parser import get_mp_plus_predict_f
             if ":" in parsing_model_name:
                 base_model = parsing_model_name.split(":", 1)[1]
             else:
