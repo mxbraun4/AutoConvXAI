@@ -1,0 +1,77 @@
+# Git and version control
+.git
+.gitignore
+.github
+
+# Python cache and compiled files
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation
+README.md
+*.md
+LICENSE
+CITATION.cff
+
+# Exclude the original complex parsing system
+parsing/
+experiments/
+tests/
+tutorials/
+
+# Exclude unnecessary config files
+global_config.gin
+configs/compas-config.gin
+configs/diabetes-config.gin
+configs/german-config.gin
+
+# Exclude old flask app
+flask_app.py
+
+# Exclude unnecessary requirements
+requirements.txt
+
+# Exclude cache and logs (will be created in container)
+cache/
+logs/
+
+# Exclude specific data files not needed for diabetes model
+data/german*
+data/compas*
+data/derm*
+data/train_*
+data/background_derm.csv
+data/dataset_derm.csv
+
+# Exclude unnecessary explain modules (only keep what we need)
+explain/parser.py
+explain/grammar.py
+explain/decoder.py
+explain/prompts.py
+explain/prompts/
+explain/complete.py
+explain/logic.py
+explain/sample_prompts_by_action.py
+
+# Exclude development and testing files
+*.ipynb
+*.log
+*.tmp
+.DS_Store
+Thumbs.db 

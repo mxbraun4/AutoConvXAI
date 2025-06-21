@@ -1,0 +1,39 @@
+# Clean GPT-4 Configuration for TalkToModel
+# This replaces all the complex T5/MP+ parsing configuration
+
+# GPT-4 Configuration (much simpler!)
+GPT4Config.config = "./configs/diabetes-gpt4-config.gin"
+GPT4Config.baseurl = ""
+GPT4Config.openai_api_key = None  # Will use OPENAI_API_KEY environment variable
+
+# Enhanced ExplainBot with GPT-4
+EnhancedExplainBot.model_file_path = "./data/diabetes_model_logistic_regression.pkl"
+EnhancedExplainBot.dataset_file_path = "./data/diabetes.csv"
+EnhancedExplainBot.background_dataset_file_path = "./data/diabetes_train.csv"
+EnhancedExplainBot.dataset_index_column = 0
+EnhancedExplainBot.target_variable_name = "Outcome"
+EnhancedExplainBot.categorical_features = ["Pregnancies"]
+EnhancedExplainBot.numerical_features = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI", "DiabetesPedigreeFunction", "Age"]
+EnhancedExplainBot.remove_underscores = True
+EnhancedExplainBot.name = "diabetes"
+EnhancedExplainBot.gpt_model = "gpt-4.1-2025-04-14"
+EnhancedExplainBot.seed = 0
+
+# Dataset Description
+Conversation.dataset_objective = "This model predicts diabetes onset based on patient health metrics."
+
+# Mega Explainer Configuration (unchanged)
+MegaExplainer.cache_directory = "./cache/"
+MegaExplainer.num_features = 5
+MegaExplainer.num_samples = 100
+
+# DICE Configuration (unchanged)
+TabularDice.cache_directory = "./cache/"
+
+# Removed configurations (no longer needed with GPT-4):
+# - parsing_model_name
+# - t5_config  
+# - use_guided_decoding
+# - prompt_metric
+# - prompt_ordering
+# - skip_prompts 
