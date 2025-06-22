@@ -13,7 +13,6 @@ from flask import Flask
 from explain.action import run_action
 from explain.conversation import Conversation
 from explain.explanation import MegaExplainer, TabularDice
-from explain.simple_intent_decoder import SimpleIntentDecoder
 from explain.utils import read_and_format_data
 from explain.write_to_log import log_dialogue_input
 
