@@ -63,11 +63,8 @@ data/dataset_derm.csv
 explain/parser.py
 explain/grammar.py
 explain/decoder.py
-explain/prompts.py
-explain/prompts/
 explain/complete.py
 explain/logic.py
-explain/sample_prompts_by_action.py
 
 # Exclude development and testing files
 *.ipynb

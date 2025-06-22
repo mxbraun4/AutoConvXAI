@@ -13,7 +13,7 @@ from flask import Flask
 from explain.action import run_action
 from explain.conversation import Conversation
 from explain.explanation import MegaExplainer, TabularDice
-from explain.gpt4_decoder import GPT4Decoder
+from explain.simple_intent_decoder import SimpleIntentDecoder
 from explain.utils import read_and_format_data
 from explain.write_to_log import log_dialogue_input
 
@@ -65,6 +65,7 @@ class EnhancedExplainBot:
         if not api_key:
             raise ValueError("OpenAI API key required. Set OPENAI_API_KEY env var or pass openai_api_key parameter.")
         
+        from explain.gpt4_decoder import GPT4Decoder
         self.decoder = GPT4Decoder(api_key=api_key, model=gpt_model)
         app.logger.info("✅ GPT-4 decoder ready!")
 

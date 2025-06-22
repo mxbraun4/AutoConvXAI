@@ -32,7 +32,7 @@ bp = Blueprint('host', __name__, template_folder='templates')
 # Get configuration from environment variables
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 BASE_URL = os.getenv('BASE_URL', '/')
-GPT_MODEL = os.getenv('GPT_MODEL', 'gpt-4.1-2025-04-14')
+GPT_MODEL = os.getenv('GPT_MODEL', 'gpt-4o')
 
 # Check API key before initializing
 if not OPENAI_API_KEY:
