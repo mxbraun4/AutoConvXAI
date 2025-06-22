@@ -27,7 +27,6 @@ WORKDIR /usr/src/app
 COPY flask_app_gpt4.py ./
 COPY explain/__init__.py explain/
 COPY explain/enhanced_logic.py explain/
-COPY explain/simple_intent_decoder.py explain/
 COPY explain/gpt4_decoder.py explain/
 COPY explain/action.py explain/
 COPY explain/conversation.py explain/
@@ -37,10 +36,7 @@ COPY explain/explanation.py explain/
 COPY explain/write_to_log.py explain/
 COPY explain/actions/ explain/actions/
 COPY explain/mega_explainer/ explain/mega_explainer/
-COPY explain/prompts/ explain/prompts/
 COPY explain/utils.py explain/
-COPY explain/prompts.py explain/
-COPY explain/sample_prompts_by_action.py explain/
 COPY data/*.pkl data/
 COPY data/*.csv data/
 COPY configs/diabetes-gpt4-config.gin configs/
@@ -48,7 +44,7 @@ COPY templates/ templates/
 COPY static/ static/
 
 # Create necessary directories
-RUN mkdir -p cache logs
+RUN mkdir -p cache
 
 # Set environment variables
 ENV OPENAI_API_KEY=""
