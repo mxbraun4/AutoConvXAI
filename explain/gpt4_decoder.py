@@ -1,7 +1,7 @@
-"""GPT-4 Function Calling Decoder for TalkToModel.
+"""GPT-4 Minimal Function Calling Decoder for TalkToModel.
 
-This module replaces the complex grammar-guided parsing with clean GPT-4 function calling.
-Much simpler and more accurate than the current MP+/T5 approach.
+This module uses minimal function calling - just one function that outputs action syntax directly.
+No complex mappings, no translation layer, maximum simplicity.
 """
 import json
 import os
@@ -10,7 +10,7 @@ import openai
 
 
 class GPT4Decoder:
-    """Clean GPT-4 function calling decoder."""
+    """Minimal GPT-4 function calling decoder."""
     
     def __init__(self, 
                  api_key: Optional[str] = None,
@@ -27,142 +27,98 @@ class GPT4Decoder:
         self.model = model
         self.max_retries = max_retries
         
-        # Define the available functions for the model
-        self.functions = self._define_explanation_functions()
+        # Define the single function for action execution
+        self.functions = self._define_minimal_functions()
     
-    def _define_explanation_functions(self) -> List[Dict]:
-        """Define all available explanation functions for GPT-4."""
+    def _validate_and_fix_action(self, action_syntax: str) -> str:
+        """Validate and fix common action syntax errors."""
+        if not action_syntax or not isinstance(action_syntax, str):
+            return "explain"
+        
+        action_syntax = action_syntax.strip().lower()
+        parts = action_syntax.split()
+        
+        if not parts:
+            return "explain"
+        
+        # Fix common errors
+        if parts[0] == "important":
+            # "important" alone should become "important all"
+            if len(parts) == 1:
+                return "important all"
+            # Validate important parameters
+            elif len(parts) >= 2:
+                if parts[1] in ["all", "topk"]:
+                    if parts[1] == "topk" and len(parts) >= 3:
+                        try:
+                            int(parts[2])  # Validate number
+                            return " ".join(parts[:3])
+                        except ValueError:
+                            return "important all"
+                    return " ".join(parts[:2])
+                else:
+                    # Assume it's a feature name
+                    return " ".join(parts[:2])
+        
+        elif parts[0] == "filter":
+            # Remove compound actions like "filter age greater 50 predict"
+            # Keep only the filter part
+            if len(parts) >= 4:
+                # Handle two-word operators like "greater equal" or "less equal"
+                if len(parts) >= 5 and parts[2] in ["greater", "less"] and parts[3] == "equal":
+                    # filter feature greater equal value [predict]
+                    if len(parts) >= 6 and parts[-1] == "predict":
+                        return " ".join(parts[:-1])  # Remove predict
+                    return " ".join(parts[:5])  # Keep filter feature greater equal value
+                else:
+                    # Standard filter: filter feature operator value
+                    if parts[-1] == "predict":
+                        # Remove the "predict" part
+                        return " ".join(parts[:-1])
+                    # Keep first 4 parts: filter feature operator value
+                    return " ".join(parts[:4])
+        
+        elif parts[0] in ["predict", "explain", "show"]:
+            # These should be fine as-is or with one parameter
+            return " ".join(parts[:2])
+        
+        elif parts[0] in ["score", "mistake", "data"]:
+            # These can be standalone or with one parameter
+            return " ".join(parts[:2])
+        
+        # Validate against known actions
+        valid_actions = ["filter", "predict", "explain", "important", "score", "show", "change", "mistake", "data"]
+        if parts[0] not in valid_actions:
+            return "explain"  # Safe fallback
+        
+        return action_syntax
+
+    def _define_minimal_functions(self) -> List[Dict]:
+        """Define minimal function set - just one function that outputs action syntax."""
         return [
             {
-                "name": "explain_prediction",
-                "description": "Explain why the model made a specific prediction",
+                "name": "execute_action",
+                "description": "Execute a model analysis action using the action syntax",
                 "parameters": {
                     "type": "object",
                     "properties": {
-                        "data_point_id": {"type": "integer", "description": "ID of data point to explain"},
-                        "explanation_type": {
+                        "action": {
+                            "type": "string",
+                            "description": "Action command using syntax like: 'filter age greater 50 predict', 'explain 5', 'score accuracy', etc."
+                        },
+                        "reasoning": {
                             "type": "string", 
-                            "enum": ["lime", "shap", "counterfactual"],
-                            "description": "Type of explanation to generate"
+                            "description": "Brief explanation of why this action was chosen"
                         }
                     },
-                    "required": ["data_point_id"]
-                }
-            },
-            {
-                "name": "filter_data",
-                "description": "Filter the dataset based on feature conditions",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "conditions": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "feature": {"type": "string"},
-                                    "operator": {"type": "string", "enum": ["=", ">", "<", ">=", "<=", "!="]},
-                                    "value": {"type": ["string", "number", "boolean"]}
-                                },
-                                "required": ["feature", "operator", "value"]
-                            }
-                        },
-                        "logic": {"type": "string", "enum": ["and", "or"], "default": "and"}
-                    },
-                    "required": ["conditions"]
-                }
-            },
-            {
-                "name": "show_feature_importance",
-                "description": "Show which features are most important for predictions",
-                "parameters": {
-                    "type": "object", 
-                    "properties": {
-                        "num_features": {"type": "integer", "default": 5, "description": "Number of top features to show"},
-                        "for_class": {"type": ["string", "integer"], "description": "Specific class to analyze"}
-                    }
-                }
-            },
-            {
-                "name": "predict_outcome",
-                "description": "Make a prediction for a data point or hypothetical scenario", 
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "data_point_id": {"type": "integer", "description": "Existing data point ID"},
-                        "feature_values": {
-                            "type": "object",
-                            "description": "Feature values for prediction (for what-if scenarios)"
-                        }
-                    }
-                }
-            },
-            {
-                "name": "show_data_summary",
-                "description": "Show summary statistics or data overview",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "features": {
-                            "type": "array", 
-                            "items": {"type": "string"},
-                            "description": "Specific features to summarize"
-                        },
-                        "summary_type": {
-                            "type": "string",
-                            "enum": ["basic", "detailed", "distribution"],
-                            "default": "basic"
-                        }
-                    }
-                }
-            },
-            {
-                "name": "what_if_analysis",
-                "description": "Analyze how changing feature values affects predictions",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "base_data_point_id": {"type": "integer", "description": "Starting data point"},
-                        "changes": {
-                            "type": "object",
-                            "description": "Feature changes to apply"
-                        }
-                    },
-                    "required": ["base_data_point_id", "changes"]
-                }
-            },
-            {
-                "name": "find_similar_cases",
-                "description": "Find data points similar to a given case",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "reference_id": {"type": "integer", "description": "Reference data point ID"},
-                        "num_similar": {"type": "integer", "default": 5}
-                    },
-                    "required": ["reference_id"]
-                }
-            },
-            {
-                "name": "analyze_mistakes", 
-                "description": "Show cases where the model made incorrect predictions",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "error_type": {
-                            "type": "string",
-                            "enum": ["false_positive", "false_negative", "all"],
-                            "default": "all"
-                        },
-                        "num_examples": {"type": "integer", "default": 5}
-                    }
+                    "required": ["action"]
                 }
             }
         ]
     
     def _build_context_prompt(self, user_query: str, conversation) -> str:
-        """Build context-aware prompt for GPT-4."""
-        # Get dataset info
+        """Build context prompt with action syntax documentation."""
+        # Get dataset info for context
         dataset = conversation.get_var('dataset')
         features_info = ""
         if dataset:
@@ -172,33 +128,51 @@ class GPT4Decoder:
             
             features_info = f"""
 Dataset Context:
-- Categorical features: {', '.join(cat_features)}
-- Numerical features: {', '.join(num_features)} 
+- Features: {', '.join(cat_features + num_features)}
 - Target classes: {', '.join(map(str, target_classes))}
 - Dataset size: {len(dataset.contents.get('X', []))} rows
 """
 
         prompt = f"""{features_info}
 
-User Query: {user_query}
+You help users understand a machine learning model. When they ask for analysis, call the execute_action function.
 
-You are helping a user understand a machine learning model's predictions through conversation.
-Analyze the user's query and call the appropriate function(s) to help them.
+ACTION SYNTAX REFERENCE:
+- filter {'{feature}'} {'{operator}'} {'{value}'} - Filter data (operators: greater, less, greaterequal, lessequal, equal)
+- predict - Show predictions for current data
+- predict {'{id}'} - Show prediction for specific ID  
+- explain {'{id}'} - Explain prediction for ID
+- explain {'{id}'} lime - LIME explanation 
+- explain {'{id}'} shap - SHAP explanation
+- important all - Show all feature importance rankings
+- important topk {'{number}'} - Show top N features
+- important {'{feature}'} - Show importance of specific feature
+- score {'{metric}'} - Model performance (accuracy, precision, recall, f1, roc, default)
+- show {'{id}'} - Show data for ID
+- change {'{feature}'} {'{operation}'} {'{value}'} - What-if analysis (operations: set, increase, decrease)
+- mistake - Show model errors
+- data - Show data summary
 
-Guidelines:
-- For questions about "why" or "how", use explain_prediction
-- For "show me cases where..." use filter_data  
-- For "what if" scenarios, use what_if_analysis
-- For "most important features", use show_feature_importance
-- For prediction requests, use predict_outcome
-- For finding errors, use analyze_mistakes
+IMPORTANT RULES:
+1. Use ONE action at a time - do not combine actions like "filter age greater 50 predict"
+2. For filtering then predicting, use just "filter age greater 50" 
+3. For feature importance, always specify "all", "topk N", or a specific feature name
+4. Each action must be complete and standalone
 
-Choose the most appropriate function based on the user's intent."""
+EXAMPLES:
+"Show predictions for patients over 50" → "filter age greater 50"
+"What features are most important?" → "important all"
+"Top 3 most important features?" → "important topk 3"
+"Why did patient 5 get diabetes?" → "explain 5"
+"How accurate is the model?" → "score accuracy"
+"Show patient 3" → "show 3"
+
+User Query: {user_query}"""
 
         return prompt
 
     def complete(self, user_query: str, conversation, grammar: str = None) -> Dict[str, Any]:
-        """Generate completion using GPT-4 function calling.
+        """Generate completion using minimal GPT-4 function calling.
         
         Args:
             user_query: User's natural language query
@@ -206,8 +180,42 @@ Choose the most appropriate function based on the user's intent."""
             grammar: Ignored (kept for compatibility)
             
         Returns:
-            Dict with function call information compatible with existing system
+            Dict with action information compatible with existing system
         """
+        # Check for casual conversation
+        casual_indicators = [
+            "hello", "hi", "thanks", "thank you", "bye", "goodbye", 
+            "how are you", "what's up", "great", "awesome", "cool"
+        ]
+        
+        if any(indicator in user_query.lower() for indicator in casual_indicators):
+            # Handle as conversation without function calling
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant for a diabetes prediction model. Respond conversationally to greetings and casual remarks."},
+                        {"role": "user", "content": user_query}
+                    ],
+                    temperature=0.7
+                )
+                
+                conversational_response = response.choices[0].message.content.strip()
+                return {
+                    "generation": None,
+                    "direct_response": conversational_response,
+                    "confidence": 0.9,
+                    "method": "gpt4_conversation"
+                }
+            except Exception as e:
+                return {
+                    "generation": None,
+                    "direct_response": "Hello! I'm here to help you understand the diabetes prediction model. What would you like to know?",
+                    "confidence": 0.8,
+                    "method": "gpt4_fallback"
+                }
+        
+        # Use function calling for analysis queries
         prompt = self._build_context_prompt(user_query, conversation)
         
         for attempt in range(self.max_retries + 1):
@@ -215,65 +223,41 @@ Choose the most appropriate function based on the user's intent."""
                 response = self.client.chat.completions.create(
                     model=self.model,
                     messages=[
-                        {"role": "system", "content": """You are an AI assistant helping users understand a diabetes prediction machine learning model. 
-
-You can either:
-1. Chat normally for greetings, general questions, or conversational queries
-2. Call specific functions when users want to analyze the model/data
-
-Only call functions when the user specifically wants to:
-- Understand feature importance
-- Analyze predictions or explanations  
-- Filter or explore the data
-- Run what-if scenarios
-- Find model mistakes
-
-For simple greetings or casual conversation, just respond naturally without calling any functions."""},
+                        {"role": "system", "content": "You are an expert at understanding machine learning queries. For analysis requests, call the execute_action function with the appropriate action syntax. For casual conversation, respond normally."},
                         {"role": "user", "content": prompt}
                     ],
                     functions=self.functions,
                     function_call="auto",
-                    temperature=0.3  # Allow some creativity for conversations
+                    temperature=0.2
                 )
                 
                 message = response.choices[0].message
                 
                 if message.function_call:
-                    # User wants to analyze the model - convert to format expected by existing system
-                    function_name = message.function_call.name
+                    # GPT-4 called the function - extract the action
                     function_args = json.loads(message.function_call.arguments)
+                    action_syntax = function_args.get("action", "explain")
                     
-                    # Map GPT-4 functions to existing action format
-                    action_mapping = {
-                        "explain_prediction": "explain",
-                        "filter_data": "filter", 
-                        "show_feature_importance": "important",
-                        "predict_outcome": "predict",
-                        "show_data_summary": "data",
-                        "what_if_analysis": "change",
-                        "find_similar_cases": "show",
-                        "analyze_mistakes": "mistake"
-                    }
+                    # Validate and fix common action syntax errors
+                    original_action = action_syntax
+                    action_syntax = self._validate_and_fix_action(action_syntax)
                     
-                    mapped_action = action_mapping.get(function_name, function_name)
-                    
-                    # Convert function arguments to grammar-like format for existing actions
-                    parsed_text = self._convert_to_action_format(mapped_action, function_args)
+                    # Log if action was modified
+                    if original_action != action_syntax:
+                        print(f"GPT4Decoder: Fixed action '{original_action}' → '{action_syntax}'")
                     
                     return {
-                        "generation": f"parsed: {parsed_text}[e]",
-                        "function_call": {
-                            "name": function_name,
-                            "arguments": function_args
-                        },
-                        "confidence": 0.95,  # High confidence for GPT-4
-                        "method": "gpt4_function_calling"
+                        "generation": f"parsed: {action_syntax}[e]",
+                        "confidence": 0.95,
+                        "method": "gpt4_minimal_function_calling",
+                        "reasoning": function_args.get("reasoning", ""),
+                        "raw_action": action_syntax
                     }
                 else:
-                    # User is just chatting - return their conversational response directly
+                    # GPT-4 responded conversationally
                     conversational_response = message.content.strip()
                     return {
-                        "generation": None,  # No parsing needed
+                        "generation": None,
                         "direct_response": conversational_response,
                         "confidence": 0.9,
                         "method": "gpt4_conversation"
@@ -283,69 +267,21 @@ For simple greetings or casual conversation, just respond naturally without call
                 if attempt < self.max_retries:
                     continue
                 else:
-                    # Return error information
+                    # Return safe fallback
                     return {
-                        "generation": f"parsed: explain[e]",  # Safe fallback
+                        "generation": f"parsed: explain[e]",
                         "error": str(e),
                         "confidence": 0.1,
                         "method": "gpt4_error"
                     }
-    
-    def _convert_to_action_format(self, action: str, args: Dict) -> str:
-        """Convert GPT-4 function arguments to existing action format."""
-        
-        if action == "filter" and "conditions" in args:
-            # Convert filter conditions to existing format
-            conditions = args["conditions"]
-            filter_parts = []
-            for condition in conditions:
-                feature = condition["feature"]
-                operator = condition["operator"] 
-                value = condition["value"]
-                
-                # Map operators to existing format
-                op_mapping = {"=": "", ">": "greater", "<": "less", ">=": "greaterequal", "<=": "lessequal"}
-                op_text = op_mapping.get(operator, "")
-                
-                if op_text:
-                    filter_parts.append(f"filter {feature} {op_text} {value}")
-                else:
-                    filter_parts.append(f"filter {feature} {value}")
-            
-            return " ".join(filter_parts)
-        
-        elif action == "explain" and "data_point_id" in args:
-            return f"explain {args['data_point_id']}"
-        
-        elif action == "important":
-            # Default to showing top 5 most important features if no specific feature requested
-            if "num_features" in args:
-                return f"important topk {args['num_features']}"
-            else:
-                return "important all"  # Show all features by default
-        
-        elif action == "predict" and "data_point_id" in args:
-            return f"predict {args['data_point_id']}"
-        
-        elif action == "change" and "changes" in args:
-            changes = args["changes"]
-            change_parts = []
-            for feature, value in changes.items():
-                change_parts.append(f"change {feature} {value}")
-            return " ".join(change_parts)
-        
-        else:
-            # Generic fallback
-            return action
 
 
-# Integration function to replace existing decoder
+# Integration functions for compatibility
 def create_gpt4_decoder(**kwargs) -> GPT4Decoder:
     """Factory function to create GPT-4 decoder."""
     return GPT4Decoder(**kwargs)
 
 
-# Compatibility function for existing codebase
 def get_gpt4_predict_func(api_key: str = None, model: str = "gpt-4"):
     """Get prediction function compatible with existing decoder interface."""
     decoder = GPT4Decoder(api_key=api_key, model=model)

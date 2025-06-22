@@ -40,15 +40,15 @@ class EnhancedExplainBot:
                  remove_underscores: bool,
                  name: str,
                  openai_api_key: str = None,
-                 gpt_model: str = "gpt-4",
+                 gpt_model: str = "gpt-4o",
                  seed: int = 0,
                  feature_definitions: dict = None):
-        """Initialize enhanced bot with GPT-4 function calling.
+        """Initialize enhanced bot with AutoGen multi-agent system.
 
         Args:
             ... (same as original ExplainBot) ...
             openai_api_key: OpenAI API key for GPT-4 
-            gpt_model: GPT-4 model variant to use
+            gpt_model: GPT-4 model variant to use for all agents
         """
         # Set seeds
         np.random.seed(seed)
@@ -56,17 +56,25 @@ class EnhancedExplainBot:
 
         self.bot_name = name
 
-        # Initialize GPT-4 decoder (much simpler than T5/MP+!)
-        app.logger.info(f"Loading GPT-4 decoder ({gpt_model})...")
+        # Initialize AutoGen multi-agent decoder
+        app.logger.info(f"Loading AutoGen multi-agent decoder ({gpt_model})...")
         
         # Check for API key
         api_key = openai_api_key or os.getenv('OPENAI_API_KEY')
         if not api_key:
             raise ValueError("OpenAI API key required. Set OPENAI_API_KEY env var or pass openai_api_key parameter.")
         
-        from explain.gpt4_decoder import GPT4Decoder
-        self.decoder = GPT4Decoder(api_key=api_key, model=gpt_model)
-        app.logger.info("✅ GPT-4 decoder ready!")
+        try:
+            from explain.autogen_decoder import AutoGenDecoder
+            self.decoder = AutoGenDecoder(api_key=api_key, model=gpt_model)
+            app.logger.info("✅ AutoGen multi-agent decoder ready!")
+        except ImportError as e:
+            error_msg = f"AutoGen packages not available: {e}"
+            app.logger.error(error_msg)
+            raise ImportError(f"{error_msg}\nPlease install with: pip install autogen-agentchat>=0.4.0 autogen-core>=0.4.0 autogen-ext>=0.4.0")
+        except Exception as e:
+            app.logger.error(f"Failed to initialize AutoGen decoder: {e}")
+            raise
 
         # Set up conversation (same as before)
         self.conversation = Conversation(eval_file_path=dataset_file_path,
@@ -192,49 +200,77 @@ class EnhancedExplainBot:
         log_dialogue_input(logging_input)
 
     def update_state(self, text: str, user_session_conversation: Conversation):
-        """Enhanced update_state using GPT-4 function calling.
+        """Enhanced update_state using AutoGen multi-agent system.
         
-        This is MUCH simpler than the original complex parsing!
+        The multi-agent system provides specialized agents for better accuracy and debugging.
         """
         try:
             app.logger.info(f"User query: {text}")
             
-
+            # Use AutoGen multi-agent system
+            completion = self.decoder.complete_sync(text, user_session_conversation)
+            app.logger.info(f"AutoGen completion: {completion}")
             
-            # 🚀 ONE SIMPLE CALL - No grammar, no guided decoding, no retries!
-            completion = self.decoder.complete(text, user_session_conversation)
-            app.logger.info(f"GPT-4 completion: {completion}")
-            
-            # Handle both function calls and conversational responses
-            if "direct_response" in completion:
-                # GPT-4 decided to respond conversationally (no function call needed)
-                app.logger.info(f"GPT-4 conversational response: {completion['direct_response']}")
+            # Handle both conversational responses and action commands consistently
+            if completion.get("direct_response"):
+                # Agents decided to respond conversationally (no function call needed)
+                app.logger.info(f"Conversational response: {completion['direct_response']}")
                 return completion["direct_response"]
                 
-            elif "generation" in completion and completion["generation"]:
-                # GPT-4 decided to call a function - run through action system
+            elif completion.get("generation"):
+                # Agents decided to call a function - run through action system
                 generation = completion["generation"]
-                app.logger.info(f"GPT-4 generation: {generation}")
+                app.logger.info(f"Generated action: {generation}")
                 
-                # More robust parsing
+                # More robust parsing - handle both formats
+                parsed_text = None
                 if "parsed:" in generation:
+                    # Extract action from "parsed: action[e]" format
                     parsed_parts = generation.split("parsed:")
                     if len(parsed_parts) > 1:
-                        parsed_text = parsed_parts[-1].split("[e]")[0].strip()
-                    else:
-                        parsed_text = "explain"  # Safe fallback
+                        action_part = parsed_parts[-1].strip()
+                        # Remove [e] suffix if present
+                        if "[e]" in action_part:
+                            parsed_text = action_part.split("[e]")[0].strip()
+                        else:
+                            parsed_text = action_part.strip()
                 else:
+                    # Handle direct action format
+                    parsed_text = generation.strip()
+                
+                # Ensure we have a valid action
+                if not parsed_text or len(parsed_text.strip()) == 0:
                     parsed_text = "explain"  # Safe fallback
                 
-                app.logger.info(f"GPT-4 parsed: {parsed_text}")
+                app.logger.info(f"Parsed action: {parsed_text}")
                 
-                # Run existing action system (unchanged!)
-                response = run_action(user_session_conversation, None, parsed_text)
+                # Use smart dispatcher for more intelligent action handling
+                try:
+                    from explain.smart_action_dispatcher import smart_dispatcher
+                    from explain.actions.get_action_functions import get_all_action_functions_map
+                    
+                    # Create a module-like object with the actions dictionary
+                    class ActionModule:
+                        actions = get_all_action_functions_map()
+                    
+                    response, status = smart_dispatcher.parse_and_execute(
+                        parsed_text, 
+                        user_session_conversation, 
+                        ActionModule()
+                    )
+                except ImportError:
+                    # Fallback to original action system if smart dispatcher not available
+                    app.logger.warning("Smart dispatcher not available, using legacy action system")
+                    response = run_action(user_session_conversation, None, parsed_text)
                 
-                # Add helpful metadata
-                if completion.get("method") == "gpt4_function_calling":
-                    function_info = completion.get("function_call", {})
-                    app.logger.info(f"Function called: {function_info.get('name', 'unknown')}")
+                # Add helpful metadata for debugging
+                method = completion.get("method", "autogen_multi_agent")
+                confidence = completion.get("confidence", 0.0)
+                app.logger.info(f"Action '{parsed_text}' executed via {method} (confidence: {confidence:.2f})")
+                
+                # Log agent reasoning if available (AutoGen feature)
+                if "agent_reasoning" in completion:
+                    app.logger.info(f"Agent reasoning: {completion['agent_reasoning']}")
                 
                 return response
             else:
@@ -242,55 +278,28 @@ class EnhancedExplainBot:
                 return "I'm sorry, I couldn't understand your request. Could you please rephrase it?"
                 
         except Exception as e:
-            app.logger.error(f"Error in GPT-4 processing: {e}")
+            app.logger.error(f"Error in AutoGen multi-agent processing: {e}")
             import traceback
             app.logger.error(f"Full traceback: {traceback.format_exc()}")
             return "I encountered an error processing your request. Please try again."
 
 
 # Example configuration update
-def update_config_for_gpt4():
-    """Show how to update gin config for GPT-4."""
+def update_config_for_autogen():
+    """Show how to update gin config for AutoGen multi-agent system."""
     
     config_update = """
-# Replace existing decoder config with GPT-4
+# AutoGen Multi-Agent Configuration
 EnhancedExplainBot.openai_api_key = None  # Will use OPENAI_API_KEY env var
-EnhancedExplainBot.gpt_model = "gpt-4"
+EnhancedExplainBot.gpt_model = "gpt-4o"   # Model used by all agents
 
-# Remove all the T5/MP+ complexity:
+# Remove all the T5/MP+ complexity - no longer needed with multi-agent approach:
 # ExplainBot.parsing_model_name = "ucinlp/diabetes-t5-small"  # No longer needed
 # ExplainBot.t5_config = None  # No longer needed
 # ExplainBot.use_guided_decoding = True  # No longer needed
 """
     
-    print("📝 Add this to your gin config:")
+    print("📝 Add this to your gin config for AutoGen multi-agent:")
     print(config_update)
 
 
-# Compatibility wrapper for existing code
-class GPT4ExplainBotWrapper(EnhancedExplainBot):
-    """Wrapper to maintain compatibility with existing ExplainBot interface."""
-    
-    def compute_parse_text(self, text: str, error_analysis: bool = False):
-        """Compatibility method that mimics original interface."""
-        completion = self.decoder.complete(text, self.conversation)
-        parsed_text = completion["generation"].split("parsed:")[-1].split("[e]")[0].strip()
-        
-        if error_analysis:
-            return None, parsed_text, True  # (parse_tree, parsed_text, includes_all_words)
-        else:
-            return None, parsed_text  # (parse_tree, parsed_text)
-
-
-if __name__ == "__main__":
-    print("🚀 Enhanced TalkToModel with GPT-4 Function Calling")
-    print("=" * 60)
-    print("Benefits:")
-    print("✅ ~85-90% parsing accuracy (vs 45% for MP+)")
-    print("✅ 90% less code complexity")
-    print("✅ No fine-tuning or grammar files needed")
-    print("✅ ~500ms latency (similar to T5-Large)")
-    print("✅ $0.01 per query cost")
-    print("✅ Handles conversational language naturally")
-    print()
-    update_config_for_gpt4() 

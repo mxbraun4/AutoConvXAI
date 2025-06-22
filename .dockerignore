@@ -1,38 +1,55 @@
-# Git and version control
+# Version control
 .git
 .gitignore
-.github
 
-# Python cache and compiled files
+# Python
 __pycache__
 *.pyc
 *.pyo
 *.pyd
 .Python
-*.so
+*.egg-info
 .pytest_cache
+.coverage
 
 # Virtual environments
-venv/
-env/
-ENV/
+env
+venv
+.env
+.venv
 
 # IDE files
-.vscode/
-.idea/
+.vscode
+.idea
 *.swp
 *.swo
 
+# OS files
+.DS_Store
+Thumbs.db
+
 # Documentation
 README.md
-*.md
-LICENSE
 CITATION.cff
+LICENSE
+
+# Test files (exclude if not needed)
+tests/
+
+# Cache directories
+cache/
+.cache
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
 
 # Exclude the original complex parsing system
 parsing/
 experiments/
-tests/
 tutorials/
 
 # Exclude unnecessary config files
@@ -47,10 +64,6 @@ flask_app.py
 # Exclude unnecessary requirements
 requirements.txt
 
-# Exclude cache and logs (will be created in container)
-cache/
-logs/
-
 # Exclude specific data files not needed for diabetes model
 data/german*
 data/compas*
@@ -64,11 +77,4 @@ explain/parser.py
 explain/grammar.py
 explain/decoder.py
 explain/complete.py
-explain/logic.py
-
-# Exclude development and testing files
-*.ipynb
-*.log
-*.tmp
-.DS_Store
-Thumbs.db 
+explain/logic.py 

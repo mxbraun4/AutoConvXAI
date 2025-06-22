@@ -1,4 +1,4 @@
-"""Clean Flask app using GPT-4 function calling instead of complex parsing."""
+"""Clean Flask app using AutoGen Multi-Agent system for TalkToModel."""
 import json
 import logging
 from logging.config import dictConfig
@@ -38,8 +38,8 @@ GPT_MODEL = os.getenv('GPT_MODEL', 'gpt-4o')
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY environment variable is required!")
 
-# Initialize the enhanced bot with GPT-4
-print("🚀 Initializing TalkToModel with GPT-4...")
+# Initialize the enhanced bot with AutoGen multi-agent system
+print(f"🚀 Initializing TalkToModel with AutoGen Multi-Agent System...")
 BOT = EnhancedExplainBot(
     model_file_path="data/diabetes_model_logistic_regression.pkl",
     dataset_file_path="data/diabetes.csv", 
@@ -53,13 +53,13 @@ BOT = EnhancedExplainBot(
     openai_api_key=OPENAI_API_KEY,
     gpt_model=GPT_MODEL
 )
-print("✅ GPT-4 TalkToModel ready!")
+print(f"✅ AutoGen Multi-Agent TalkToModel ready!")
 
 
 @bp.route('/')
 def home():
     """Load the explanation interface."""
-    app.logger.info("Loaded interface with GPT-4 backend")
+    app.logger.info("Loaded interface with AutoGen multi-agent backend")
     objective = BOT.conversation.describe.get_dataset_objective()
     return render_template("index.html", 
                          currentUserId="user", 
@@ -68,21 +68,21 @@ def home():
 
 @bp.route("/get_response", methods=['POST'])
 def get_bot_response():
-    """Get bot response using clean GPT-4 function calling."""
+    """Get bot response using AutoGen multi-agent system."""
     if request.method == "POST":
-        app.logger.info("Generating GPT-4 response...")
+        app.logger.info("Generating AutoGen multi-agent response...")
         try:
             data = json.loads(request.data)
             user_text = data["userInput"]
             
-            # 🚀 CLEAN & SIMPLE - One call, no complex parsing!
+            # 🤖 MULTI-AGENT SYSTEM - Specialized agents collaborate for best results!
             response = BOT.update_state(user_text, BOT.conversation)
             
-            app.logger.info("✅ GPT-4 response generated successfully")
+            app.logger.info("✅ AutoGen multi-agent response generated successfully")
             return response
             
         except Exception as e:
-            app.logger.error(f"Error with GPT-4: {e}")
+            app.logger.error(f"Error with AutoGen multi-agent system: {e}")
             return "I encountered an error. Please try rephrasing your question."
 
 
@@ -107,7 +107,7 @@ def sample_prompt():
         "username": username,
         "requested_action_generation": action,
         "generated_prompt": prompt,
-        "system": "gpt4"
+        "system": "autogen_multi_agent"
     })
     
     return prompt
@@ -130,7 +130,7 @@ def log_feedback():
             "id": message_id,
             "feedback_text": feedback_text,
             "username": username,
-            "system": "gpt4"
+            "system": "autogen_multi_agent"
         })
     
     return ""
@@ -140,37 +140,20 @@ def log_feedback():
 app.register_blueprint(bp, url_prefix=BASE_URL)
 
 
-if __name__ == "__main__":
-    print("\n" + "="*60)
-    print("🎉 TalkToModel with GPT-4 Function Calling")
-    print("="*60)
-    print("🔥 Benefits vs old system:")
-    print("   • 85-90% accuracy (vs 45% MP+ / 76% T5-Large)")
-    print("   • 90% less code complexity")
-    print("   • No grammar files or guided decoding")
-    print("   • Handles conversational language naturally")
-    print("   • ~$0.01 per query cost")
-    print("   • ~500ms latency")
-    print("="*60)
-    
-    # Check API key
-    if not OPENAI_API_KEY or OPENAI_API_KEY == 'your_api_key_here':
-        print("⚠️  Set OPENAI_API_KEY environment variable")
-        print("   export OPENAI_API_KEY=your_api_key_here")
-    else:
-        print(f"✅ Using OpenAI API key: {OPENAI_API_KEY[:10]}...")
-        print(f"✅ Using GPT model: {GPT_MODEL}")
-    
-    app.run(debug=False, port=4455, host='0.0.0.0')
-
-
 # Example usage and comparison
 if __name__ == "__main__":
-    print("\n🔥 Query Examples:")
-    print("Before (complex): 'um, can you like explain why patient 5 got diabetes?'")
-    print("After (GPT-4):   Same query → Perfect understanding")
+    print("\n🤖 AutoGen Multi-Agent Query Examples:")
+    print("Before (complex parsing): 'um, can you like explain why patient 5 got diabetes?'")
+    print("After (Multi-Agent):      Intent Agent → Action Agent → Validator → Perfect understanding")
     print()
-    print("Before (complex): Multi-step parsing with grammar validation")
-    print("After (GPT-4):   One function call → Direct action execution")
+    print("Before (single model): One model handles everything")
+    print("After (Multi-Agent):   Specialized agents collaborate for better accuracy")
     print()
-    print("Query complexity: ANY → GPT-4 handles it all ✨") 
+    print("Query complexity: ANY → Multi-Agent team handles it all with specialized expertise ✨")
+    print("🎯 Intent Extraction Agent: Understands what you want")
+    print("⚡ Action Planning Agent: Plans the right action")
+    print("✅ Validation Agent: Ensures correctness")
+    print("🤝 Coordinator Agent: Brings it all together")
+    
+    # Run Flask app on all interfaces for Docker
+    app.run(host='0.0.0.0', port=4455, debug=False) 
