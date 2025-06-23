@@ -35,6 +35,10 @@ def feature_stats(conversation, parse_text, i, n_features_to_show=float("+inf"),
     data = conversation.temp_dataset.contents['X']
     label = conversation.temp_dataset.contents['y']
     intro_text = get_parse_filter_text(conversation)
+    
+    if i+1 >= len(parse_text):
+        return "No feature name specified for statistics.", 0
+    
     feature_name = parse_text[i+1]
 
     if len(data) == 1:

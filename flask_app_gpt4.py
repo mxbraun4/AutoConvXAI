@@ -38,8 +38,9 @@ GPT_MODEL = os.getenv('GPT_MODEL', 'gpt-4o')
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY environment variable is required!")
 
-# Initialize the enhanced bot with AutoGen multi-agent system
+# Initialize the enhanced bot with AutoGen multi-agent system + GENERALIZED ACTIONS
 print(f"🚀 Initializing TalkToModel with AutoGen Multi-Agent System...")
+print(f"🤖 ENABLING GENERALIZED TOOL-AUGMENTED AGENTS!")
 BOT = EnhancedExplainBot(
     model_file_path="data/diabetes_model_logistic_regression.pkl",
     dataset_file_path="data/diabetes.csv", 
@@ -51,9 +52,16 @@ BOT = EnhancedExplainBot(
     remove_underscores=True,
     name="diabetes",
     openai_api_key=OPENAI_API_KEY,
-    gpt_model=GPT_MODEL
+    gpt_model=GPT_MODEL,
+    use_generalized_actions=True,  # 🚀 ENABLE GENERALIZED SYSTEM
+    preload_explanations=False     # Faster startup
 )
-print(f"✅ AutoGen Multi-Agent TalkToModel ready!")
+print(f"✅ AutoGen Multi-Agent TalkToModel ready with GENERALIZED TOOL-AUGMENTED ACTIONS!")
+print(f"🎯 System Benefits:")
+print(f"   ✅ Automatically adapts to any dataset structure")
+print(f"   ✅ Dynamic code generation instead of hardcoded rules")
+print(f"   ✅ Tool-augmented agents with pandas/sklearn access")
+print(f"   ✅ Self-describing operations and transparent execution")
 
 
 @bp.route('/')

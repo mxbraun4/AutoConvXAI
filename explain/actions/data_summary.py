@@ -4,16 +4,71 @@
 # Note, these are hardcode for compas!
 def data_operation(conversation, parse_text, i, **kwargs):
     """Data summary operation."""
+    # Get dataset size information
+    df = conversation.temp_dataset.contents['X']
+    dataset_size = len(df)
+    total_size = len(conversation.get_var('dataset').contents['X'])
+    
+    # Check if user is asking for specific feature statistics
+    query_text = " ".join(parse_text).lower()
+    
+    # Handle specific feature queries like "average age", "mean glucose", etc.
+    if any(word in query_text for word in ['average', 'mean']) and 'age' in query_text:
+        if 'age' in df.columns:
+            avg_age = round(df['age'].mean(), conversation.rounding_precision)
+            std_age = round(df['age'].std(), conversation.rounding_precision)
+            min_age = round(df['age'].min(), conversation.rounding_precision)
+            max_age = round(df['age'].max(), conversation.rounding_precision)
+            
+            size_desc = f"{dataset_size} patients" if dataset_size == total_size else f"{dataset_size} out of {total_size} patients"
+            
+            text = f"For the {size_desc} in the dataset:<br><br>"
+            text += f"<b>Age Statistics:</b><br>"
+            text += f"• Average age: <b>{avg_age} years</b><br>"
+            text += f"• Standard deviation: {std_age} years<br>"
+            text += f"• Age range: {min_age} to {max_age} years<br><br>"
+            
+            return text, 1
+        else:
+            return "Age information is not available in this dataset.<br><br>", 0
+    
+    # Handle other specific feature queries
+    for feature in df.columns:
+        if feature.lower() in query_text and any(word in query_text for word in ['average', 'mean']):
+            avg_val = round(df[feature].mean(), conversation.rounding_precision)
+            std_val = round(df[feature].std(), conversation.rounding_precision)
+            min_val = round(df[feature].min(), conversation.rounding_precision)
+            max_val = round(df[feature].max(), conversation.rounding_precision)
+            
+            size_desc = f"{dataset_size} patients" if dataset_size == total_size else f"{dataset_size} out of {total_size} patients"
+            
+            text = f"For the {size_desc} in the dataset:<br><br>"
+            text += f"<b>{feature.title()} Statistics:</b><br>"
+            text += f"• Average: <b>{avg_val}</b><br>"
+            text += f"• Standard deviation: {std_val}<br>"
+            text += f"• Range: {min_val} to {max_val}<br><br>"
+            
+            return text, 1
+    
+    # Default dataset description
     description = conversation.describe.get_dataset_description()
-    text = f"The data contains information related to <b>{description}</b>.<br><br>"
+    if not description or description == "":
+        description = "diabetes prediction based on patient health metrics"
+    
+    # Create size description
+    if dataset_size == total_size:
+        size_text = f"<b>{dataset_size} patient records</b>"
+    else:
+        size_text = f"<b>{dataset_size} out of {total_size} patient records</b> (filtered dataset)"
+    
+    text = f"The dataset contains {size_text} with information related to <b>{description}</b>.<br><br>"
 
     # List out the feature names
-    f_names = list(conversation.temp_dataset.contents['X'].columns)
+    f_names = list(df.columns)
     f_string = "<ul>"
     for fn in f_names:
         f_string += f"<li>{fn}</li>"
     f_string += "</ul>"
-    df = conversation.temp_dataset.contents['X']
     text += f"The exact feature names in the data are listed as follows:{f_string}<br><br>"
 
     # Summarize performance

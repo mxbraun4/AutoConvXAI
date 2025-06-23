@@ -29,8 +29,10 @@ def numerical_filter(parse_text, temp_dataset, i, feature_name):
     greater than, equal to, etc.) and then performs the operation.
     """
     # Greater than or equal to
-    if parse_text[i+2] == 'greater' and parse_text[i+3] == 'equal':
+    if parse_text[i+2] == 'greater' and i+3 < len(parse_text) and parse_text[i+3] == 'equal':
         print(parse_text)
+        if i+5 >= len(parse_text):
+            raise ValueError(f"Missing value for filter operation at position {i+5}")
         feature_value = float(parse_text[i+5])
         bools = temp_dataset['X'][feature_name] >= feature_value
         updated_dset = filter_dataset(temp_dataset, bools)
@@ -38,13 +40,24 @@ def numerical_filter(parse_text, temp_dataset, i, feature_name):
             feature_name, feature_value, "greater than or equal to")
     # Greater than
     elif parse_text[i+2] == 'greater':
-        feature_value = float(parse_text[i+4])
+        if i+3 >= len(parse_text):
+            raise ValueError(f"Missing value for filter operation at position {i+3}")
+        # For "filter age greater 50", the value is at i+3
+        value_index = i+3
+        
+        try:
+            feature_value = float(parse_text[value_index])
+        except ValueError:
+            raise ValueError(f"Expected numeric value after 'greater', got '{parse_text[value_index]}'")
+            
         bools = temp_dataset['X'][feature_name] > feature_value
         updated_dset = filter_dataset(temp_dataset, bools)
         interpretable_parse_text = format_parse_string(
             feature_name, feature_value, "greater than")
     # Less than or equal to
-    elif parse_text[i+2] == 'less' and parse_text[i+3] == 'equal':
+    elif parse_text[i+2] == 'less' and i+3 < len(parse_text) and parse_text[i+3] == 'equal':
+        if i+5 >= len(parse_text):
+            raise ValueError(f"Missing value for filter operation at position {i+5}")
         feature_value = float(parse_text[i+5])
         bools = temp_dataset['X'][feature_name] <= feature_value
         updated_dset = filter_dataset(temp_dataset, bools)
@@ -52,21 +65,42 @@ def numerical_filter(parse_text, temp_dataset, i, feature_name):
             feature_name, feature_value, "less than or equal to")
     # Less than
     elif parse_text[i+2] == 'less':
-        feature_value = float(parse_text[i+4])
+        if i+3 >= len(parse_text):
+            raise ValueError(f"Missing value for filter operation at position {i+3}")
+        value_index = i+3
+        try:
+            feature_value = float(parse_text[value_index])
+        except ValueError:
+            raise ValueError(f"Expected numeric value after 'less', got '{parse_text[value_index]}'")
+            
         bools = temp_dataset['X'][feature_name] < feature_value
         updated_dset = filter_dataset(temp_dataset, bools)
         interpretable_parse_text = format_parse_string(
             feature_name, feature_value, "less than")
     # Equal to
     elif parse_text[i+2] == 'equal':
-        feature_value = float(parse_text[i+4])
+        if i+3 >= len(parse_text):
+            raise ValueError(f"Missing value for filter operation at position {i+3}")
+        value_index = i+3
+        try:
+            feature_value = float(parse_text[value_index])
+        except ValueError:
+            raise ValueError(f"Expected numeric value after 'equal', got '{parse_text[value_index]}'")
+            
         bools = temp_dataset['X'][feature_name] == feature_value
         updated_dset = filter_dataset(temp_dataset, bools)
         interpretable_parse_text = format_parse_string(
             feature_name, feature_value, "equal to")
     # Not equal to
     elif parse_text[i+2] == 'not':
-        feature_value = float(parse_text[i+5])
+        if i+4 >= len(parse_text):
+            raise ValueError(f"Missing value for filter operation at position {i+4}")
+        value_index = i+4
+        try:
+            feature_value = float(parse_text[value_index])
+        except ValueError:
+            raise ValueError(f"Expected numeric value after 'not equal', got '{parse_text[value_index]}'")
+            
         bools = temp_dataset['X'][feature_name] != feature_value
         updated_dset = filter_dataset(temp_dataset, bools)
         interpretable_parse_text = format_parse_string(

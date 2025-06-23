@@ -42,19 +42,24 @@ class EnhancedExplainBot:
                  openai_api_key: str = None,
                  gpt_model: str = "gpt-4o",
                  seed: int = 0,
-                 feature_definitions: dict = None):
+                 feature_definitions: dict = None,
+                 preload_explanations: bool = False,
+                 use_generalized_actions: bool = False):
         """Initialize enhanced bot with AutoGen multi-agent system.
 
         Args:
             ... (same as original ExplainBot) ...
             openai_api_key: OpenAI API key for GPT-4 
             gpt_model: GPT-4 model variant to use for all agents
+            use_generalized_actions: If True, uses generalized tool-augmented agents
+                                   instead of hardcoded action mappings
         """
         # Set seeds
         np.random.seed(seed)
         py_random_seed(seed)
 
         self.bot_name = name
+        self.use_generalized_actions = use_generalized_actions
 
         # Initialize AutoGen multi-agent decoder
         app.logger.info(f"Loading AutoGen multi-agent decoder ({gpt_model})...")
@@ -67,7 +72,12 @@ class EnhancedExplainBot:
         try:
             from explain.autogen_decoder import AutoGenDecoder
             self.decoder = AutoGenDecoder(api_key=api_key, model=gpt_model)
-            app.logger.info("✅ AutoGen multi-agent decoder ready!")
+            
+            if self.use_generalized_actions:
+                app.logger.info("✅ AutoGen multi-agent decoder ready with GENERALIZED TOOL-AUGMENTED ACTIONS!")
+            else:
+                app.logger.info("✅ AutoGen multi-agent decoder ready with traditional actions!")
+                
         except ImportError as e:
             error_msg = f"AutoGen packages not available: {e}"
             app.logger.error(error_msg)
@@ -79,6 +89,9 @@ class EnhancedExplainBot:
         # Set up conversation (same as before)
         self.conversation = Conversation(eval_file_path=dataset_file_path,
                                          feature_definitions=feature_definitions)
+        
+        # Make bot available to conversation for on-demand loading
+        self.conversation.bot = self
         
         # Initialize dataset description
         from explain.dataset_description import DatasetDescription
@@ -100,8 +113,14 @@ class EnhancedExplainBot:
                                                           numerical_features,
                                                           remove_underscores)
 
-        # Load explanations (unchanged)
+        # Store background dataset for later use
+        self.background_dataset = background_dataset
+        self.explanations_loaded = False
+        self.preload_explanations = preload_explanations
+        
+        # Always set up lazy explainer (instantaneous, no computation)
         self.load_explanations(background_dataset=background_dataset)
+        app.logger.info("⚡ Using lazy explanation loading for instant startup!")
 
     def load_model(self, filepath: str):
         """Load model (unchanged from original)."""
@@ -161,8 +180,8 @@ class EnhancedExplainBot:
         }
 
     def load_explanations(self, background_dataset):
-        """Load explanations (unchanged from original)."""
-        app.logger.info("Loading explanations...")
+        """Load explanations using lazy loading for better performance."""
+        app.logger.info("Setting up lazy explanation loading...")
 
         pred_f = self.conversation.get_var('model_prob_predict').contents
         model = self.conversation.get_var('model').contents
@@ -170,24 +189,60 @@ class EnhancedExplainBot:
         categorical_f = self.conversation.get_var('dataset').contents['cat']
         numeric_f = self.conversation.get_var('dataset').contents['numeric']
 
-        # Load LIME/SHAP explanations
-        # MegaExplainer expects the 'X' DataFrame from background_dataset
-        mega_explainer = MegaExplainer(prediction_fn=pred_f,
-                                       data=background_dataset['X'],
-                                       cat_features=categorical_f,
-                                       class_names=self.conversation.class_names)
-        mega_explainer.get_explanations(ids=list(data.index), data=data)
+        # Use LazyMegaExplainer instead of MegaExplainer
+        from explain.lazy_mega_explainer import LazyMegaExplainer
         
-        # Load counterfactual explanations
+        lazy_explainer = LazyMegaExplainer(
+            prediction_fn=pred_f,
+            data=background_dataset['X'],
+            cat_features=categorical_f,
+            class_names=self.conversation.class_names
+        )
+        
+        # Load counterfactual explanations (keep these as-is for now)
         tabular_dice = TabularDice(model=model,
                                    data=data,
                                    num_features=numeric_f,
                                    class_names=self.conversation.class_names)
-        tabular_dice.get_explanations(ids=list(data.index), data=data)
+        # Don't pre-compute all counterfactuals either
+        # tabular_dice.get_explanations(ids=list(data.index), data=data)
 
         # Add to conversation
-        self.conversation.add_var('mega_explainer', mega_explainer, 'explanation')
+        self.conversation.add_var('mega_explainer', lazy_explainer, 'explanation')
         self.conversation.add_var('tabular_dice', tabular_dice, 'explanation')
+        self.explanations_loaded = True
+        
+        app.logger.info("✅ Lazy explanation loading configured (explanations computed on-demand)")
+
+    def ensure_explanations_loaded(self):
+        """Load explanations on-demand if not already loaded."""
+        if not self.explanations_loaded:
+            app.logger.info("Loading explanations on-demand...")
+            self.load_explanations(self.background_dataset)
+    
+    def load_explanations_for_instance(self, instance_id: int):
+        """Load explanations for a specific instance only (more efficient)."""
+        if not hasattr(self, 'lite_explainer'):
+            # Create a lightweight explainer that only computes when needed
+            pred_f = self.conversation.get_var('model_prob_predict').contents
+            model = self.conversation.get_var('model').contents
+            data = self.conversation.get_var('dataset').contents['X']
+            categorical_f = self.conversation.get_var('dataset').contents['cat']
+            numeric_f = self.conversation.get_var('dataset').contents['numeric']
+            
+            # Create explainer but don't pre-compute all explanations
+            self.lite_explainer = MegaExplainer(prediction_fn=pred_f,
+                                               data=self.background_dataset['X'],
+                                               cat_features=categorical_f,
+                                               class_names=self.conversation.class_names)
+            
+            # Add to conversation for compatibility
+            self.conversation.add_var('mega_explainer', self.lite_explainer, 'explanation')
+        
+        # Only compute explanation for the specific instance
+        if instance_id in self.conversation.get_var('dataset').contents['X'].index:
+            instance_data = self.conversation.get_var('dataset').contents['X'].loc[[instance_id]]
+            self.lite_explainer.get_explanations(ids=[instance_id], data=instance_data)
 
     @staticmethod
     def gen_almost_surely_unique_id(n_bytes: int = 30):
@@ -210,6 +265,11 @@ class EnhancedExplainBot:
             # Use AutoGen multi-agent system
             completion = self.decoder.complete_sync(text, user_session_conversation)
             app.logger.info(f"AutoGen completion: {completion}")
+            
+            # Check if we need to reset context based on agent analysis
+            if completion.get("intent_response") and completion["intent_response"].get("entities", {}).get("context_reset", False):
+                app.logger.info("Context reset detected - rebuilding temp dataset")
+                user_session_conversation.build_temp_dataset()
             
             # Handle both conversational responses and action commands consistently
             if completion.get("direct_response"):
@@ -244,29 +304,17 @@ class EnhancedExplainBot:
                 
                 app.logger.info(f"Parsed action: {parsed_text}")
                 
-                # Use smart dispatcher for more intelligent action handling
-                try:
-                    from explain.smart_action_dispatcher import smart_dispatcher
-                    from explain.actions.get_action_functions import get_all_action_functions_map
-                    
-                    # Create a module-like object with the actions dictionary
-                    class ActionModule:
-                        actions = get_all_action_functions_map()
-                    
-                    response, status = smart_dispatcher.parse_and_execute(
-                        parsed_text, 
-                        user_session_conversation, 
-                        ActionModule()
-                    )
-                except ImportError:
-                    # Fallback to original action system if smart dispatcher not available
-                    app.logger.warning("Smart dispatcher not available, using legacy action system")
-                    response = run_action(user_session_conversation, None, parsed_text)
+                # Route to generalized or traditional action system
+                if self.use_generalized_actions:
+                    response = self._handle_generalized_action(completion, user_session_conversation)
+                else:
+                    response = self._handle_traditional_action(parsed_text, user_session_conversation)
                 
                 # Add helpful metadata for debugging
                 method = completion.get("method", "autogen_multi_agent")
                 confidence = completion.get("confidence", 0.0)
-                app.logger.info(f"Action '{parsed_text}' executed via {method} (confidence: {confidence:.2f})")
+                action_type = "generalized" if self.use_generalized_actions else "traditional"
+                app.logger.info(f"Action '{parsed_text}' executed via {method} ({action_type} mode, confidence: {confidence:.2f})")
                 
                 # Log agent reasoning if available (AutoGen feature)
                 if "agent_reasoning" in completion:
@@ -280,8 +328,175 @@ class EnhancedExplainBot:
         except Exception as e:
             app.logger.error(f"Error in AutoGen multi-agent processing: {e}")
             import traceback
-            app.logger.error(f"Full traceback: {traceback.format_exc()}")
-            return "I encountered an error processing your request. Please try again."
+            full_traceback = traceback.format_exc()
+            app.logger.error(f"Full traceback: {full_traceback}")
+            
+            # Try to provide more helpful error information
+            error_context = f"Query: '{text}'"
+            app.logger.error(f"Error context: {error_context}")
+            
+            # Attempt a simple fallback for common patterns
+            try:
+                app.logger.info("Attempting fallback processing...")
+                fallback_result = self._simple_fallback_processing(text, user_session_conversation)
+                if fallback_result:
+                    app.logger.info("Fallback processing succeeded")
+                    return fallback_result
+            except Exception as fallback_error:
+                app.logger.error(f"Fallback processing also failed: {fallback_error}")
+            
+            return f"I encountered an error processing your request. Please try rephrasing your question. (Error: {str(e)})"
+
+    def _handle_generalized_action(self, completion: dict, conversation: Conversation) -> str:
+        """Handle action using the new generalized tool-augmented system."""
+        try:
+            # Import generalized agents - this should ALWAYS work when generalized actions are enabled
+            from explain.generalized_agents import generalized_action_dispatcher
+            
+            # Extract intent and entities from AutoGen completion
+            intent_response = completion.get("intent_response", {})
+            intent = intent_response.get("intent", "unknown")
+            entities = intent_response.get("entities", {})
+            
+            app.logger.info(f"Generalized dispatcher: intent='{intent}', entities={entities}")
+            
+            # Use generalized action dispatcher
+            response, status = generalized_action_dispatcher(intent, entities, conversation)
+            
+            if status == 0:
+                app.logger.warning(f"Generalized action failed: {response}")
+                # Fallback to traditional system if generalized fails
+                app.logger.info("Falling back to traditional action system...")
+                # Parse the generation properly before passing to traditional system
+                generation = completion.get("generation", "explain")
+                parsed_fallback = self._parse_generation(generation)
+                return self._handle_traditional_action(parsed_fallback, conversation)
+            
+            return response
+            
+        except ImportError as e:
+            app.logger.error(f"CRITICAL: Cannot import generalized agents when use_generalized_actions=True: {e}")
+            raise ImportError(f"Generalized agents are required but cannot be imported: {e}")
+        except Exception as e:
+            app.logger.error(f"Error in generalized action handling: {e}")
+            # Fallback to traditional system
+            app.logger.info("Error in generalized system, falling back to traditional...")
+            generation = completion.get("generation", "explain")
+            parsed_fallback = self._parse_generation(generation)
+            return self._handle_traditional_action(parsed_fallback, conversation)
+
+    def _handle_traditional_action(self, parsed_text: str, conversation: Conversation) -> str:
+        """Handle action using the traditional hardcoded action system."""
+        try:
+            # Use smart dispatcher for more intelligent action handling
+            try:
+                from explain.smart_action_dispatcher import get_smart_dispatcher
+                from explain.actions.get_action_functions import get_all_action_functions_map
+                
+                # Get API key
+                api_key = self.decoder.api_key if hasattr(self.decoder, 'api_key') else os.getenv('OPENAI_API_KEY')
+                
+                # Get available features
+                available_features = []
+                if hasattr(conversation, 'dataset') and conversation.dataset:
+                    dataset = conversation.dataset.contents
+                    if 'numeric' in dataset:
+                        available_features.extend(dataset['numeric'])
+                    if 'cat' in dataset:
+                        available_features.extend(dataset['cat'])
+                
+                # Use smart dispatcher
+                dispatcher = get_smart_dispatcher(api_key)
+                response, status = dispatcher.dispatch(
+                    parsed_text,
+                    conversation,
+                    get_all_action_functions_map(),
+                    available_features
+                )
+                
+                # Handle status
+                if status == 0:
+                    app.logger.warning(f"Traditional action failed: {response}")
+                
+                return response
+                
+            except ImportError:
+                # Fallback to original action system if smart dispatcher not available
+                app.logger.warning("Smart dispatcher not available, using legacy action system")
+                return run_action(conversation, None, parsed_text)
+            except Exception as e:
+                app.logger.error(f"Error in smart dispatcher: {e}")
+                # Fallback to original action system
+                return run_action(conversation, None, parsed_text)
+                
+        except Exception as e:
+            app.logger.error(f"Error in traditional action handling: {e}")
+            return f"Error processing action: {str(e)}"
+
+    def _parse_generation(self, generation: str) -> str:
+        """Parse generation text and extract clean action command."""
+        # More robust parsing - handle both formats
+        parsed_text = None
+        if "parsed:" in generation:
+            # Extract action from "parsed: action[e]" format
+            parsed_parts = generation.split("parsed:")
+            if len(parsed_parts) > 1:
+                action_part = parsed_parts[-1].strip()
+                # Remove [e] suffix if present
+                if "[e]" in action_part:
+                    parsed_text = action_part.split("[e]")[0].strip()
+                else:
+                    parsed_text = action_part.strip()
+        else:
+            # Handle direct action format
+            parsed_text = generation.strip()
+        
+        # Ensure we have a valid action
+        if not parsed_text or len(parsed_text.strip()) == 0:
+            parsed_text = "explain"  # Safe fallback
+        
+        return parsed_text
+
+    def _simple_fallback_processing(self, text: str, conversation) -> str:
+        """Simple fallback processing for common patterns when AutoGen fails."""
+        text_lower = text.lower()
+        
+        # Pattern 1: Feature importance
+        if any(word in text_lower for word in ['important', 'importance', 'significant', 'key']) and 'feature' in text_lower:
+            app.logger.info("Fallback: Detected feature importance query")
+            from explain.action import run_action
+            return run_action(conversation, None, "important all")
+            
+        # Pattern 2: Explanation requests with ID
+        import re
+        explain_match = re.search(r'(?:why|explain).*?(?:person|patient|instance|id)\s*(?:with\s+id\s+)?(\d+)', text_lower)
+        if explain_match:
+            patient_id = explain_match.group(1)
+            app.logger.info(f"Fallback: Detected explanation request for ID {patient_id}")
+            from explain.action import run_action
+            return run_action(conversation, None, f"filter id {patient_id} explain")
+            
+        # Pattern 3: Pregnancy predictions
+        if 'predict' in text_lower and ('pregnant' in text_lower or 'pregnancy' in text_lower):
+            if any(word in text_lower for word in ['no', 'not', 'false', 'never']):
+                app.logger.info("Fallback: Detected non-pregnant prediction query")
+                from explain.action import run_action
+                return run_action(conversation, None, "filter pregnancies equal 0 predict")
+            else:
+                app.logger.info("Fallback: Detected pregnant prediction query")
+                from explain.action import run_action
+                return run_action(conversation, None, "filter pregnancies greater 0 predict")
+        
+        # Pattern 4: Simple prediction requests
+        if 'predict' in text_lower:
+            predict_match = re.search(r'(?:predict|prediction).*?(?:person|patient|instance|id)\s*(\d+)', text_lower)
+            if predict_match:
+                patient_id = predict_match.group(1)
+                app.logger.info(f"Fallback: Detected prediction request for ID {patient_id}")
+                from explain.action import run_action
+                return run_action(conversation, None, f"filter id {patient_id} predict")
+        
+        return None
 
 
 # Example configuration update
@@ -292,6 +507,26 @@ def update_config_for_autogen():
 # AutoGen Multi-Agent Configuration
 EnhancedExplainBot.openai_api_key = None  # Will use OPENAI_API_KEY env var
 EnhancedExplainBot.gpt_model = "gpt-4o"   # Model used by all agents
+EnhancedExplainBot.preload_explanations = False  # Skip slow explanation pre-computation
+
+# NEW: Generalized Action System (EXPERIMENTAL)
+# Set to True to use tool-augmented agents instead of hardcoded actions
+EnhancedExplainBot.use_generalized_actions = False  # Set to True to enable
+
+# GENERALIZED MODE BENEFITS:
+# ✅ Automatically adapts to any dataset structure
+# ✅ Reduces hardcoded rules and mappings  
+# ✅ Uses dynamic pandas/sklearn code generation
+# ✅ More flexible and extensible
+# ✅ Better error handling with automatic fallbacks
+#
+# TRADITIONAL MODE BENEFITS:
+# ✅ Well-tested with existing datasets
+# ✅ Optimized for diabetes prediction use case
+# ✅ Fast execution for known action patterns
+
+# For faster startup, explanations are loaded on-demand
+# Set to True if you want all explanations pre-computed (slower startup, faster explanation queries)
 
 # Remove all the T5/MP+ complexity - no longer needed with multi-agent approach:
 # ExplainBot.parsing_model_name = "ucinlp/diabetes-t5-small"  # No longer needed

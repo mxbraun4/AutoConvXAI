@@ -192,7 +192,11 @@ def important_operation(conversation, parse_text, i, **kwargs):
     ids = list(data.index)
 
     # The feature, all, or topk that is being evaluated for importance
-    parsed_feature_name = parse_text[i+1]
+    if i+1 >= len(parse_text):
+        # No specific feature specified, default to showing all features
+        parsed_feature_name = "all"
+    else:
+        parsed_feature_name = parse_text[i+1]
 
     # Generate the text for the filtering operation
     parse_op = gen_parse_op_text(conversation)
@@ -229,7 +233,14 @@ def important_operation(conversation, parse_text, i, **kwargs):
                                            return_s,
                                            topk=len(avg_ranks))
     elif parsed_feature_name == "topk":
-        topk = int(parse_text[i+2])
+        if i+2 >= len(parse_text):
+            # Default to top 5 if no number specified
+            topk = 5
+        else:
+            try:
+                topk = int(parse_text[i+2])
+            except (ValueError, IndexError):
+                topk = 5
         return_s = topk_feature_importance(avg_ranks, conversation, parse_op, return_s, topk)
     else:
         # Individual feature importance case

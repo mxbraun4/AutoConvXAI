@@ -105,13 +105,30 @@ def show_mistakes_operation(conversation, parse_text, i, n_features_to_show=floa
         else:
             return f"{intro_text} the model predicts correctly on all the instances in the data!<br><br>", 1
 
-    if parse_text[i+1] == "sample":
+    # Check if mistake type is specified and within bounds
+    mistake_type = None
+    if i+1 < len(parse_text):
+        mistake_type = parse_text[i+1]
+    
+    # If no specific type specified, try to infer from the original query
+    if mistake_type is None or mistake_type not in ["sample", "typical"]:
+        # Check if "typical" is mentioned anywhere in the parse_text
+        full_text = " ".join(parse_text).lower()
+        if "typical" in full_text:
+            mistake_type = "typical"
+        elif "sample" in full_text:
+            mistake_type = "sample"
+        else:
+            # Default to typical mistakes as it's more informative
+            mistake_type = "typical"
+    
+    if mistake_type == "sample":
         return_string = sample_mistakes(y_true,
                                         y_pred,
                                         conversation,
                                         intro_text,
                                         ids)
-    elif parse_text[i+1] == "typical":
+    elif mistake_type == "typical":
         return_string = typical_mistakes(data,
                                          y_true,
                                          y_pred,
@@ -119,7 +136,13 @@ def show_mistakes_operation(conversation, parse_text, i, n_features_to_show=floa
                                          intro_text,
                                          ids)
     else:
-        raise NotImplementedError(f"No mistake type {parse_text[i+1]}")
+        # This shouldn't happen with the logic above, but safe fallback
+        return_string = typical_mistakes(data,
+                                         y_true,
+                                         y_pred,
+                                         conversation,
+                                         intro_text,
+                                         ids)
 
     return_string += "<br><br>"
     return return_string, 1

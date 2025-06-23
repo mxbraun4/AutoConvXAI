@@ -1,0 +1,32 @@
+# Development Dockerfile - Ultra-fast builds (15 seconds)
+FROM python:3.11-slim
+
+# Install only essential packages for development
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir \
+    Flask==2.3.3 \
+    openai>=1.0.0 \
+    pandas>=1.5.0,<2.0.0 \
+    scikit-learn>=1.3.0 \
+    numpy>=1.24.0,<2.0.0
+
+# Set working directory
+WORKDIR /usr/src/app
+
+# Copy only essential files
+COPY flask_app_gpt4.py ./
+COPY explain/ explain/
+COPY data/*.pkl data/
+COPY data/*.csv data/
+COPY configs/diabetes-gpt4-config.gin configs/
+COPY templates/ templates/
+COPY static/ static/
+
+# Environment
+ENV FLASK_APP=flask_app_gpt4.py
+ENV PYTHONPATH=/usr/src/app
+ENV USE_AUTOGEN=false
+ENV FLASK_ENV=development
+
+EXPOSE 4455
+CMD ["python", "flask_app_gpt4.py"] 

@@ -15,8 +15,17 @@ def is_categorical(feature_name, temp_dataset):
 
 def get_numeric_updates(parse_text, i):
     """Gets the numeric update information."""
+    if i+2 >= len(parse_text):
+        raise ValueError(f"Missing update operation in what-if query")
+    if i+3 >= len(parse_text):
+        raise ValueError(f"Missing update value in what-if query")
+    
     update_term = parse_text[i+2]
-    update_value = float(parse_text[i+3])
+    try:
+        update_value = float(parse_text[i+3])
+    except ValueError:
+        raise ValueError(f"Invalid numeric value '{parse_text[i+3]}' in what-if query")
+    
     return update_term, update_value
 
 
@@ -46,6 +55,9 @@ def what_if_operation(conversation, parse_text, i, **kwargs):
     temp_dataset = conversation.temp_dataset.contents
 
     # The feature name to adjust
+    if i+1 >= len(parse_text):
+        return "No feature specified for what-if analysis!", 0
+    
     feature_name = parse_text[i+1]
 
     # Numerical feature case. Also putting id in here because the operations
@@ -58,6 +70,9 @@ def what_if_operation(conversation, parse_text, i, **kwargs):
                                                              update_value)
     elif is_categorical(feature_name, temp_dataset):
         # handles conversion between true/false and 1/0 for categorical features
+        if i+2 >= len(parse_text):
+            return f"No value specified for categorical feature {feature_name}!", 0
+        
         categorical_val = convert_categorical_bools(parse_text[i+2])
         temp_dataset['X'][feature_name] = categorical_val
         parse_op = f"{feature_name} is set to {str(categorical_val)}"

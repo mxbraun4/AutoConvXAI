@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1.4
+# Super-fast build using PyTorch base image
+
+# Use official PyTorch image (PyTorch already installed)
+FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
+
+# Install only the additional packages we need (much faster)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir \
+    Flask==2.3.3 \
+    openai>=1.0.0 \
+    pandas>=1.5.0,<2.0.0 \
+    scikit-learn>=1.3.0 \
+    dice-ml>=0.9,<0.12 \
+    lime>=0.2.0.1 \
+    shap>=0.43.0 \
+    Werkzeug>=2.3.0 \
+    Jinja2>=3.1.0 \
+    scipy>=1.9.0 \
+    inflect>=5.4.0 \
+    statsmodels>=0.13.0 \
+    boto3>=1.21.0 \
+    botocore>=1.24.0 \
+    autogen-agentchat>=0.4.0,<0.7.0 \
+    autogen-core>=0.4.0,<0.7.0 \
+    autogen-ext>=0.4.0,<0.7.0 \
+    tiktoken>=0.5.0
+
+# Set working directory
+WORKDIR /usr/src/app
+
+# Copy application code (optimized layer order)
+COPY --link templates/ templates/
+COPY --link static/ static/
+COPY --link data/ data/
+COPY --link configs/ configs/
+COPY --link explain/ explain/
+COPY --link flask_app_gpt4.py ./
+
+# Environment
+ENV FLASK_APP=flask_app_gpt4.py
+ENV PYTHONPATH=/usr/src/app
+ENV USE_AUTOGEN=true
+
+EXPOSE 4455
+CMD ["python", "flask_app_gpt4.py"] 
