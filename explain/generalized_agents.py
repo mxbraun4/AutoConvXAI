@@ -97,73 +97,90 @@ class DatasetSchema:
             
         return info
     
-    def suggest_operations(self, user_intent: str, entities: Dict[str, Any] = None) -> List[str]:
-        """Suggest relevant operations based on schema, user intent, and entities."""
+    def suggest_operations(self, user_query: str, entities: Dict[str, Any] = None) -> List[str]:
+        """Suggest relevant operations based on schema, user query, and entities."""
         operations = []
         entities = entities or {}
-        intent_lower = user_intent.lower()
+        query_lower = user_query.lower()
+        
+        logger.info(f"suggest_operations: Processing query='{query_lower}', entities={entities}")
         
         # Feature comparison queries (NEW - handles "Is glucose more important than age")
         comparison_patterns = [
             'more important than', 'compared to', 'versus', 'vs', 
             'better predictor than', 'stronger than', 'compare'
         ]
-        if any(pattern in intent_lower for pattern in comparison_patterns):
+        if any(pattern in query_lower for pattern in comparison_patterns):
             operations.append('feature_importance')  # Single operation type
+            logger.info("suggest_operations: Added 'feature_importance' due to comparison patterns")
         
         # Error analysis queries (ENHANCED - handles "typical errors")
-        if any(word in intent_lower for word in ['error', 'mistake', 'incorrect', 'wrong', 'misclassified']):
-            if 'typical' in intent_lower or 'pattern' in intent_lower:
+        if any(word in query_lower for word in ['error', 'mistake', 'incorrect', 'wrong', 'misclassified']):
+            if 'typical' in query_lower or 'pattern' in query_lower:
                 operations.append('error_analysis')  # Single operation type
             else:
                 operations.append('error_analysis')  # Single operation type
+            logger.info("suggest_operations: Added 'error_analysis' due to error keywords")
         
         # Complex what-if with group filtering (ENHANCED)
         what_if_patterns = ['what if', 'change', 'increase', 'decrease', 'set', 'likelihood']
-        if any(pattern in intent_lower for pattern in what_if_patterns):
+        if any(pattern in query_lower for pattern in what_if_patterns):
             # Check if it involves group analysis (men, women, older than, etc.)
             group_patterns = ['men', 'women', 'older', 'younger', 'patients with', 'instances with']
-            if any(pattern in intent_lower for pattern in group_patterns):
+            if any(pattern in query_lower for pattern in group_patterns):
                 operations.extend(['filtering', 'prediction'])  # Only essential operations
+                logger.info("suggest_operations: Added 'filtering' and 'prediction' due to group what-if patterns")
             else:
                 operations.append('prediction')  # Single operation type
+                logger.info("suggest_operations: Added 'prediction' due to what-if patterns")
         
         # Check if we need filtering based on actual conditions (more precise)
+        has_actual_filtering_conditions = (
+            # Feature-based conditions with BOTH operators AND values (proper filtering)
+            (entities.get('features') and entities.get('operators') and entities.get('values'))
+        )
+        
         needs_filtering = (
             # Explicit filtering keywords
-            'filter' in intent_lower or 'subset' in intent_lower or
+            'filter' in query_lower or 'subset' in query_lower or
             # ID-based queries
             entities.get('patient_id') is not None or
-            # Feature-based conditions with actual operators/values
-            (entities.get('features') and entities.get('operators') and entities.get('values')) or
+            # Actual filtering conditions (features + operators + values)
+            has_actual_filtering_conditions or
             # Instance-specific queries
-            any(phrase in intent_lower for phrase in ['instance', 'patient', 'data point', 'person with', 'people with']) or
-            # Context reset is False (continuing from previous filter)
-            (entities.get('context_reset') is False and any(entities.get(key) for key in ['features', 'operators', 'values']))
+            any(phrase in query_lower for phrase in ['instance', 'patient', 'data point', 'person with', 'people with']) or
+            # Context continuation from previous filter (only if we have actual conditions)
+            (entities.get('context_reset') is False and has_actual_filtering_conditions)
         )
         
         if needs_filtering:
             operations.append('filtering')  # Single operation type
+            logger.info("suggest_operations: Added 'filtering' due to filtering conditions")
         
         # Performance/accuracy queries
-        if any(word in intent_lower for word in ['accurate', 'accuracy', 'performance', 'how good', 'how well']):
+        if any(word in query_lower for word in ['accurate', 'accuracy', 'performance', 'how good', 'how well']):
             operations.append('model_evaluation')  # Single operation type
+            logger.info("suggest_operations: Added 'model_evaluation' due to performance keywords")
         
         # Prediction queries
-        elif any(word in intent_lower for word in ['predict', 'prediction', 'classification', 'likelihood']):
+        elif any(word in query_lower for word in ['predict', 'prediction', 'classification', 'likelihood']):
             operations.append('prediction')  # Single operation type
+            logger.info("suggest_operations: Added 'prediction' due to prediction keywords")
         
         # Feature importance queries  
-        if any(word in intent_lower for word in ['important', 'importance', 'feature', 'significance', 'influential']):
+        if any(word in query_lower for word in ['important', 'importance', 'feature', 'significance', 'influential']):
             operations.append('feature_importance')  # Single operation type
+            logger.info("suggest_operations: Added 'feature_importance' due to importance keywords")
         
         # Visualization queries
-        if any(word in intent_lower for word in ['plot', 'visualize', 'chart', 'graph']):
+        if any(word in query_lower for word in ['plot', 'visualize', 'chart', 'graph']):
             operations.append('visualization')  # Single operation type
+            logger.info("suggest_operations: Added 'visualization' due to visualization keywords")
         
         # Data summary queries (more specific patterns)
-        if any(phrase in intent_lower for phrase in ['average', 'mean', 'summary', 'describe', 'statistics', 'dataset summary', 'data summary', 'how many', 'total']):
+        if any(phrase in query_lower for phrase in ['average', 'mean', 'summary', 'describe', 'statistics', 'dataset summary', 'data summary', 'how many', 'total']):
             operations.append('data_summary')  # Single operation type
+            logger.info("suggest_operations: Added 'data_summary' due to summary keywords")
         
         # Remove duplicates while preserving order
         unique_operations = []
@@ -173,6 +190,7 @@ class DatasetSchema:
                 unique_operations.append(op)
                 seen.add(op)
         
+        logger.info(f"suggest_operations: Final suggested operations: {unique_operations}")
         return unique_operations
 
 
@@ -187,7 +205,7 @@ class DataOperationTool:
         """Check if this tool can handle the requested operation."""
         raise NotImplementedError
     
-    def generate_code(self, intent: str, entities: Dict, schema: DatasetSchema) -> str:
+    def generate_code(self, user_query: str, entities: Dict, schema: DatasetSchema) -> str:
         """Generate Python code for the operation."""
         raise NotImplementedError
     
@@ -217,7 +235,7 @@ class DataOperationTool:
 
 
 class FilteringTool(DataOperationTool):
-    """Tool for data filtering operations."""
+    """Tool for filtering datasets based on conditions."""
     
     def __init__(self):
         super().__init__(
@@ -228,7 +246,7 @@ class FilteringTool(DataOperationTool):
     def can_handle(self, operation_type: str, schema: DatasetSchema) -> bool:
         return operation_type in ['filtering', 'data_selection', 'subset']
     
-    def generate_code(self, intent: str, entities: Dict, schema: DatasetSchema) -> str:
+    def generate_code(self, user_query: str, entities: Dict, schema: DatasetSchema) -> str:
         """Generate pandas filtering code."""
         conditions = []
         
@@ -346,9 +364,9 @@ class ModelAnalysisTool(DataOperationTool):
     def can_handle(self, operation_type: str, schema: DatasetSchema) -> bool:
         return operation_type in ['prediction', 'model_evaluation', 'performance']
     
-    def generate_code(self, intent: str, entities: Dict, schema: DatasetSchema) -> str:
+    def generate_code(self, user_query: str, entities: Dict, schema: DatasetSchema) -> str:
         """Generate model analysis code."""
-        if 'accuracy' in intent.lower() or 'performance' in intent.lower():
+        if 'accuracy' in user_query.lower() or 'performance' in user_query.lower():
             code = """
 # Evaluate model performance
 X = df[feature_columns]
@@ -358,19 +376,21 @@ if model is not None and y_true is not None:
     y_pred = model.predict(X)
     accuracy = accuracy_score(y_true, y_pred)
     
-    result = f"Model accuracy on {len(X)} instances: {accuracy:.1%}"
-    print(result)
+    result = f"Model accuracy on {len(X)} instances: {accuracy:.1%}<br><br>"
     
     # Additional metrics
     report = classification_report(y_true, y_pred, output_dict=True)
-    print(f"\\nDetailed classification report:")
+    result += f"Detailed classification report:<br>"
     for class_name, metrics in report.items():
         if isinstance(metrics, dict):
-            print(f"{class_name}: precision={metrics.get('precision', 0):.3f}, recall={metrics.get('recall', 0):.3f}")
+            precision = metrics.get('precision', 0)
+            recall = metrics.get('recall', 0)
+            result += f"{class_name}: precision={precision:.3f}, recall={recall:.3f}<br>"
+    result += "<br>"
 else:
-    result = "Model or target data not available for evaluation"
+    result = "Model or target data not available for evaluation<br><br>"
 """
-        elif 'predict' in intent.lower():
+        elif 'predict' in user_query.lower():
             code = """
 # Make predictions
 X = df[feature_columns]
@@ -383,9 +403,9 @@ if model is not None:
         if hasattr(model, 'predict_proba'):
             probabilities = model.predict_proba(X)[0]
             prob_text = ", ".join([f"{class_names[i] if class_names else i}: {prob:.3f}" for i, prob in enumerate(probabilities)])
-            result = f"Prediction: {class_names[pred_class] if class_names else pred_class} (probabilities: {prob_text})"
+            result = f"Prediction: {class_names[pred_class] if class_names else pred_class} (probabilities: {prob_text})<br><br>"
         else:
-            result = f"Prediction: {class_names[pred_class] if class_names else pred_class}"
+            result = f"Prediction: {class_names[pred_class] if class_names else pred_class}<br><br>"
     else:
         unique_preds, counts = np.unique(predictions, return_counts=True)
         pred_summary = []
@@ -394,15 +414,13 @@ if model is not None:
             pred_name = class_names[pred] if class_names else pred
             pred_summary.append(f"{pred_name}: {count} instances ({percentage:.1f}%)")
         
-        result = f"Predictions for {len(predictions)} instances:\\n" + "\\n".join(pred_summary)
-    
-    print(result)
+        result = f"Predictions for {len(predictions)} instances:<br>" + "<br>".join(pred_summary) + "<br><br>"
 else:
-    result = "Model not available for prediction"
+    result = "Model not available for prediction<br><br>"
 """
         else:
             code = """
-result = "Model analysis requested but specific operation not clear"
+result = "Model analysis requested but specific operation not clear<br><br>"
 """
         
         return code
@@ -420,7 +438,7 @@ class FeatureAnalysisTool(DataOperationTool):
     def can_handle(self, operation_type: str, schema: DatasetSchema) -> bool:
         return operation_type in ['feature_importance', 'feature_analysis']
     
-    def generate_code(self, intent: str, entities: Dict, schema: DatasetSchema) -> str:
+    def generate_code(self, user_query: str, entities: Dict, schema: DatasetSchema) -> str:
         """Generate feature analysis code."""
         code = """
 # Feature importance analysis
@@ -435,9 +453,9 @@ if model is not None and y is not None:
             feature_importance = list(zip(feature_columns, importances))
             feature_importance.sort(key=lambda x: abs(x[1]), reverse=True)
             
-            result = "Feature Importance (from model):\\n"
+            result = "Feature Importance (from model):<br>"
             for i, (feature, importance) in enumerate(feature_importance[:10]):  # Top 10
-                result += f"{i+1}. {feature}: {importance:.4f}\\n"
+                result += f"{i+1}. {feature}: {importance:.4f}<br>"
                 
         else:
             # Use permutation importance
@@ -445,18 +463,16 @@ if model is not None and y is not None:
             feature_importance = list(zip(feature_columns, perm_importance.importances_mean))
             feature_importance.sort(key=lambda x: abs(x[1]), reverse=True)
             
-            result = "Feature Importance (permutation-based):\\n"
+            result = "Feature Importance (permutation-based):<br>"
             for i, (feature, importance) in enumerate(feature_importance[:10]):  # Top 10  
-                result += f"{i+1}. {feature}: {importance:.4f}\\n"
+                result += f"{i+1}. {feature}: {importance:.4f}<br>"
         
-        print(result)
+        result += "<br>"
         
     except Exception as e:
-        result = f"Could not compute feature importance: {str(e)}"
-        print(result)
+        result = f"Could not compute feature importance: {str(e)}<br><br>"
 else:
-    result = "Model or target data not available for feature analysis"
-    print(result)
+    result = "Model or target data not available for feature analysis<br><br>"
 """
         return code
 
@@ -471,15 +487,20 @@ class DataSummaryTool(DataOperationTool):
         )
     
     def can_handle(self, operation_type: str, schema: DatasetSchema) -> bool:
-        return operation_type in ['descriptive_statistics', 'data_summary', 'summary']
+        # Handle both 'data' and 'data_summary' operation types
+        return operation_type in ['descriptive_statistics', 'data_summary', 'summary', 'data']
     
-    def generate_code(self, intent: str, entities: Dict, schema: DatasetSchema) -> str:
+    def generate_code(self, user_query: str, entities: Dict, schema: DatasetSchema) -> str:
         """Generate data summary code."""
         # Check for specific feature queries like "average age", "mean glucose", etc.
-        intent_lower = intent.lower()
+        query_lower = user_query.lower()
+        
+        # Debug logging
+        logger.info(f"DataSummaryTool: Processing query='{query_lower}', entities={entities}")
         
         # Handle specific feature statistics requests
-        if any(word in intent_lower for word in ['average', 'mean']) and 'age' in intent_lower:
+        if any(word in query_lower for word in ['average', 'mean']) and 'age' in query_lower:
+            logger.info("DataSummaryTool: Detected specific age statistics request")
             code = """
 # Handle specific age statistics request
 if 'age' in df.columns:
@@ -490,23 +511,21 @@ if 'age' in df.columns:
     
     dataset_size = len(df)
     
-    result = f"For the {dataset_size} patients in the dataset:\\n\\n"
-    result += f"**Age Statistics:**\\n"
-    result += f"• Average age: **{avg_age} years**\\n"
-    result += f"• Standard deviation: {std_age} years\\n"
-    result += f"• Age range: {min_age} to {max_age} years\\n"
-    
-    print(result)
+    result = f"For the {dataset_size} patients in the dataset:<br><br>"
+    result += f"<b>Age Statistics:</b><br>"
+    result += f"• Average age: <b>{avg_age} years</b><br>"
+    result += f"• Standard deviation: {std_age} years<br>"
+    result += f"• Age range: {min_age} to {max_age} years<br><br>"
 else:
-    result = "Age information is not available in this dataset."
-    print(result)
+    result = "Age information is not available in this dataset.<br><br>"
 """
             return code
         
         # Check for other specific feature statistics
         for feature_name in schema.features:
-            if (any(word in intent_lower for word in ['average', 'mean']) and 
-                feature_name.lower() in intent_lower):
+            if (any(word in query_lower for word in ['average', 'mean']) and 
+                feature_name.lower() in query_lower):
+                logger.info(f"DataSummaryTool: Detected specific {feature_name} statistics request")
                 code = f"""
 # Handle specific {feature_name} statistics request
 if '{feature_name}' in df.columns:
@@ -517,35 +536,33 @@ if '{feature_name}' in df.columns:
     
     dataset_size = len(df)
     
-    result = f"For the {{dataset_size}} patients in the dataset:\\n\\n"
-    result += f"**{feature_name.title()} Statistics:**\\n"
-    result += f"• Average: **{{avg_val}}**\\n"
-    result += f"• Standard deviation: {{std_val}}\\n"
-    result += f"• Range: {{min_val}} to {{max_val}}\\n"
-    
-    print(result)
+    result = f"For the {{dataset_size}} patients in the dataset:<br><br>"
+    result += f"<b>{feature_name.title()} Statistics:</b><br>"
+    result += f"• Average: <b>{{avg_val}}</b><br>"
+    result += f"• Standard deviation: {{std_val}}<br>"
+    result += f"• Range: {{min_val}} to {{max_val}}<br><br>"
 else:
-    result = "{feature_name} information is not available in this dataset."
-    print(result)
+    result = "{feature_name} information is not available in this dataset.<br><br>"
 """
                 return code
         
         # Default general data summary
+        logger.info("DataSummaryTool: Using default general data summary")
         code = """
 # General data summary and statistics
-result = f"Dataset Summary:\\n"
-result += f"- Total records: {len(df)}\\n"
-result += f"- Features: {len(df.columns)}\\n"
+result = f"Dataset Summary:<br>"
+result += f"- Total records: {len(df)}<br>"
+result += f"- Features: {len(df.columns)}<br>"
 
 if target_column and target_column in df.columns:
     target_counts = df[target_column].value_counts()
-    result += f"- Target classes: {list(target_counts.index)}\\n"
+    result += f"- Target classes: {list(target_counts.index)}<br>"
     for class_val, count in target_counts.items():
         percentage = (count / len(df)) * 100
         class_name = class_names[class_val] if class_names and class_val < len(class_names) else class_val
-        result += f"  - {class_name}: {count} ({percentage:.1f}%)\\n"
+        result += f"  - {class_name}: {count} ({percentage:.1f}%)<br>"
 
-result += f"\\nFeature Summary:\\n"
+result += f"<br>Feature Summary:<br>"
 for col in df.columns:
     if col != target_column:
         if pd.api.types.is_numeric_dtype(df[col]):
@@ -553,13 +570,13 @@ for col in df.columns:
             std_val = df[col].std()
             min_val = df[col].min()
             max_val = df[col].max()
-            result += f"- {col}: mean={mean_val:.2f}, std={std_val:.2f}, range=[{min_val:.2f}, {max_val:.2f}]\\n"
+            result += f"- {col}: mean={mean_val:.2f}, std={std_val:.2f}, range=[{min_val:.2f}, {max_val:.2f}]<br>"
         else:
             unique_count = df[col].nunique()
             most_common = df[col].mode().iloc[0] if len(df[col].mode()) > 0 else "N/A"
-            result += f"- {col}: {unique_count} unique values, most common='{most_common}'\\n"
+            result += f"- {col}: {unique_count} unique values, most common='{most_common}'<br>"
 
-print(result)
+result += "<br>"
 """
         return code
 
@@ -585,21 +602,28 @@ class GeneralizedActionPlanner:
         logger.info(f"Discovered schema: {len(self.schema.features)} features, {self.schema.size} records")
         return self.schema
     
-    def plan_operations(self, intent: str, entities: Dict[str, Any]) -> List[Tuple[DataOperationTool, str]]:
-        """Plan operations based on intent and available tools."""
+    def plan_operations(self, user_query: str, entities: Dict[str, Any]) -> List[Tuple[DataOperationTool, str]]:
+        """Plan operations based on user query and available tools."""
         if not self.schema:
             raise ValueError("Schema not initialized. Call initialize_schema() first.")
         
+        logger.info(f"plan_operations: Planning for query='{user_query}', entities={entities}")
+        
         # Discover relevant operations (pass entities for better detection)
-        suggested_ops = self.schema.suggest_operations(intent, entities)
+        suggested_ops = self.schema.suggest_operations(user_query, entities)
+        logger.info(f"plan_operations: Suggested operations: {suggested_ops}")
         
         # Find tools that can handle these operations
         selected_tools = []
         tool_names_used = set()  # Avoid duplicate tools
         
         for op_type in suggested_ops:
+            logger.info(f"plan_operations: Looking for tool to handle operation '{op_type}'")
             for tool in self.tools:
-                if tool.can_handle(op_type, self.schema) and tool.name not in tool_names_used:
+                can_handle = tool.can_handle(op_type, self.schema)
+                logger.info(f"plan_operations: Tool '{tool.name}' can_handle('{op_type}'): {can_handle}")
+                
+                if can_handle and tool.name not in tool_names_used:
                     # Special check for filtering tool - only include if actual conditions exist
                     if tool.name == "filtering":
                         has_conditions = (
@@ -607,14 +631,18 @@ class GeneralizedActionPlanner:
                             entities.get('features') or
                             (entities.get('context_reset') is False and entities.get('features'))
                         )
+                        logger.info(f"plan_operations: Filtering tool conditions check: {has_conditions}")
                         if not has_conditions:
+                            logger.info("plan_operations: Skipping filtering tool - no conditions")
                             continue  # Skip filtering tool if no conditions
                     
-                    code = tool.generate_code(intent, entities, self.schema)
+                    code = tool.generate_code(user_query, entities, self.schema)
                     selected_tools.append((tool, code))
                     tool_names_used.add(tool.name)
+                    logger.info(f"plan_operations: Selected tool '{tool.name}' for operation '{op_type}'")
                     break  # Use first matching tool for each operation type
         
+        logger.info(f"plan_operations: Final selected tools: {[tool.name for tool, code in selected_tools]}")
         return selected_tools
     
     def execute_plan(self, tool_code_pairs: List[Tuple[DataOperationTool, str]], 
@@ -676,37 +704,41 @@ def create_generalized_context(conversation) -> Dict[str, Any]:
 
 
 # Integration with existing system
-def generalized_action_dispatcher(intent: str, entities: Dict[str, Any], conversation) -> Tuple[str, int]:
+def generalized_action_dispatcher(user_query: str, intent: str, entities: Dict[str, Any], conversation) -> Tuple[str, int]:
     """
     Main entry point for generalized action dispatching.
     
     This replaces the hardcoded action mapping with dynamic tool selection.
     """
     try:
-        logger.info(f"Generalized dispatcher called: intent='{intent}', entities={entities}")
+        logger.info(f"generalized_action_dispatcher: Called with query='{user_query}', intent='{intent}', entities={entities}")
         
         # Create execution context
         context = create_generalized_context(conversation)
         if not context:
+            logger.error("generalized_action_dispatcher: Could not initialize data context")
             return "Could not initialize data context", 0
         
         # Initialize planner and schema
         planner = GeneralizedActionPlanner()
         schema = planner.initialize_schema(context['df'], context['target_column'])
         
-        # Plan operations
-        operations = planner.plan_operations(intent, entities)
-        logger.info(f"Planned operations: {[(tool.name, 'code') for tool, code in operations]}")
+        # Plan operations using the original user query
+        operations = planner.plan_operations(user_query, entities)
+        logger.info(f"generalized_action_dispatcher: Planned {len(operations)} operations: {[(tool.name, 'code') for tool, code in operations]}")
         
         if not operations:
-            return f"No suitable operations found for intent: {intent}", 0
+            logger.warning(f"generalized_action_dispatcher: No suitable operations found for query: {user_query}")
+            return f"No suitable operations found for query: {user_query}", 0
         
         # Execute operations
         results = planner.execute_plan(operations, context)
+        logger.info(f"generalized_action_dispatcher: Executed operations, got {len(results)} results")
         
         # Format results - filter out empty results
         success_results = []
-        for result, error in results:
+        for i, (result, error) in enumerate(results):
+            logger.info(f"generalized_action_dispatcher: Result {i}: result='{str(result)[:100] if result else 'None'}', error='{error}'")
             if error:
                 logger.error(f"Operation failed: {error}")
                 return f"Operation failed: {error}", 0
@@ -715,11 +747,11 @@ def generalized_action_dispatcher(intent: str, entities: Dict[str, Any], convers
         
         if success_results:
             final_result = "<br>".join(success_results)
-            logger.info(f"Generalized dispatcher succeeded with {len(success_results)} results")
+            logger.info(f"generalized_action_dispatcher: Success with {len(success_results)} results, final result length: {len(final_result)}")
             return final_result, 1
         else:
             # If no results but no errors, operations completed successfully but had no output
-            logger.info("Operations completed successfully with no output")
+            logger.warning("generalized_action_dispatcher: Operations completed successfully but produced no output")
             return "Operations completed successfully", 1
             
     except Exception as e:

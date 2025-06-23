@@ -306,7 +306,7 @@ class EnhancedExplainBot:
                 
                 # Route to generalized or traditional action system
                 if self.use_generalized_actions:
-                    response = self._handle_generalized_action(completion, user_session_conversation)
+                    response = self._handle_generalized_action(text, completion, user_session_conversation)
                 else:
                     response = self._handle_traditional_action(parsed_text, user_session_conversation)
                 
@@ -347,7 +347,7 @@ class EnhancedExplainBot:
             
             return f"I encountered an error processing your request. Please try rephrasing your question. (Error: {str(e)})"
 
-    def _handle_generalized_action(self, completion: dict, conversation: Conversation) -> str:
+    def _handle_generalized_action(self, text: str, completion: dict, conversation: Conversation) -> str:
         """Handle action using the new generalized tool-augmented system."""
         try:
             # Import generalized agents - this should ALWAYS work when generalized actions are enabled
@@ -360,8 +360,8 @@ class EnhancedExplainBot:
             
             app.logger.info(f"Generalized dispatcher: intent='{intent}', entities={entities}")
             
-            # Use generalized action dispatcher
-            response, status = generalized_action_dispatcher(intent, entities, conversation)
+            # Use generalized action dispatcher with original user query
+            response, status = generalized_action_dispatcher(text, intent, entities, conversation)
             
             if status == 0:
                 app.logger.warning(f"Generalized action failed: {response}")
@@ -414,7 +414,6 @@ class EnhancedExplainBot:
                     available_features
                 )
                 
-                # Handle status
                 if status == 0:
                     app.logger.warning(f"Traditional action failed: {response}")
                 
