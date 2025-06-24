@@ -91,7 +91,7 @@ class GeneralizableEntityExtractor:
                 'not': r'\b(?:not\s+equal|!=|not)\b'
             },
             'comparison_indicators': r'(\w+)\s+(?:more\s+important|better\s+predictor|stronger)\s+than\s+(\w+)',
-            'id_patterns': r'(?:patient|instance|data\s+point|record|row|id|case)(?:\s+with\s+id\s+|\s+number\s+|\s+)(\d+)',
+            'id_patterns': r'(?:patient|instance|data\s+point|record|row|id|case)(?:\s+(?:with\s+id\s+|number\s+|\s+)?)?(\d+)',
             'what_if_patterns': r'(?:what\s+if|how\s+would|if\s+we)\s+(?:change|increase|decrease|set)',
             'error_patterns': r'(?:error|mistake|incorrect|wrong|misclassified)',
             'importance_patterns': r'(?:important|importance|significant|influential|predictor)'

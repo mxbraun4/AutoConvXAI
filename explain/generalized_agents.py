@@ -98,100 +98,102 @@ class DatasetSchema:
         return info
     
     def suggest_operations(self, user_query: str, entities: Dict[str, Any] = None) -> List[str]:
-        """Suggest relevant operations based on schema, user query, and entities."""
+        """Suggest relevant operations based on schema, user query, and entities using semantic analysis."""
         operations = []
         entities = entities or {}
+        
+        logger.info(f"suggest_operations: Processing query='{user_query}', entities={entities}")
+        
+        # SEMANTIC OPERATION MAPPING - Let each tool decide if it can handle the query
+        # This is much more generalizable than pattern matching
+        for tool in [ConversationalTool(), FilteringTool(), ModelAnalysisTool(), 
+                     FeatureAnalysisTool(), DataSummaryTool(), ErrorAnalysisTool()]:
+            
+            # Let each tool assess its own relevance to the query
+            relevance_score = self._assess_tool_relevance(tool, user_query, entities)
+            
+            if relevance_score > 0.5:  # Threshold for relevance
+                operation_type = tool.name.replace('_tool', '').replace('tool', '')
+                operations.append(operation_type)
+                logger.info(f"suggest_operations: Added '{operation_type}' (relevance: {relevance_score:.2f})")
+        
+        # If no tools matched, fall back to data_summary as default
+        if not operations:
+            operations.append('data_summary')
+            logger.info("suggest_operations: Defaulting to 'data_summary'")
+        
+        return operations
+    
+    def _assess_tool_relevance(self, tool, user_query: str, entities: Dict[str, Any]) -> float:
+        """Let each tool assess its own relevance to the query (generalizable approach)."""
         query_lower = user_query.lower()
         
-        logger.info(f"suggest_operations: Processing query='{query_lower}', entities={entities}")
+        # ConversationalTool - handles general knowledge, health concepts (NOT dataset analysis)
+        if isinstance(tool, ConversationalTool):
+            # Specific patterns for general health knowledge (not data analysis)
+            pure_health_patterns = ['isnt', "isn't", 'is that', 'is it', 'should i', 'would you say', 'do you think']
+            statistical_patterns = ['average', 'mean', 'value', 'count', 'summary', 'statistics', 'total']
+            
+            # Only route to conversational for pure health questions, NOT statistical analysis
+            has_pure_health = any(pattern in query_lower for pattern in pure_health_patterns)
+            has_statistical = any(pattern in query_lower for pattern in statistical_patterns)
+            
+            if has_pure_health and not has_statistical:
+                return 0.8  # High relevance for pure health questions like "isn't BMI 32 high?"
+            return 0.1
         
-        # Feature comparison queries (NEW - handles "Is glucose more important than age")
-        comparison_patterns = [
-            'more important than', 'compared to', 'versus', 'vs', 
-            'better predictor than', 'stronger than', 'compare'
-        ]
-        if any(pattern in query_lower for pattern in comparison_patterns):
-            operations.append('feature_importance')  # Single operation type
-            logger.info("suggest_operations: Added 'feature_importance' due to comparison patterns")
+        # TraditionalXAITool - handles complex explanations, LIME, SHAP, counterfactuals
+        elif isinstance(tool, TraditionalXAITool):
+            xai_indicators = [
+                'explain', 'explanation', 'why', 'how', 'lime', 'shap', 
+                'counterfactual', 'what would need', 'different prediction',
+                'interaction', 'interact', 'combined effect', 'what if', 'change'
+            ]
+            # Exclude simple statistical questions that generalized tools handle better
+            simple_indicators = ['average', 'mean', 'count', 'summary', 'statistics']
+            
+            has_xai = any(x in query_lower for x in xai_indicators)
+            has_simple = any(s in query_lower for s in simple_indicators)
+            
+            if has_xai and not has_simple:
+                return 0.9  # Very high relevance for XAI queries
+            return 0.1
         
-        # Error analysis queries (ENHANCED - handles "typical errors")
-        if any(word in query_lower for word in ['error', 'mistake', 'incorrect', 'wrong', 'misclassified']):
-            if 'typical' in query_lower or 'pattern' in query_lower:
-                operations.append('error_analysis')  # Single operation type
-            else:
-                operations.append('error_analysis')  # Single operation type
-            logger.info("suggest_operations: Added 'error_analysis' due to error keywords")
+        # FilteringTool - handles conditions, comparisons
+        elif isinstance(tool, FilteringTool):
+            filter_indicators = ['>', '<', '=', 'greater', 'less', 'equal', 'filter', 'where', 'with', 'given']
+            return 0.7 if any(f in query_lower for f in filter_indicators) else 0.1
         
-        # Complex what-if with group filtering (ENHANCED)
-        what_if_patterns = ['what if', 'change', 'increase', 'decrease', 'set', 'likelihood']
-        if any(pattern in query_lower for pattern in what_if_patterns):
-            # Check if it involves group analysis (men, women, older than, etc.)
-            group_patterns = ['men', 'women', 'older', 'younger', 'patients with', 'instances with']
-            if any(pattern in query_lower for pattern in group_patterns):
-                operations.extend(['filtering', 'prediction'])  # Only essential operations
-                logger.info("suggest_operations: Added 'filtering' and 'prediction' due to group what-if patterns")
-            else:
-                operations.append('prediction')  # Single operation type
-                logger.info("suggest_operations: Added 'prediction' due to what-if patterns")
+        # ModelAnalysisTool - handles predictions, accuracy, model evaluation
+        elif isinstance(tool, ModelAnalysisTool):
+            # Check for new instance patterns first (highest priority)
+            import re
+            new_instance_patterns = [
+                r'new\s+instance', r'predict\s+for\s+a\s+new', r'predict\s+for\s+an\s+instance', 
+                r'hypothetical\s+instance', r'what\s+would.*predict.*new'
+            ]
+            if any(re.search(pattern, query_lower) for pattern in new_instance_patterns):
+                return 0.95  # Very high priority for new instance predictions
+            
+            model_indicators = ['predict', 'accuracy', 'performance', 'model', 'evaluation', 'score', 'instance', 'prediction for']
+            return 0.8 if any(m in query_lower for m in model_indicators) else 0.1
         
-        # Check if we need filtering based on actual conditions (more precise)
-        has_actual_filtering_conditions = (
-            # Feature-based conditions with BOTH operators AND values (proper filtering)
-            (entities.get('features') and entities.get('operators') and entities.get('values'))
-        )
+        # FeatureAnalysisTool - handles importance, significance, influence
+        elif isinstance(tool, FeatureAnalysisTool):
+            feature_indicators = ['important', 'influence', 'significant', 'feature', 'factor', 'affect']
+            return 0.7 if any(f in query_lower for f in feature_indicators) else 0.1
         
-        needs_filtering = (
-            # Explicit filtering keywords
-            'filter' in query_lower or 'subset' in query_lower or
-            # ID-based queries
-            entities.get('patient_id') is not None or
-            # Actual filtering conditions (features + operators + values)
-            has_actual_filtering_conditions or
-            # Instance-specific queries
-            any(phrase in query_lower for phrase in ['instance', 'patient', 'data point', 'person with', 'people with']) or
-            # Context continuation from previous filter (only if we have actual conditions)
-            (entities.get('context_reset') is False and has_actual_filtering_conditions)
-        )
+        # DataSummaryTool - handles statistics, summaries, distributions
+        elif isinstance(tool, DataSummaryTool):
+            summary_indicators = ['average', 'mean', 'summary', 'statistics', 'distribution', 'skewed', 'count', 'value for']
+            return 0.8 if any(s in query_lower for s in summary_indicators) else 0.2
         
-        if needs_filtering:
-            operations.append('filtering')  # Single operation type
-            logger.info("suggest_operations: Added 'filtering' due to filtering conditions")
+        # ErrorAnalysisTool - handles errors, mistakes, failures
+        elif isinstance(tool, ErrorAnalysisTool):
+            error_indicators = ['error', 'mistake', 'wrong', 'incorrect', 'fail', 'misclassified']
+            return 0.7 if any(e in query_lower for e in error_indicators) else 0.1
         
-        # Performance/accuracy queries
-        if any(word in query_lower for word in ['accurate', 'accuracy', 'performance', 'how good', 'how well']):
-            operations.append('model_evaluation')  # Single operation type
-            logger.info("suggest_operations: Added 'model_evaluation' due to performance keywords")
-        
-        # Prediction queries
-        elif any(word in query_lower for word in ['predict', 'prediction', 'classification', 'likelihood']):
-            operations.append('prediction')  # Single operation type
-            logger.info("suggest_operations: Added 'prediction' due to prediction keywords")
-        
-        # Feature importance queries  
-        if any(word in query_lower for word in ['important', 'importance', 'feature', 'significance', 'influential']):
-            operations.append('feature_importance')  # Single operation type
-            logger.info("suggest_operations: Added 'feature_importance' due to importance keywords")
-        
-        # Visualization queries
-        if any(word in query_lower for word in ['plot', 'visualize', 'chart', 'graph']):
-            operations.append('visualization')  # Single operation type
-            logger.info("suggest_operations: Added 'visualization' due to visualization keywords")
-        
-        # Data summary queries (more specific patterns)
-        if any(phrase in query_lower for phrase in ['average', 'mean', 'summary', 'describe', 'statistics', 'dataset summary', 'data summary', 'how many', 'total']):
-            operations.append('data_summary')  # Single operation type
-            logger.info("suggest_operations: Added 'data_summary' due to summary keywords")
-        
-        # Remove duplicates while preserving order
-        unique_operations = []
-        seen = set()
-        for op in operations:
-            if op not in seen:
-                unique_operations.append(op)
-                seen.add(op)
-        
-        logger.info(f"suggest_operations: Final suggested operations: {unique_operations}")
-        return unique_operations
+        return 0.1  # Default low relevance
 
 
 class DataOperationTool:
@@ -254,23 +256,46 @@ class FilteringTool(DataOperationTool):
         patient_id = entities.get('patient_id')
         if patient_id is not None:
             code = f"""
-# Filter to specific instance by ID (using DataFrame index)
+# Filter to specific instance by ID (handle both 0-based and 1-based indexing)
 try:
-    if {patient_id} in df.index:
-        filtered_df = df.loc[[{patient_id}]]
+    found_instance = False
+    instance_id = {patient_id}
+    
+    # Try direct index lookup first
+    if instance_id in df.index:
+        filtered_df = df.loc[[instance_id]]
         result = f"Filtered to instance {patient_id} (1 row out of {{len(df)}} total)"
+        found_instance = True
+    # Try 0-based indexing (user says "instance 2" meaning index 1)
+    elif instance_id - 1 in df.index:
+        actual_id = instance_id - 1
+        filtered_df = df.loc[[actual_id]]
+        result = f"Filtered to instance {patient_id} (index {{actual_id}}) - 1 row out of {{len(df)}} total"
+        found_instance = True
+    # Try iloc-based lookup for positional indexing
+    elif 0 <= instance_id < len(df):
+        filtered_df = df.iloc[[instance_id]]
+        result = f"Filtered to instance at position {patient_id} (1 row out of {{len(df)}} total)"
+        found_instance = True
+    # Try iloc with offset for 1-based user input
+    elif 0 <= instance_id - 1 < len(df):
+        filtered_df = df.iloc[[instance_id - 1]]
+        result = f"Filtered to instance {patient_id} (position {{instance_id - 1}}) - 1 row out of {{len(df)}} total"
+        found_instance = True
+    
+    if found_instance:
         print(f"Applied ID filter: instance {patient_id}")
         print(f"Resulting dataset shape: {{filtered_df.shape}}")
-        
-        # Store filtered dataset for subsequent operations
         df = filtered_df
     else:
-        result = f"Instance {patient_id} not found in dataset"
-        print(f"Error: Instance {patient_id} not in index {{list(df.index[:10])}}...")
+        result = f"Instance {patient_id} not found in dataset (tried index {{instance_id}}, {{instance_id-1}}, and positional lookup)"
+        print(f"Error: Instance {patient_id} not found. Dataset has {{len(df)}} rows with index range {{list(df.index[:5])}}...{{list(df.index[-2:])}}")
         df = df.iloc[:0]  # Empty dataset
+        
 except Exception as e:
     result = f"Error filtering by ID {patient_id}: {{str(e)}}"
     print(result)
+    df = df.iloc[:0]  # Empty dataset
 """
             return code
         
@@ -366,9 +391,87 @@ class ModelAnalysisTool(DataOperationTool):
     
     def generate_code(self, user_query: str, entities: Dict, schema: DatasetSchema) -> str:
         """Generate model analysis code."""
-        if 'accuracy' in user_query.lower() or 'performance' in user_query.lower():
+        query_lower = user_query.lower()
+        
+        # PRIORITY 1: NEW INSTANCE PREDICTIONS (highest priority)
+        import re
+        new_instance_patterns = [
+            r'new\s+instance', r'new\s+isntance', r'predict\s+for\s+a\s+new', r'predict\s+for\s+an\s+instance',
+            r'what\s+would.*predict.*new', r'hypothetical\s+instance',
+            r'predict.*new.*instance', r'new.*patient', r'hypothetical.*patient'
+        ]
+        has_new_instance = any(re.search(pattern, query_lower) for pattern in new_instance_patterns)
+        has_values = ('=' in query_lower or 'given' in query_lower or 'with' in query_lower)
+        
+        if has_new_instance and has_values:
+            code = f"""
+# Handle new instance prediction with specific values
+import re
+
+# Extract feature-value pairs from the query  
+query_text = "{user_query}"
+pattern = r'(\\w+)\\s*=\\s*(\\d+(?:\\.\\d+)?)'
+matches = re.findall(pattern, query_text)
+
+if matches and model is not None:
+    # Create new instance with provided values
+    new_instance = {{}}
+    for feature, value in matches:
+        if feature.lower() in [col.lower() for col in feature_columns]:
+            # Map to actual column name
+            actual_col = [col for col in feature_columns if col.lower() == feature.lower()][0]
+            new_instance[actual_col] = float(value)
+    
+    # Fill missing features with dataset averages (generalized approach)
+    for col in feature_columns:
+        if col not in new_instance:
+            new_instance[col] = df[col].mean()
+    
+    # Create DataFrame for prediction
+    X_new = pd.DataFrame([new_instance])[feature_columns]
+    
+    # Make prediction - FIXED to be more transparent
+    prediction = model.predict(X_new)[0]
+    
+    if hasattr(model, 'predict_proba'):
+        probabilities = model.predict_proba(X_new)[0]
+        
+        # Find the class with highest probability for verification
+        predicted_class = np.argmax(probabilities)
+        highest_prob = probabilities[predicted_class]
+        
+        # Format probabilities clearly
+        prob_text = []
+        for i, prob in enumerate(probabilities):
+            prob_text.append(f"Class {{i}}: {{prob:.3f}}")
+        
+        result = f"Prediction: Class {{prediction}} (highest probability: {{highest_prob:.3f}})\\n"
+        result += f"All probabilities: {{', '.join(prob_text)}}"
+        
+        # Add verification
+        if prediction != predicted_class:
+            result += f"\\nWARNING: Model predict() returned {{prediction}} but highest probability is for class {{predicted_class}}"
+    else:
+        result = f"Prediction for new instance: {{prediction}}"
+        
+    # Add input values to result
+    input_summary = ", ".join([f"{{k}}={{v}}" for k, v in new_instance.items()])
+    result += f"\\nInput values: {{input_summary}}"
+else:
+    result = "Could not extract feature values from query or model not available"
+"""
+            return code
+        
+        # PRIORITY 2: PERFORMANCE EVALUATION DETECTION
+        performance_patterns = [
+            'accuracy', 'accurate', 'performance', 'how good', 'how well', 
+            'score', 'evaluate', 'evaluation', 'correct', 'error rate',
+            'precision', 'recall', 'f1', 'metrics'
+        ]
+        
+        if any(pattern in query_lower for pattern in performance_patterns):
             code = """
-# Evaluate model performance
+# Evaluate model performance (generalized)
 X = df[feature_columns]
 y_true = df[target_column] if target_column in df.columns else None
 
@@ -376,45 +479,74 @@ if model is not None and y_true is not None:
     y_pred = model.predict(X)
     accuracy = accuracy_score(y_true, y_pred)
     
-    result = f"Model accuracy on {len(X)} instances: {accuracy:.1%}<br><br>"
-    
-    # Additional metrics
-    report = classification_report(y_true, y_pred, output_dict=True)
-    result += f"Detailed classification report:<br>"
-    for class_name, metrics in report.items():
-        if isinstance(metrics, dict):
-            precision = metrics.get('precision', 0)
-            recall = metrics.get('recall', 0)
-            result += f"{class_name}: precision={precision:.3f}, recall={recall:.3f}<br>"
-    result += "<br>"
+    # Simple, clean output
+    result = f"Model accuracy: {accuracy:.1%} ({len(X)} instances)"
 else:
-    result = "Model or target data not available for evaluation<br><br>"
+    result = "Model or target data not available for evaluation"
 """
-        elif 'predict' in user_query.lower():
-            code = """
-# Make predictions
+            return code
+        
+        # PRIORITY 3: PREDICTION QUERIES
+        elif 'predict' in query_lower:
+            if 'all' in user_query.lower() and 'instances' in user_query.lower():
+                # Handle overall prediction distribution queries
+                code = """
+# Make predictions for all instances and show distribution
 X = df[feature_columns]
 
 if model is not None:
     predictions = model.predict(X)
     
-    if len(predictions) == 1:
-        pred_class = predictions[0]
-        if hasattr(model, 'predict_proba'):
-            probabilities = model.predict_proba(X)[0]
-            prob_text = ", ".join([f"{class_names[i] if class_names else i}: {prob:.3f}" for i, prob in enumerate(probabilities)])
-            result = f"Prediction: {class_names[pred_class] if class_names else pred_class} (probabilities: {prob_text})<br><br>"
-        else:
-            result = f"Prediction: {class_names[pred_class] if class_names else pred_class}<br><br>"
-    else:
-        unique_preds, counts = np.unique(predictions, return_counts=True)
-        pred_summary = []
-        for pred, count in zip(unique_preds, counts):
-            percentage = (count / len(predictions)) * 100
-            pred_name = class_names[pred] if class_names else pred
-            pred_summary.append(f"{pred_name}: {count} instances ({percentage:.1f}%)")
+    # Calculate prediction distribution
+    unique_preds, counts = np.unique(predictions, return_counts=True)
+    total = len(predictions)
+    
+    pred_summary = []
+    for pred, count in zip(unique_preds, counts):
+        percentage = (count / total) * 100
+        pred_name = class_names[pred] if class_names and pred < len(class_names) else str(pred)
+        pred_summary.append(f"{pred}, {percentage:.3f}%")
+    
+    result = "For all the instances in the data, the model predicts:\\n" + "\\n".join(pred_summary)
+else:
+    result = "Model not available for prediction"
+"""
+            else:
+                # Standard single prediction
+                code = """
+# Make predictions with improved error handling
+X = df[feature_columns]
+
+if model is not None and len(df) > 0:
+    try:
+        predictions = model.predict(X)
         
-        result = f"Predictions for {len(predictions)} instances:<br>" + "<br>".join(pred_summary) + "<br><br>"
+        if len(predictions) == 1:
+            pred_class = predictions[0]
+            if hasattr(model, 'predict_proba'):
+                probabilities = model.predict_proba(X)[0]
+                if class_names and len(class_names) > max(range(len(probabilities))):
+                    prob_text = ", ".join([f"{class_names[i]}: {prob:.3f}" for i, prob in enumerate(probabilities)])
+                else:
+                    prob_text = ", ".join([f"Class {i}: {prob:.3f}" for i, prob in enumerate(probabilities)])
+                pred_name = class_names[pred_class] if class_names and pred_class < len(class_names) else f"Class {pred_class}"
+                result = f"Prediction: {pred_name} (probabilities: {prob_text})<br><br>"
+            else:
+                pred_name = class_names[pred_class] if class_names and pred_class < len(class_names) else f"Class {pred_class}"
+                result = f"Prediction: {pred_name}<br><br>"
+        else:
+            unique_preds, counts = np.unique(predictions, return_counts=True)
+            pred_summary = []
+            for pred, count in zip(unique_preds, counts):
+                percentage = (count / len(predictions)) * 100
+                pred_name = class_names[pred] if class_names and pred < len(class_names) else f"Class {pred}"
+                pred_summary.append(f"{pred_name}: {count} instances ({percentage:.1f}%)")
+            
+            result = f"Predictions for {len(predictions)} instances:<br>" + "<br>".join(pred_summary) + "<br><br>"
+    except Exception as e:
+        result = f"Error making predictions: {str(e)}<br><br>"
+elif len(df) == 0:
+    result = "No data available for prediction (empty dataset)<br><br>"
 else:
     result = "Model not available for prediction<br><br>"
 """
@@ -498,51 +630,107 @@ class DataSummaryTool(DataOperationTool):
         # Debug logging
         logger.info(f"DataSummaryTool: Processing query='{query_lower}', entities={entities}")
         
-        # Handle specific feature statistics requests
-        if any(word in query_lower for word in ['average', 'mean']) and 'age' in query_lower:
-            logger.info("DataSummaryTool: Detected specific age statistics request")
+        # CHECK FOR COUNT QUERIES FIRST (special handling)
+        count_patterns = ['how many', 'count', 'number of']
+        if any(pattern in query_lower for pattern in count_patterns):
+            logger.info("DataSummaryTool: Detected count query")
             code = """
-# Handle specific age statistics request
-if 'age' in df.columns:
-    avg_age = round(df['age'].mean(), 2)
-    std_age = round(df['age'].std(), 2)
-    min_age = round(df['age'].min(), 2)
-    max_age = round(df['age'].max(), 2)
-    
-    dataset_size = len(df)
-    
-    result = f"For the {dataset_size} patients in the dataset:<br><br>"
-    result += f"<b>Age Statistics:</b><br>"
-    result += f"• Average age: <b>{avg_age} years</b><br>"
-    result += f"• Standard deviation: {std_age} years<br>"
-    result += f"• Age range: {min_age} to {max_age} years<br><br>"
-else:
-    result = "Age information is not available in this dataset.<br><br>"
+# Handle count query (works with filtered data)
+result = f"Total count: {len(df)} instances"
 """
             return code
         
-        # Check for other specific feature statistics
+        # FULLY GENERALIZED STATISTICAL OPERATION DETECTION
+        # Define all possible statistical operations and their pandas equivalents
+        stat_operations = {
+            'mean': {'patterns': ['mean', 'average', 'avg'], 'pandas_method': 'mean()', 'description': 'Mean'},
+            'median': {'patterns': ['median', 'middle'], 'pandas_method': 'median()', 'description': 'Median'},
+            'std': {'patterns': ['standard deviation', 'std', 'deviation', 'stddev'], 'pandas_method': 'std()', 'description': 'Standard deviation'},
+            'min': {'patterns': ['minimum', 'min', 'lowest', 'smallest'], 'pandas_method': 'min()', 'description': 'Minimum'},
+            'max': {'patterns': ['maximum', 'max', 'highest', 'largest', 'biggest'], 'pandas_method': 'max()', 'description': 'Maximum'},
+            'sum': {'patterns': ['sum', 'total'], 'pandas_method': 'sum()', 'description': 'Sum'},
+            'var': {'patterns': ['variance', 'var'], 'pandas_method': 'var()', 'description': 'Variance'},
+        }
+        
+        # Find which statistical operation is being requested
+        detected_stat_op = None
+        best_stat_score = 0
+        
+        for stat_name, stat_info in stat_operations.items():
+            score = sum(1 for pattern in stat_info['patterns'] if pattern in query_lower)
+            if score > best_stat_score:
+                best_stat_score = score
+                detected_stat_op = stat_name
+        
+        # Find which feature is being requested by matching against all available features
+        requested_feature = None
+        best_feature_score = 0
+        
         for feature_name in schema.features:
-            if (any(word in query_lower for word in ['average', 'mean']) and 
-                feature_name.lower() in query_lower):
-                logger.info(f"DataSummaryTool: Detected specific {feature_name} statistics request")
-                code = f"""
-# Handle specific {feature_name} statistics request
-if '{feature_name}' in df.columns:
-    avg_val = round(df['{feature_name}'].mean(), 2)
-    std_val = round(df['{feature_name}'].std(), 2)
-    min_val = round(df['{feature_name}'].min(), 2)
-    max_val = round(df['{feature_name}'].max(), 2)
+            # Generate all possible ways this feature might be mentioned
+            feature_patterns = [
+                feature_name.lower(),
+                feature_name.lower() + 's',  # plural form
+                feature_name.lower().rstrip('s'),  # singular form if it ends with 's'
+            ]
+            
+            # Check how many patterns match (for scoring)
+            matches = sum(1 for pattern in feature_patterns if pattern in query_lower)
+            
+            if matches > best_feature_score:
+                best_feature_score = matches
+                requested_feature = feature_name
+        
+        # Generate code if both operation and feature are detected
+        if detected_stat_op and requested_feature and best_stat_score > 0 and best_feature_score > 0:
+            stat_info = stat_operations[detected_stat_op]
+            logger.info(f"DataSummaryTool: Detected '{detected_stat_op}' operation for feature '{requested_feature}'")
+            
+            code = f"""
+# Handle generalized statistical operation request
+requested_feature = '{requested_feature}'
+stat_operation = '{detected_stat_op}'
+
+if requested_feature in df.columns:
+    # Execute the detected statistical operation
+    stat_value = round(df[requested_feature].{stat_info['pandas_method']}, 2)
     
-    dataset_size = len(df)
-    
-    result = f"For the {{dataset_size}} patients in the dataset:<br><br>"
-    result += f"<b>{feature_name.title()} Statistics:</b><br>"
-    result += f"• Average: <b>{{avg_val}}</b><br>"
-    result += f"• Standard deviation: {{std_val}}<br>"
-    result += f"• Range: {{min_val}} to {{max_val}}<br><br>"
+    # Generate dynamic output based on detected operation and feature
+    result = f"{stat_info['description']} value for {{requested_feature}}: {{stat_value}}"
 else:
-    result = "{feature_name} information is not available in this dataset.<br><br>"
+    result = f"{{requested_feature}} information is not available in this dataset."
+"""
+            return code
+        
+        # HANDLE CLASS/LABEL EXPLANATION QUERIES
+        explanation_patterns = ['what does', 'what do', 'meaning of', 'means', 'represent']
+        if any(pattern in query_lower for pattern in explanation_patterns):
+            # Check if asking about target classes (0, 1, etc.)
+            if any(num in query_lower for num in ['0', '1', '2', '3', 'class', 'label', 'target']):
+                logger.info("DataSummaryTool: Detected class explanation query")
+                code = """
+# Handle class/label explanation query
+if target_column and target_column in df.columns:
+    unique_classes = df[target_column].unique()
+    class_counts = df[target_column].value_counts()
+    
+    result = "Class meanings in the dataset:\\n"
+    for class_val in sorted(unique_classes):
+        count = class_counts[class_val]
+        percentage = (count / len(df)) * 100
+        if class_names and class_val < len(class_names):
+            class_name = class_names[class_val]
+            result += f"• {class_val} = {class_name} ({count} instances, {percentage:.1f}%)\\n"
+        else:
+            # Provide meaningful interpretation based on common patterns
+            if class_val == 0:
+                result += f"• {class_val} = Negative/No condition ({count} instances, {percentage:.1f}%)\\n"
+            elif class_val == 1:
+                result += f"• {class_val} = Positive/Has condition ({count} instances, {percentage:.1f}%)\\n"
+            else:
+                result += f"• {class_val} = Class {class_val} ({count} instances, {percentage:.1f}%)\\n"
+else:
+    result = "Target class information is not available in this dataset."
 """
                 return code
         
@@ -581,18 +769,285 @@ result += "<br>"
         return code
 
 
+class ConversationalTool(DataOperationTool):
+    """Tool for handling conversational and general knowledge queries."""
+    
+    def __init__(self):
+        super().__init__(
+            name="conversational",
+            description="Handle general knowledge and conversational queries"
+        )
+    
+    def can_handle(self, operation_type: str, schema: DatasetSchema) -> bool:
+        return operation_type in ['conversational', 'general', 'knowledge']
+    
+    def generate_code(self, user_query: str, entities: Dict, schema: DatasetSchema) -> str:
+        """Generate conversational response code."""
+        query_lower = user_query.lower()
+        
+        # BMI-related queries - GENERALIZED to extract BMI values from context
+        if 'bmi' in query_lower:
+            if any(word in query_lower for word in ['high', 'rather high', 'too high']):
+                code = '''
+# Handle BMI knowledge query - generalized approach
+import re
+
+# Try to extract BMI value from query context or recent results
+bmi_value = None
+
+# Look for BMI value in current query
+bmi_match = re.search(r'bmi[:\\s]*([0-9]+(?:\\.[0-9]+)?)', query_lower)
+if bmi_match:
+    bmi_value = float(bmi_match.group(1))
+
+# If no value in query, try to get from dataset context (last computed average BMI)
+if bmi_value is None and 'bmi' in df.columns:
+    # Get the most recent BMI value if we're looking at filtered data
+    if len(df) == 1:
+        bmi_value = df['bmi'].iloc[0]
+    else:
+        bmi_value = df['bmi'].mean()
+
+if bmi_value is not None:
+    # Classify BMI
+    if bmi_value < 18.5:
+        category = "Underweight"
+        health_impact = "may indicate malnutrition or other health issues"
+    elif bmi_value < 25:
+        category = "Normal weight"
+        health_impact = "is associated with lower health risks"
+    elif bmi_value < 30:
+        category = "Overweight"
+        health_impact = "may increase risk of diabetes, heart disease, and other health conditions"
+    else:
+        if bmi_value < 35:
+            category = "Obese Class I"
+        elif bmi_value < 40:
+            category = "Obese Class II"
+        else:
+            category = "Obese Class III"
+        health_impact = "is associated with significantly increased health risks including diabetes, heart disease, and other complications"
+    
+    result = f"""Yes, a BMI of {bmi_value:.1f} is considered {category.lower()}. Here's the BMI classification:
+
+• Underweight: BMI < 18.5
+• Normal weight: BMI 18.5-24.9
+• Overweight: BMI 25-29.9
+• Obese Class I: BMI 30-34.9
+• Obese Class II: BMI 35-39.9
+• Obese Class III: BMI ≥ 40
+
+A BMI of {bmi_value:.1f} falls into the {category} category, which {health_impact}. This is why BMI is often a significant factor in diabetes risk prediction models."""
+else:
+    result = """BMI values above 25 are generally considered high. Here's the BMI classification:
+
+• Normal weight: BMI 18.5-24.9
+• Overweight: BMI 25-29.9
+• Obese Class I: BMI 30-34.9
+• Obese Class II: BMI 35-39.9
+• Obese Class III: BMI ≥ 40
+
+Higher BMI values are associated with increased health risks, which is why BMI is a key factor in diabetes prediction models."""
+'''
+            elif any(word in query_lower for word in ['normal', 'good', 'healthy']):
+                code = '''
+# Handle BMI normality query - generalized
+import re
+
+# Try to extract BMI value from context
+bmi_value = None
+bmi_match = re.search(r'bmi[:\\s]*([0-9]+(?:\\.[0-9]+)?)', query_lower)
+if bmi_match:
+    bmi_value = float(bmi_match.group(1))
+elif 'bmi' in df.columns:
+    if len(df) == 1:
+        bmi_value = df['bmi'].iloc[0]
+    else:
+        bmi_value = df['bmi'].mean()
+
+if bmi_value is not None:
+    is_normal = 18.5 <= bmi_value < 25
+    result = f"""A BMI of {bmi_value:.1f} is {"" if is_normal else "not "}considered normal/healthy. 
+
+Normal/healthy BMI range is 18.5-24.9. {"This BMI falls within the healthy range." if is_normal else f"This BMI indicates {'underweight' if bmi_value < 18.5 else 'overweight/obese'} status that may increase health risks, particularly for conditions like diabetes."}"""
+else:
+    result = "Normal/healthy BMI range is 18.5-24.9. BMI values outside this range may indicate increased health risks, which is why it's an important feature in diabetes prediction models."
+'''
+            else:
+                code = '''
+result = "BMI (Body Mass Index) is calculated as weight in kg divided by height in meters squared. It's used to categorize weight status and assess health risks. What specific aspect of BMI would you like to know about?"
+'''
+        
+        # Pregnancy-related queries
+        elif 'pregnanc' in query_lower and not any(word in query_lower for word in ['dataset', 'data', 'model']):
+            if any(word in query_lower for word in ['average', 'normal', 'typical', 'how many']):
+                code = '''
+result = """Average number of pregnancies varies by demographics and time period:
+
+• Global average: Around 2.4 children per woman (2021)
+• Developed countries: Often 1.5-2.0 children per woman
+• Historical context: Women in past generations often had 4-6+ children
+• Individual variation: Some women have 0 pregnancies, others 10+
+
+The number of pregnancies can be a factor in diabetes risk assessment, particularly for gestational diabetes history and metabolic changes associated with pregnancy."""
+'''
+            else:
+                code = '''
+result = "Pregnancy-related health information can vary widely. What specific aspect would you like to know about - average pregnancy numbers, health impacts, or diabetes risk factors?"
+'''
+        
+        # Age-related queries
+        elif 'age' in query_lower and any(word in query_lower for word in ['old', 'young', 'normal']):
+            code = '''
+result = """Age is a significant factor in diabetes risk. Generally:
+
+• Type 1 diabetes: Can occur at any age, often diagnosed in children/young adults
+• Type 2 diabetes: Risk increases with age, especially after 45
+• Gestational diabetes: Occurs during pregnancy
+
+The diabetes dataset likely focuses on Type 2 diabetes risk, where older age is associated with higher risk due to factors like decreased insulin sensitivity and longer exposure to risk factors."""
+'''
+        
+        # Glucose-related queries
+        elif 'glucose' in query_lower:
+            code = '''
+result = """Blood glucose levels are crucial for diabetes diagnosis:
+
+• Normal fasting glucose: < 100 mg/dL
+• Prediabetes: 100-125 mg/dL  
+• Diabetes: ≥ 126 mg/dL (fasting) or ≥ 200 mg/dL (random)
+
+High glucose levels indicate the body's inability to properly regulate blood sugar, which is the defining characteristic of diabetes."""
+'''
+        
+        # General health queries
+        elif any(word in query_lower for word in ['healthy', 'normal', 'good', 'bad']):
+            code = '''
+result = "I'd be happy to help explain health-related concepts! Could you be more specific about what health metric or condition you're asking about? I can provide information about BMI, glucose levels, blood pressure, or other health indicators."
+'''
+        
+        # Default conversational response
+        else:
+            code = '''
+result = "I'm here to help with both diabetes risk analysis and general health questions. Feel free to ask about specific health metrics, or we can dive into the dataset analysis. What would you like to explore?"
+'''
+        
+        return code
+
+
+class ErrorAnalysisTool(DataOperationTool):
+    """Tool for analyzing model errors and failure patterns."""
+    
+    def __init__(self):
+        super().__init__(
+            name="error_analysis",
+            description="Analyze model errors and prediction failures"
+        )
+    
+    def can_handle(self, operation_type: str, schema: DatasetSchema) -> bool:
+        return operation_type in ['error_analysis', 'mistakes', 'errors']
+    
+    def generate_code(self, user_query: str, entities: Dict, schema: DatasetSchema) -> str:
+        """Generate error analysis code."""
+        code = """
+# Analyze model errors and failure patterns
+X = df[feature_columns]
+y_true = df[target_column] if target_column in df.columns else None
+
+if model is not None and y_true is not None:
+    y_pred = model.predict(X)
+    
+    # Find incorrect predictions
+    errors = y_true != y_pred
+    error_count = errors.sum()
+    total_count = len(y_true)
+    error_rate = (error_count / total_count) * 100
+    
+    result = f"Model error analysis:\\n"
+    result += f"• Total errors: {error_count} out of {total_count} ({error_rate:.1f}%)\\n"
+    
+    if error_count > 0:
+        # Analyze error patterns
+        error_df = df[errors]
+        result += f"\\nError patterns:\\n"
+        
+        # Show statistics for errors
+        for col in feature_columns[:3]:  # Top 3 features
+            if col in error_df.columns:
+                mean_errors = error_df[col].mean()
+                mean_correct = df[~errors][col].mean()
+                result += f"• {col}: errors avg={mean_errors:.1f}, correct avg={mean_correct:.1f}\\n"
+    
+    result += "\\nUse feature analysis tools to investigate specific error patterns."
+else:
+    result = "Model or target data not available for error analysis"
+"""
+        return code
+
+
+class TraditionalXAITool(DataOperationTool):
+    """Tool that routes to traditional XAI actions for specialized explanations."""
+    
+    def __init__(self):
+        super().__init__(
+            name="traditional_xai",
+            description="Route to traditional XAI system for LIME, SHAP, counterfactuals, etc."
+        )
+    
+    def can_handle(self, operation_type: str, schema: DatasetSchema) -> bool:
+        return operation_type in ['explanation', 'lime', 'shap', 'counterfactual', 'interaction', 'what_if']
+    
+    def generate_code(self, user_query: str, entities: Dict, schema: DatasetSchema) -> str:
+        """Route to traditional action system for complex XAI."""
+        query_lower = user_query.lower()
+        
+        # Determine traditional action based on query
+        if any(pattern in query_lower for pattern in ['lime', 'explain', 'explanation', 'why']):
+            action = "explain"
+        elif any(pattern in query_lower for pattern in ['shap']):
+            action = "explain shap"
+        elif any(pattern in query_lower for pattern in ['counterfactual', 'what would need', 'different prediction']):
+            action = "counterfactual"
+        elif any(pattern in query_lower for pattern in ['interaction', 'interact', 'combined effect']):
+            action = "interaction"
+        elif any(pattern in query_lower for pattern in ['what if', 'change', 'modify']):
+            action = "whatif"
+        else:
+            action = "explain"  # Default to explanation
+        
+        code = f"""
+# Route to traditional XAI system for sophisticated explanations
+from explain.action import run_action
+
+# Use traditional action system for complex XAI capabilities
+traditional_action = "{action}"
+try:
+    response, status = run_action(traditional_action, df, conversation)
+    if status == 1:
+        result = response
+    else:
+        result = "XAI analysis failed. Please try a different approach."
+except Exception as e:
+    result = f"XAI analysis error: {{str(e)}}"
+"""
+        return code
+
+
 class GeneralizedActionPlanner:
     """
-    Generalized action planner that uses tool-augmented agents
-    instead of hardcoded action mappings.
+    Hybrid action planner that uses generalized tools for simple operations
+    and routes to traditional XAI system for complex explanations.
     """
     
     def __init__(self):
         self.tools = [
-            FilteringTool(),
-            ModelAnalysisTool(), 
-            FeatureAnalysisTool(),
-            DataSummaryTool()
+            ConversationalTool(),  # Natural conversation
+            TraditionalXAITool(),  # Complex XAI routing
+            FilteringTool(),       # Data filtering
+            ModelAnalysisTool(),   # Predictions, accuracy
+            FeatureAnalysisTool(), # Feature importance
+            DataSummaryTool(),     # Statistics, summaries
+            ErrorAnalysisTool()    # Error analysis
         ]
         self.schema = None
     
@@ -667,17 +1122,47 @@ class GeneralizedActionPlanner:
 def create_generalized_context(conversation) -> Dict[str, Any]:
     """Create execution context for generalized operations."""
     try:
-        # Get data and model from conversation
-        dataset = conversation.get_var('dataset').contents
-        model = conversation.get_var('model').contents
+        # Ensure temp_dataset is initialized for compatibility with traditional actions
+        if not hasattr(conversation, 'temp_dataset') or conversation.temp_dataset is None:
+            logger.info("Building temp_dataset for generalized operations")
+            conversation.build_temp_dataset()
         
-        df = dataset['X'].copy()
+        # Get data and model from conversation with null checks
+        dataset_var = conversation.get_var('dataset')
+        model_var = conversation.get_var('model')
+        
+        if dataset_var is None:
+            raise ValueError("Dataset not found in conversation context")
+        if model_var is None:
+            raise ValueError("Model not found in conversation context")
+            
+        dataset = dataset_var.contents
+        model = model_var.contents
+        
+        if dataset is None:
+            raise ValueError("Dataset contents is None")
+        if model is None:
+            raise ValueError("Model contents is None")
+        
+        # Use temp_dataset if available (filtered data), otherwise use main dataset
+        if hasattr(conversation, 'temp_dataset') and conversation.temp_dataset is not None:
+            temp_data = conversation.temp_dataset.contents
+            df = temp_data['X'].copy()
+            logger.info(f"Using temp_dataset with {len(df)} rows (filtered data)")
+        else:
+            df = dataset['X'].copy()
+            logger.info(f"Using main dataset with {len(df)} rows")
+        
         target_col = None
         
         # Add target column if available
         if 'y' in dataset and len(dataset['y']) > 0:
             target_col = 'target'
-            df[target_col] = dataset['y']
+            # Only add target for rows that exist in current df (important for filtered data)
+            if len(dataset['y']) >= len(df):
+                df[target_col] = dataset['y'][:len(df)]
+            else:
+                df[target_col] = dataset['y']
         
         # Get feature information
         feature_columns = [col for col in df.columns if col != target_col]
