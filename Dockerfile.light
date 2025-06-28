@@ -1,0 +1,47 @@
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies in a single layer for better caching
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Set environment variables early for better layer caching
+ENV PYTHONPATH=/app
+ENV FLASK_APP=flask_app_gpt4.py
+ENV PYTHONUNBUFFERED=1
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies with optimization
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy data files (these change less frequently)
+COPY data/ data/
+COPY templates/ templates/
+COPY static/ static/
+
+# Copy source code (copy most stable parts first for better caching)
+COPY explain/ explain/
+COPY flask_app_gpt4.py .
+COPY simple_autogen_app.py .
+
+# Copy tests last (they change most frequently)
+COPY tests/ tests/
+
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash app && \
+    chown -R app:app /app
+USER app
+
+# Expose port
+EXPOSE 4455
+
+# Use exec form for better signal handling
+CMD ["python3", "flask_app_gpt4.py"]

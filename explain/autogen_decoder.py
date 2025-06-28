@@ -93,7 +93,7 @@ class AutoGenDecoder:
     
     def __init__(self, 
                  api_key: Optional[str] = None,
-                 model: str = "gpt-4o",
+                 model: str = "gpt-4o-mini",  # Faster model for real-time collaboration
                  max_rounds: int = 3):
         """
         Initialize the Multi-Agent Natural Language Understanding System
@@ -261,258 +261,95 @@ class AutoGenDecoder:
         logger.info("Successfully initialized three-agent architecture")
 
     def _create_intent_extraction_prompt(self) -> str:
-        """
-        Generate the Intent Extraction Agent System Prompt
-        
-        This prompt defines the first stage of our natural language understanding pipeline.
-        The intent extraction agent is responsible for semantic analysis and entity recognition,
-        transforming unstructured natural language into structured semantic representations.
-        
-        Prompt Engineering Methodology:
-            The prompt is carefully engineered based on:
-            1. Empirical analysis of common user query patterns
-            2. Error analysis from initial system iterations  
-            3. Best practices from NLU research literature
-            4. Domain-specific requirements for ML model exploration
-        
-        Returns:
-            Carefully crafted system prompt for intent extraction
-        """
-        return """You are a specialized Natural Language Understanding agent for machine learning model exploration systems.
+        """Generate concise, focused intent extraction prompt for speed and accuracy."""
+        return """You are an intent extraction agent for ML model queries. Be FAST and ACCURATE.
 
-RESEARCH CONTEXT:
-Your role is the first stage in a multi-agent natural language understanding pipeline. You perform semantic analysis to extract user intentions and identify relevant entities from conversational queries about machine learning models.
+TASK: Extract intent and entities from user queries about machine learning models.
 
-CRITICAL CONTEXT AWARENESS:
-You must determine if the current query is:
-1. CONTINUING from previous context (e.g., asking about the same filtered subset)
-2. SWITCHING to a new context (e.g., asking about overall/general performance after a specific instance query)
+INTENT TYPES:
+- data: Dataset statistics, averages, summaries ("average age", "dataset info")  
+- predict: Model predictions ("predict for patient 2", "what would happen")
+- explain: Model explanations ("why", "how did", "explain prediction")
+- important: Feature importance ("important features", "which features matter")
+- performance: Model accuracy ("how accurate", "model performance")
+- filter: Subset data ("patients with age > 50")
+- casual: Greetings, chat ("hello", "hi")
 
-CONTEXT SWITCHING INDICATORS:
-- Keywords like "overall", "global", "total", "entire", "all", "general" often indicate a context switch
-- Questions about model-wide metrics after instance-specific queries are context switches  
-- New topic introductions are context switches
-- References to "the model" without specific qualifiers often mean the entire model
+EXAMPLES:
+"whats the average age in the dataset" → intent: "data"
+"how accurate is the model" → intent: "performance" 
+"explain patient 5" → intent: "explain", entities: {patient_id: 5}
+"predict for glucose > 120" → intent: "predict", entities: {features: ["glucose"], operators: [">"], values: [120]}
 
-TASK SPECIFICATION:
-Analyze user queries and extract:
-1. Primary intent (what the user wants to accomplish)
-2. Relevant entities (specific parameters, IDs, features mentioned)  
-3. Contextual modifiers (comparison operators, explanation types)
-4. Context continuation flag (is this continuing from previous filtered context?)
-
-INTENT TAXONOMY (Based on ML Exploration Literature):
-- explain: User seeks model explanation or interpretation (keywords: why, how, reason, because, explain)
-- predict: User wants prediction results or forecasts (keywords: predict, prediction, forecast, what would)
-- filter: User wants to subset or explore data (keywords: filter, show me, for patients who)
-- performance: User seeks model evaluation metrics (keywords: accuracy, performance, how good, how well, overall accuracy, total accuracy, global accuracy)
-- importance: User wants feature importance analysis (keywords: important, importance, significant, significance, key features, most relevant, relevant features, what features, which features, feature ranking, top features, feature matter)
-- whatif: User seeks counterfactual analysis (keywords: what if, change, modify, different)
-- mistakes: User wants error analysis (keywords: mistakes, errors, wrong predictions, false)
-- data: User seeks data exploration or summary (keywords: data, dataset, summary, overview)
-- casual: Conversational interaction without analytical intent (keywords: hi, hello, thanks, how are you)
-
-ENTITY EXTRACTION FRAMEWORK:
-Extract structured information including:
-- patient_id: Specific case identifiers mentioned by user
-- features: Column names or attributes referenced  
-- operators: Comparison operators (explicit or implied)
-- values: Threshold values or specific parameters
-- explanation_type: Requested explanation method (lime, shap, general)
-- context_reset: Boolean indicating if filters should be reset (true for context switches)
-
-RESPONSE FORMAT (Strict JSON):
+OUTPUT FORMAT (JSON ONLY):
 {
-  "intent": "primary_intent_classification", 
+  "intent": "detected_intent",
   "entities": {
-    "patient_id": numeric_id_or_null,
-    "features": ["extracted", "feature", "names"],
-    "operators": ["comparison", "operators"], 
-    "values": [numeric_values],
-    "explanation_type": "method_type_or_null",
-    "context_reset": true_or_false
+    "patient_id": number_or_null,
+    "features": ["feature_names"],
+    "operators": ["operators"], 
+    "values": [numbers]
   },
-  "confidence": confidence_score_0_to_1,
-  "reasoning": "brief_semantic_analysis_explanation"
+  "confidence": 0.95
 }
 
-CRITICAL: Respond only with valid JSON matching this exact format."""
+Be fast, accurate, and concise. No explanations needed."""
 
     def _create_action_planning_prompt(self) -> str:
-        """
-        Generate the Action Planning Agent System Prompt
-        
-        This prompt defines the second stage of our pipeline, responsible for translating
-        semantic representations into executable action syntax. The action planning agent
-        must understand both the domain-specific action grammar and the logical sequencing
-        of operations.
-        
-        Grammar Design Philosophy:
-            The action grammar is designed to be both expressive and unambiguous. It follows
-            principles from formal language theory while remaining intuitive for debugging
-            and system maintenance.
-        
-        Returns:
-            Comprehensive system prompt for action planning
-        """
-        return """You are a specialized Action Planning agent in a multi-agent natural language understanding system.
+        """Generate concise action planning prompt for speed."""
+        return """You are an action planning agent. Convert intents to executable actions QUICKLY.
 
-RESEARCH CONTEXT:  
-Your role is the second stage of our NLU pipeline. You receive structured intent and entity information from the Intent Extraction agent and translate it into precise, executable action commands using our domain-specific action grammar.
+INTENT → ACTION MAPPING:
+- data → "data" 
+- predict → "predict" (+ filters if needed)
+- explain → "explain" (+ filters if needed)
+- important → "important all"
+- performance → "score accuracy" (+ filters if needed)
+- filter + predict → "filter [feature] [op] [value] predict"
+- filter + performance → "filter [feature] [op] [value] score accuracy"
 
-CRITICAL CONTEXT MANAGEMENT:
-When the Intent Extraction agent indicates context_reset: true, you MUST:
-1. Start fresh without assuming previous filters apply
-2. NOT prepend filter commands from previous context
-3. Generate actions that operate on the full dataset
+EXAMPLES:
+Intent: data → Action: "data"
+Intent: predict, entities: {patient_id: 5} → Action: "filter id 5 predict" 
+Intent: performance, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "filter age greater 50 score accuracy"
+Intent: explain, entities: {patient_id: 2} → Action: "filter id 2 explain"
 
-When context_reset: false or not specified:
-1. Assume previous filters still apply
-2. Generate actions that work with the current filtered context
-
-ACTION GRAMMAR SPECIFICATION:
-Our action language follows a formal grammar designed for machine learning model exploration:
-
-Core Actions:
-- filter {feature} {operator} {value} : Apply data filtering constraints
-- predict [target_id] : Generate model predictions  
-- explain {target_id} [method] : Provide model explanations
-- important {scope} : Analyze feature importance
-- score {metric} : Evaluate model performance
-- show {target_id} : Display data instances
-- change {feature} {operation} {value} : Perform what-if analysis
-- mistake : Analyze prediction errors
-- data : Summarize dataset characteristics
-
-Operators: {greater, less, greaterequal, lessequal, equal}
-Scopes: {all, topk {n}, {feature_name}}  
-Methods: {lime, shap, general}
-Operations: {set, increase, decrease}
-
-LOGICAL SEQUENCING RULES:
-1. Filtering operations must precede dependent analysis operations
-2. Instance-specific operations require prior instance identification
-3. Complex conditions decompose into sequential simple operations
-4. Context resets do NOT require explicit filter clearing - the system handles this
-
-TRANSLATION EXAMPLES (Intent → Action):
-Intent: explain, entities: {patient_id: 5} 
-→ "filter id 5 explain"
-
-Intent: predict, entities: {patient_id: 2}
-→ "filter id 2 predict"
-
-Intent: predict, entities: {features: ["age"], operators: ["greater"], values: [50]}
-→ "filter age greater 50 predict"  
-
-Intent: importance, entities: {number: 3}
-→ "important topk 3"
-
-Intent: importance, entities: {} (general importance query)
-→ "important all"
-
-Intent: performance, entities: {context_reset: true} (after filtered query)
-→ "score accuracy" (no filter prefix, operates on full dataset)
-
-Intent: predict, entities: {features: ["age", "pregnancies"], operators: ["greater", "equal"], values: [50, 0]}
-→ "filter age greater 50 filter pregnancies equal 0 predict"
-
-CRITICAL ID FILTERING SYNTAX:
-- For patient IDs: "filter id {number}" NOT "filter id equal {number}"
-- Examples: "filter id 2", "filter id 100", "filter id 5"
-- ID filtering does NOT use the "equal" operator - it's a special case
-
-DOMAIN-SPECIFIC MAPPINGS:
-- "pregnant = no" → "pregnancies equal 0"  
-- "pregnant = yes" → "pregnancies greater 0"
-- Performance queries → "score accuracy" (default metric)
-- Overall performance queries → "score overall accuracy" or "score global accuracy"
-- Unspecified importance → "important all"
-
-FEATURE IMPORTANCE QUERY PATTERNS:
-- "what are the most relevant features" → "important all"
-- "what features are most important" → "important all"
-- "which features matter most" → "important all"
-- "most relevant features" → "important all"
-- "key features" → "important all"
-- "significant features" → "important all"
-
-RESPONSE FORMAT (Strict JSON):
+OUTPUT FORMAT (JSON ONLY):
 {
-  "action": "generated_action_command",
-  "reasoning": "translation_logic_explanation", 
-  "confidence": confidence_score_0_to_1
+  "action": "generated_action_string",
+  "confidence": 0.95
 }
 
-CRITICAL: Respond only with valid JSON matching this exact format."""
+Be fast and direct. No complex reasoning needed."""
 
     def _create_validation_prompt(self) -> str:
-        """
-        Generate the Validation Agent System Prompt
-        
-        This prompt defines the final stage of our pipeline, implementing quality assurance
-        and error correction. The validation agent serves as a safety layer, ensuring that
-        generated actions are syntactically correct and semantically valid within our
-        domain constraints.
-        
-        Validation Strategy:
-            The validation approach is based on both syntactic analysis (grammar compliance)
-            and semantic validation (domain constraint satisfaction). This dual approach
-            ensures both system stability and logical consistency.
-        
-        Returns:
-            Detailed system prompt for action validation
-        """
-        return """You are a specialized Validation agent in a multi-agent natural language understanding system.
+        """Generate concise validation prompt for speed."""
+        return """You are a validation agent. Check action syntax QUICKLY.
 
-RESEARCH CONTEXT:
-Your role is the final quality assurance stage of our NLU pipeline. You receive action commands from the Action Planning agent and perform comprehensive validation to ensure syntactic correctness and semantic consistency with our domain model.
+VALID ACTIONS: data, predict, explain, important, score, filter, show
+VALID FEATURES: age, glucose, bmi, pregnancies, bloodpressure, insulin, skinthickness, diabetespedigreefunction
+VALID OPERATORS: greater, less, equal, greaterequal, lessequal
 
-DOMAIN MODEL CONSTRAINTS:
-Dataset Schema:
-- Features: pregnancies, glucose, bloodpressure, skinthickness, insulin, bmi, diabetespedigreefunction, age
-- Target Classes: 0 (no diabetes), 1 (diabetes)  
-- Valid Patient IDs: Positive integers (typically 1-768)
-- Data Types: All features are numeric, requiring appropriate value ranges
+VALIDATION RULES:
+- Check action keywords are valid
+- Check feature names exist in dataset
+- Check syntax is correct
+- Fix obvious errors
 
-VALIDATION CHECKLIST:
-1. Syntactic Validation:
-   - Action keywords match defined grammar
-   - Parameter counts align with action specifications
-   - Operators conform to allowed set
-   
-2. Semantic Validation:  
-   - Feature names exist in dataset schema
-   - Value ranges are medically plausible
-   - Patient IDs are valid integers
-   - Logical sequence of operations makes sense
+EXAMPLES:
+"data" → Valid ✓
+"filter age greater 50 score accuracy" → Valid ✓  
+"filter invalid_feature equal 1" → Invalid (bad feature)
+"invalid_action" → Invalid (bad action)
 
-3. Consistency Validation:
-   - Compound actions maintain logical coherence
-   - Filter operations precede dependent analysis
-   - Entity references are properly scoped
-
-COMMON CORRECTION PATTERNS:
-- "important" → "important all" (specificity requirement)
-- Case normalization: "BMI" → "bmi", "Age" → "age"
-- Operator normalization: ">" → "greater", "<" → "less"
-- Syntax fixes: Ensure proper spacing between tokens
-
-COMPOUND ACTION HANDLING:
-The system accepts compound actions (e.g., "filter age greater 50 predict") as they are processed by downstream smart dispatchers. Focus validation on individual components rather than decomposition.
-
-RESPONSE FORMAT (Strict JSON):
+OUTPUT FORMAT (JSON ONLY):
 {
-  "valid": boolean_validation_result,
-  "corrected_action": "corrected_command_if_needed",
-  "issues": ["list", "of", "identified", "problems"],
-  "confidence": confidence_score_0_to_1
+  "valid": true_or_false,
+  "issues": ["list_of_issues"],
+  "confidence": 0.95
 }
 
-VALIDATION PHILOSOPHY:
-If the action is valid, return it unchanged. If issues are found, provide the minimally corrected version that addresses all identified problems while preserving user intent.
-
-CRITICAL: Respond only with valid JSON matching this exact format."""
+Be fast. Only catch obvious errors."""
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
         """
@@ -591,15 +428,15 @@ CRITICAL: Respond only with valid JSON matching this exact format."""
         
         This method orchestrates the complete natural language understanding process,
         coordinating the three specialized agents to transform user queries into
-        executable actions. The process follows a structured pipeline with robust
-        error handling and fallback mechanisms.
+        executable actions. The agents are allowed to collaborate and self-correct
+        through multiple rounds until they reach a satisfactory solution.
         
         Pipeline Architecture:
             1. Context Construction: Build comprehensive situational context
             2. Multi-Agent Collaboration: Execute round-robin agent communication  
             3. Response Integration: Combine agent outputs into final result
             4. Quality Assurance: Apply final validation and error correction
-            5. Fallback Processing: Handle edge cases and error conditions
+            5. Agent Self-Correction: Allow agents to retry and improve their responses
         
         Args:
             user_query: Natural language input from user
@@ -612,71 +449,49 @@ CRITICAL: Respond only with valid JSON matching this exact format."""
         Research Note:
             The asynchronous design enables concurrent processing and improves system
             responsiveness, particularly important for interactive ML exploration.
+            Agents are given multiple opportunities to collaborate and self-correct.
         """
-        try:
+        # Direct execution - clean and simple
+        
             # Stage 1: Context Construction and Preparation
             contextual_prompt = self._build_contextual_prompt(user_query, conversation)
             logger.info(f"Processing query: {user_query[:100]}...")
+        logger.info("Stage 1: Context construction completed")
             
             # Stage 2: Multi-Agent Team Configuration
-            # The termination condition implementation handles API version differences
-            # across AutoGen releases, ensuring broad compatibility
             termination_handler = self._configure_termination_condition()
+        logger.info("Stage 2: Termination condition configured")
             
             team_configuration = self._create_agent_team(termination_handler)
+        logger.info("Stage 2: Agent team created successfully")
             
             # Stage 3: Execute Collaborative Processing Pipeline
             processing_prompt = (
                 f"{contextual_prompt}\n\n"
                 f"Execute the complete natural language understanding pipeline:\n"
-                f"1. Intent Extraction → 2. Action Planning → 3. Validation → 4. Final Output"
+            f"1. Intent Extraction → 2. Action Planning → 3. Validation → 4. Final Output\n"
+            f"Collaborate and iterate until you reach a high-quality solution."
             )
             
+        logger.info("Stage 3: Starting agent collaboration...")
             collaboration_result = await team_configuration.run(task=processing_prompt)
+        logger.info(f"Stage 3: Agent collaboration completed with {len(collaboration_result.messages) if hasattr(collaboration_result, 'messages') else 0} messages")
             
             # Stage 4: Response Processing and Integration
+        logger.info("Stage 4: Processing agent responses...")
             final_response = self._process_agent_responses(collaboration_result)
             
             if final_response:
+            logger.info("Successfully processed query")
                 return final_response
-                
-            # Stage 5: Fallback Processing for Edge Cases
-            fallback_response = self._execute_fallback_processing(collaboration_result)
-            return fallback_response
-            
-        except Exception as e:
-            # Comprehensive error handling with graceful degradation
-            logger.error(f"Multi-agent processing failed: {e}")
-            return self._create_error_response(str(e))
+        else:
+            logger.warning("Creating minimal response")
+            return self._create_minimal_response(user_query, collaboration_result)
 
     def _configure_termination_condition(self):
-        """
-        Configure Agent Team Termination Conditions
-        
-        This method handles the complex task of configuring termination conditions
-        across different AutoGen API versions. The AutoGen framework has evolved
-        significantly, with API changes affecting termination parameter names.
-        
-        Compatibility Strategy:
-            Use runtime introspection to determine the correct parameter names,
-            ensuring compatibility across AutoGen versions while maintaining
-            functionality. This approach prevents deployment issues due to API changes.
-        
-        Returns:
-            Configured termination condition object
-        """
-        try:
-            # Import termination classes with version-aware fallbacks
-            try:
+        """Configure Agent Team Termination Conditions - direct and simple."""
                 from autogen_agentchat.conditions import MaxMessageTermination
-            except ModuleNotFoundError:
-                from autogen.stop.conditions import MaxMessageTermination
-                
             return MaxMessageTermination(self.max_rounds)
-            
-        except Exception as e:
-            logger.warning(f"Termination condition configuration failed: {e}")
-            return None
 
     def _create_agent_team(self, termination_handler):
         """
@@ -769,53 +584,27 @@ CRITICAL: Respond only with valid JSON matching this exact format."""
         return self._integrate_agent_outputs(intent_response, action_response, validation_response)
 
     def _extract_json_response(self, message, message_index: int) -> Optional[Dict]:
-        """
-        Extract Structured JSON from Agent Message
-        
-        Implements robust JSON extraction that handles various formatting approaches
-        used by different LLM models. The extraction process is fault-tolerant and
-        supports multiple JSON embedding patterns.
-        
-        Args:
-            message: Agent message containing potential JSON response
-            message_index: Message position for debugging purposes
-            
-        Returns:
-            Extracted JSON dictionary or None if extraction fails
-        """
-        try:
+        """Extract JSON from agent message - clean and direct."""
             if not (hasattr(message, 'content') and message.content and '{' in message.content):
                 return None
                 
             content = message.content
             
-            # Pattern 1: JSON code block extraction
+        # Pattern 1: JSON code block
             import re
             json_block_match = re.search(r'```json\s*(\{.*?\})\s*```', content, re.DOTALL)
             if json_block_match:
-                try:
                     return json.loads(json_block_match.group(1))
-                except json.JSONDecodeError as e:
-                    logger.warning(f"JSON block parsing failed for message {message_index}: {e}")
             
-            # Pattern 2: Direct JSON extraction
+        # Pattern 2: Direct JSON
             if content.strip().startswith('{') and content.strip().endswith('}'):
-                try:
                     return json.loads(content.strip())
-                except json.JSONDecodeError as e:
-                    logger.warning(f"Direct JSON parsing failed for message {message_index}: {e}")
                     
-            # Pattern 3: Embedded JSON search
+        # Pattern 3: Embedded JSON
             json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
             json_matches = re.findall(json_pattern, content)
             for match in json_matches:
-                try:
                     return json.loads(match)
-                except json.JSONDecodeError:
-                    continue
-                    
-        except Exception as e:
-            logger.warning(f"JSON extraction error for message {message_index}: {e}")
             
         return None
 
@@ -905,27 +694,29 @@ CRITICAL: Respond only with valid JSON matching this exact format."""
         Create Response from Complete Agent Collaboration
         
         Constructs the final response when all three agents have successfully
-        contributed to the processing pipeline. This represents the optimal
-        processing scenario with full validation and error correction.
+        contributed to the processing pipeline. Uses the universal command parser
+        to handle structured commands from the action planning agent.
         
         Args:
             intent_response: Validated intent extraction results
-            action_response: Generated action commands
+            action_response: Generated action commands (now structured)
             validation_response: Validation results and corrections
             
         Returns:
-            Complete integrated response with full metadata
+            Complete integrated response with universal command parsing
         """
-        # Extract final action with validation corrections
-        final_action = validation_response.get('corrected_action', action_response.get('action', 'explain'))
+        # Import universal parser
+        from .universal_command_parser import create_universal_parser
         
-        # Apply additional programmatic validation as safety measure
-        original_action = final_action
-        final_action = self._validate_and_fix_action_syntax(final_action)
+        # Extract command structure from action response
+        command_structure = action_response.get('command', action_response.get('action', {}))
         
-        # Log any additional corrections applied
-        if original_action != final_action:
-            logger.info(f"Applied additional correction: '{original_action}' → '{final_action}'")
+        # Use universal parser to generate action list
+        universal_parser = create_universal_parser()
+        action_list = universal_parser.parse_autogen_response(action_response)
+        
+        # Join actions for backward compatibility
+        final_action = " ".join(action_list) if action_list else "explain"
         
         # Calculate aggregate confidence score
         confidence_score = min(
@@ -937,7 +728,7 @@ CRITICAL: Respond only with valid JSON matching this exact format."""
         return {
             "generation": f"parsed: {final_action}[e]",
             "confidence": confidence_score,
-            "method": "autogen_complete_pipeline",
+            "method": "autogen_universal_pipeline",
             "intent_response": intent_response,  # Include full intent response for context reset detection
             "agent_reasoning": {
                 "intent_analysis": intent_response.get('reasoning', ''),
@@ -947,6 +738,8 @@ CRITICAL: Respond only with valid JSON matching this exact format."""
                     f"Issues: {validation_response.get('issues', [])}"
                 )
             },
+            "command_structure": command_structure,
+            "action_list": action_list,
             "final_action": final_action,
             "validation_passed": validation_response.get('valid', False),
             "identified_issues": validation_response.get('issues', [])
@@ -997,71 +790,29 @@ CRITICAL: Respond only with valid JSON matching this exact format."""
             "identified_issues": []
         }
 
-    def _execute_fallback_processing(self, collaboration_result) -> Dict[str, Any]:
+    def _create_minimal_response(self, user_query: str, collaboration_result) -> Dict[str, Any]:
         """
-        Execute Emergency Fallback Processing
+        Create Minimal Response When Agents Couldn't Reach Consensus
         
-        When structured agent responses are unavailable, this method attempts
-        to extract actionable information from raw agent communications using
-        pattern matching and heuristic analysis.
-        
-        Fallback Strategy:
-            1. Pattern-based action extraction from message content
-            2. Keyword-based intent inference
-            3. Safe default action selection
-            4. Degraded confidence reporting
+        Instead of falling back to pattern matching, this creates a response
+        that encourages the agents to try again or asks for clarification.
         
         Args:
+            user_query: Original user query
             collaboration_result: Raw collaboration output
             
         Returns:
-            Emergency fallback response
+            Minimal response that maintains agent-based approach
         """
-        extracted_action = None
-        
-        # Define action detection patterns based on empirical analysis
-        action_keywords = ['filter', 'predict', 'explain', 'important', 'score', 'show', 'change', 'mistake', 'data']
-        
-        # Search for recognizable action patterns in agent messages
-        for message in collaboration_result.messages:
-            if extracted_action:
-                break
-                
-            try:
-                if hasattr(message, 'content') and message.content:
-                    content = message.content
-                    
-                    # Pattern-based extraction using keyword detection
-                    for keyword in action_keywords:
-                        if keyword in content.lower():
-                            # Extract potential action lines
-                            lines = content.split('\n')
-                            for line in lines:
-                                if keyword in line.lower() and not line.strip().startswith('#'):
-                                    # Clean and validate extracted line
-                                    action_candidate = line.strip().strip('"').strip("'")
-                                    if action_candidate:
-                                        extracted_action = action_candidate
-                                        logger.info(f"Extracted action via fallback: {extracted_action}")
-                                        break
-                            if extracted_action:
-                                break
-                                
-            except (AttributeError, TypeError) as e:
-                logger.warning(f"Fallback extraction error: {e}")
-                continue
-        
-        # Ultimate safety fallback
-        if not extracted_action:
-            extracted_action = "explain"  
-            logger.warning("Using ultimate safety fallback: 'explain'")
+        logger.info("Creating minimal response - agents didn't reach consensus")
         
         return {
-            "generation": f"parsed: {extracted_action}[e]",
-            "confidence": 0.60,  # Reduced confidence for fallback processing
-            "method": "autogen_emergency_fallback",
-            "fallback_extraction": extracted_action,
-            "raw_message_count": len(collaboration_result.messages)
+            "generation": f"parsed: explain[e]",  # Safe default that prompts exploration
+            "confidence": 0.4,  # Low confidence indicates uncertainty
+            "method": "autogen_minimal_consensus",
+            "original_query": user_query,
+            "agent_notes": "Agents are still working through this query. You may want to rephrase or be more specific.",
+            "suggestion": "Try asking about specific aspects like 'show me the data' or 'explain the prediction'."
         }
 
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
@@ -1091,50 +842,8 @@ CRITICAL: Respond only with valid JSON matching this exact format."""
         }
     
     def complete_sync(self, user_query: str, conversation, grammar: str = None) -> Dict[str, Any]:
-        """
-        Synchronous Wrapper for Asynchronous Multi-Agent Processing
-        
-        This method provides a synchronous interface to the asynchronous multi-agent
-        system, handling the complexities of event loop management in different
-        runtime environments (particularly Flask applications).
-        
-        Concurrency Strategy:
-            The implementation uses multiple strategies to handle async/sync integration:
-            1. Existing event loop detection and adaptation
-            2. Thread-based isolation for running event loops
-            3. Timeout management for system responsiveness
-            4. Graceful error handling and fallback responses
-        
-        Args:
-            user_query: User's natural language input
-            conversation: System context and state
-            grammar: Legacy parameter for API compatibility
-            
-        Returns:
-            Processed response from multi-agent system
-            
-        Technical Note:
-            The sync/async integration addresses a common challenge in web applications
-            where Flask's synchronous nature conflicts with AutoGen's async requirements.
-        """
-        try:
-            # Strategy 1: Detect existing event loop
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # Flask/web server context - use thread isolation
-                return self._execute_in_thread(user_query, conversation, grammar)
-            else:
-                # CLI or standalone context - use existing loop
-                return loop.run_until_complete(self.complete(user_query, conversation, grammar))
-                
-        except RuntimeError:
-            # Strategy 2: No event loop exists - create new one
-            return self._execute_with_new_loop(user_query, conversation, grammar)
-            
-        except Exception as e:
-            # Strategy 3: Ultimate fallback for unexpected errors
-            logger.error(f"Sync/async integration failed: {e}")
-            return self._create_error_response(f"Concurrency management error: {str(e)}")
+        """Synchronous wrapper for multi-agent processing."""
+            return self._execute_in_thread(user_query, conversation, grammar)
 
     def _execute_in_thread(self, user_query: str, conversation, grammar: str = None) -> Dict[str, Any]:
         """Execute processing in isolated thread to avoid event loop conflicts."""
@@ -1142,16 +851,47 @@ CRITICAL: Respond only with valid JSON matching this exact format."""
         import threading
         
         def run_in_isolated_thread():
+            """Execute async processing in a new thread with proper cleanup."""
             new_loop = asyncio.new_event_loop()
             asyncio.set_event_loop(new_loop)
             try:
-                return new_loop.run_until_complete(self.complete(user_query, conversation, grammar))
+                logger.info(f"Starting async processing for query: {user_query[:50]}...")
+                result = new_loop.run_until_complete(self.complete(user_query, conversation, grammar))
+                logger.info("Async processing completed successfully")
+                return result
+            except asyncio.TimeoutError:
+                logger.warning("AutoGen processing timed out")
+                return self._create_error_response("Processing timeout - please try a simpler query")
+            except Exception as e:
+                logger.error(f"Error in async processing: {e}")
+                return self._create_error_response(f"AutoGen processing error: {str(e)}")
             finally:
-                new_loop.close()
+                try:
+                    # Proper cleanup of the event loop
+                    pending = asyncio.all_tasks(new_loop)
+                    if pending:
+                        for task in pending:
+                            task.cancel()
+                        new_loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+                    new_loop.close()
+                    logger.debug("Event loop cleaned up successfully")
+                except Exception as cleanup_error:
+                    logger.warning(f"Event loop cleanup warning: {cleanup_error}")
         
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(run_in_isolated_thread)
-            return future.result(timeout=30)  # 30-second timeout for responsiveness
+        try:
+            logger.info("Executing AutoGen processing in isolated thread...")
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(run_in_isolated_thread)
+                result = future.result(timeout=15)  # Reduced from 30 to 15 seconds for faster responses
+                logger.info("Thread execution completed successfully")
+                return result
+                
+        except concurrent.futures.TimeoutError:
+            logger.error("Thread execution timed out after 15 seconds")
+            return self._create_error_response("System timeout after 15 seconds - agents need more focus")
+        except Exception as e:
+            logger.error(f"Thread execution failed: {e}")
+            return self._create_error_response(f"Thread execution error: {str(e)}")
 
     def _execute_with_new_loop(self, user_query: str, conversation, grammar: str = None) -> Dict[str, Any]:
         """Execute processing with new event loop."""
@@ -1233,4 +973,8 @@ def get_autogen_predict_func(api_key: str = None, model: str = "gpt-4o"):
             
         return decoder.complete_sync(user_query, conversation, grammar)
     
-    return prediction_function 
+    return prediction_function
+
+
+# Alias for backward compatibility
+AutoGenNaturalLanguageUnderstanding = AutoGenDecoder 

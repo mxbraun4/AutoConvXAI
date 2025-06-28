@@ -211,6 +211,23 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
         if feature_value not in list(updated_dset['X'].index):
             updated_dset['X'] = []
             updated_dset['y'] = []
+            
+            # Store helpful error information for better user feedback
+            available_ids = list(temp_dataset['X'].index)[:10]  # Show first 10 IDs
+            total_ids = len(list(temp_dataset['X'].index))
+            
+            # Store this info in conversation for better error messages
+            error_msg = f"ID {feature_value} not found. "
+            if total_ids > 0:
+                if total_ids <= 10:
+                    error_msg += f"Available IDs: {available_ids}"
+                else:
+                    error_msg += f"Available IDs include: {available_ids}... (showing first 10 of {total_ids})"
+            else:
+                error_msg += "No instances available."
+            
+            # Store the error message directly in conversation
+            conversation.last_filter_error = error_msg
         else:
             updated_dset['X'] = updated_dset['X'].loc[[feature_value]]
             updated_dset['y'] = updated_dset['y'].loc[[feature_value]]
@@ -219,12 +236,24 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
         updated_dset, interp_parse_text = prediction_filter(temp_dataset, conversation, feature_name)
     elif operation == "labelfilter":
         updated_dset, interp_parse_text = label_filter(temp_dataset, conversation, feature_name)
-    elif feature_name in temp_dataset['cat'] or feature_name == "incorrect":
-        updated_dset, interp_parse_text = categorical_filter(parse_text, temp_dataset, conversation, i, feature_name)
-    elif feature_name in temp_dataset['numeric']:
-        updated_dset, interp_parse_text = numerical_filter(parse_text, temp_dataset, i, feature_name)
     else:
-        raise NameError(f"Parsed unkown feature name {feature_name}")
+        # ENHANCED: Check if there's an operator in the command
+        # If there's an operator word at position i+2, always use numerical_filter
+        # regardless of whether feature is categorical or numeric
+        has_operator = (len(parse_text) > i+2 and 
+                       parse_text[i+2] in ['greater', 'less', 'equal', 'not'])
+        
+        if has_operator:
+            # Use numerical_filter for any command with operators
+            updated_dset, interp_parse_text = numerical_filter(parse_text, temp_dataset, i, feature_name)
+        elif feature_name in temp_dataset['cat'] or feature_name == "incorrect":
+            # Use categorical_filter only for simple categorical filters without operators
+            updated_dset, interp_parse_text = categorical_filter(parse_text, temp_dataset, conversation, i, feature_name)
+        elif feature_name in temp_dataset['numeric']:
+            # Use numerical_filter for numeric features
+            updated_dset, interp_parse_text = numerical_filter(parse_text, temp_dataset, i, feature_name)
+        else:
+            raise NameError(f"Parsed unknown feature name {feature_name}")
 
     if is_or:
         current_dataset = conversation.temp_dataset.contents

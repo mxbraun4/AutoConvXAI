@@ -1,76 +1,88 @@
-# syntax=docker/dockerfile:1.4
-# Enable BuildKit for better caching
+# Multi-stage Dockerfile for TalkToModel
+# Build with: docker build -t ttm-gpt4 .                    (light version, ~2 min build)
+# Build with: docker build -t ttm-gpt4-full --target full . (full version, ~8 min build)
 
-# Multi-stage build for smaller image size
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim as base
 
-# Install build dependencies
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies in a single layer for better caching
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Cache mount for pip packages (using fast CPU-only requirements)
-COPY requirements_fast.txt /tmp/
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --user --no-cache-dir -r /tmp/requirements_fast.txt
+# Set environment variables early for better layer caching
+ENV PYTHONPATH=/app
+ENV FLASK_APP=flask_app_generalized.py
+ENV PYTHONUNBUFFERED=1
 
-# Final stage - minimal runtime image
-FROM python:3.11-slim
+# Copy requirements first for better caching
+COPY requirements.txt .
 
-# Copy only the installed packages from builder
-COPY --from=builder /root/.local /root/.local
+# Install Python dependencies with optimization
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Add user packages to PATH
-ENV PATH=/root/.local/bin:$PATH
+# === LIGHT VERSION (default) ===
+FROM base as light
 
-# Set working directory
-WORKDIR /usr/src/app
+# Copy data files (these change less frequently)
+COPY data/ data/
+COPY templates/ templates/
+COPY static/ static/
 
-# Create necessary directories first
-RUN mkdir -p cache explain/actions explain/mega_explainer data configs templates static
+# Copy source code (copy most stable parts first for better caching)
+COPY explain/ explain/
+COPY flask_app_generalized.py .
+COPY simple_autogen_app.py .
 
-# Layer 1: Copy static assets and configs (rarely change)
-COPY --link templates/ templates/
-COPY --link static/ static/
-COPY --link configs/diabetes-gpt4-config.gin configs/
+# Copy tests last (they change most frequently)
+COPY tests/ tests/
 
-# Layer 2: Copy data files (rarely change)
-COPY --link data/*.pkl data/
-COPY --link data/*.csv data/
-
-# Layer 3: Copy stable core modules (change occasionally)
-COPY --link explain/__init__.py explain/
-COPY --link explain/utils.py explain/
-COPY --link explain/conversation.py explain/
-COPY --link explain/dataset_description.py explain/
-COPY --link explain/feature_interaction.py explain/
-COPY --link explain/explanation.py explain/
-COPY --link explain/write_to_log.py explain/
-
-# Layer 4: Copy action modules (change occasionally)  
-COPY --link explain/actions/ explain/actions/
-COPY --link explain/mega_explainer/ explain/mega_explainer/
-COPY --link explain/action.py explain/
-
-# Layer 5: Copy frequently changing files last
-COPY --link explain/enhanced_logic.py explain/
-COPY --link explain/gpt4_decoder.py explain/
-COPY --link explain/autogen_decoder.py explain/
-COPY --link explain/smart_action_dispatcher.py explain/
-COPY --link explain/feature_mappings.py explain/
-COPY --link explain/lazy_mega_explainer.py explain/
-COPY --link explain/generalized_agents.py explain/
-COPY --link flask_app_gpt4.py ./
-
-# Set environment variables
-ENV OPENAI_API_KEY=""
-ENV FLASK_APP=flask_app_gpt4.py
-ENV PYTHONPATH=/usr/src/app
-ENV USE_AUTOGEN=true
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash app && \
+    chown -R app:app /app
+USER app
 
 # Expose port
 EXPOSE 4455
 
-# Run command
-CMD ["python", "flask_app_gpt4.py"]
+# Use exec form for better signal handling
+CMD ["python3", "flask_app_generalized.py"]
+
+# === FULL VERSION (with torch and heavy dependencies) ===
+FROM base as full
+
+# Install heavy dependencies
+COPY requirements-heavy.txt .
+RUN pip install --no-cache-dir -r requirements-heavy.txt
+
+# Copy data files (these change less frequently)
+COPY data/ data/
+COPY templates/ templates/
+COPY static/ static/
+
+# Copy source code (copy most stable parts first for better caching)
+COPY explain/ explain/
+COPY flask_app_generalized.py .
+COPY simple_autogen_app.py .
+
+# Copy tests last (they change most frequently)
+COPY tests/ tests/
+
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash app && \
+    chown -R app:app /app
+USER app
+
+# Expose port
+EXPOSE 4455
+
+# Use exec form for better signal handling
+CMD ["python3", "flask_app_generalized.py"]
+
+# Default to light version
+FROM light

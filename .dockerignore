@@ -33,8 +33,8 @@ README.md
 CITATION.cff
 LICENSE
 
-# Test files (exclude if not needed)
-tests/
+# Test files (include for now)
+# tests/
 
 # Cache directories
 cache/
@@ -61,8 +61,8 @@ configs/german-config.gin
 # Exclude old flask app
 flask_app.py
 
-# Exclude unnecessary requirements
-requirements.txt
+# Exclude unnecessary requirements (keep requirements.txt)
+# requirements.txt
 
 # Exclude specific data files not needed for diabetes model
 data/german*
@@ -77,4 +77,18 @@ explain/parser.py
 explain/grammar.py
 explain/decoder.py
 explain/complete.py
-explain/logic.py 
+explain/logic.py
+
+# Exclude build artifacts and development files
+node_modules/
+*.egg-info/
+build/
+dist/
+*.whl
+
+# Exclude development scripts
+get-pip.py
+
+# Exclude docker files themselves from context
+Dockerfile*
+docker-compose*

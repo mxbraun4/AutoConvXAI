@@ -1,0 +1,39 @@
+# Core Dependencies - Essential for basic functionality
+openai>=1.0.0
+flask>=2.0.0
+numpy>=1.24.0,<2.0.0
+pandas>=1.5.0,<2.0.0
+scikit-learn>=1.3.0
+scipy>=1.9.0
+
+# ML Explanation Libraries - Core explainability
+lime>=0.2.0.1
+shap>=0.43.0
+
+# AutoGen Framework - Multi-agent conversation support
+autogen-agentchat>=0.4.0,<0.7.0
+autogen-core>=0.4.0,<0.7.0
+autogen-ext>=0.4.0,<0.7.0
+tiktoken>=0.5.0
+
+# Web Framework
+Werkzeug>=2.3.0
+Jinja2>=3.1.0
+
+# Additional ML/Stats
+statsmodels>=0.13.0
+inflect>=5.4.0
+
+# AWS Services (Optional - only if using cloud features)
+boto3>=1.21.0
+botocore>=1.24.0
+
+# Testing
+pytest>=7.0.0
+
+# Optional heavyweight dependencies (install separately if needed):
+# torch>=2.0.0,<2.3.0  # For advanced neural explanations (1GB+ download)
+# dice-ml>=0.9,<0.12   # For counterfactual explanations (requires torch)
+
+# Uncomment dice-ml if you need counterfactual explanations (what-if analysis):
+# dice-ml>=0.9,<0.12

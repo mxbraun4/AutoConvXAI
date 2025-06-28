@@ -1,22 +1,20 @@
-"""This file implements objects that generate and cache explanations.
+"""Explanation class for generating different types of explanations.
 
-The main caveat so far is that sklearn models are currently the only types
-of models supported.
+This module provides a clean, direct approach to model explanations without fallbacks.
+Built for maximum generalizability with AutoGen-powered query processing.
 """
-import os
-import pickle as pkl
-import warnings
-from typing import Union, Any
 
+import os
+import warnings
+import pickle as pkl
+from typing import Callable, Union, Any, List, Dict
 import pandas as pd
 from tqdm import tqdm
-from typing import Callable
-
 from flask import Flask
 import numpy as np
 
+# Direct imports - clean and simple
 import dice_ml
-
 from explain.mega_explainer.explainer import Explainer
 
 app = Flask(__name__)
@@ -152,6 +150,8 @@ class TabularDice(Explanation):
             cache_location: Location to store cache.
             class_names: The map between class names and text class description.
         """
+        # dice_ml is imported directly - no fallbacks needed
+            
         super().__init__(cache_location, class_names)
         self.temp_outcome_name = 'y'
         self.model = self.wrap(model)

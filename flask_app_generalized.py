@@ -1,4 +1,4 @@
-"""Clean Flask app using AutoGen Multi-Agent system for TalkToModel."""
+"""Flask app using Generalized Dynamic Code Generation System."""
 import json
 import logging
 from logging.config import dictConfig
@@ -6,8 +6,7 @@ import os
 
 from flask import Flask, render_template, request, Blueprint
 
-from explain.enhanced_logic import EnhancedExplainBot
-
+from explain.generalized_logic import GeneralizedExplainBot
 
 # Set up logging
 dictConfig({
@@ -38,10 +37,10 @@ GPT_MODEL = os.getenv('GPT_MODEL', 'gpt-4o')
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY environment variable is required!")
 
-# Initialize the enhanced bot with AutoGen multi-agent system + GENERALIZED ACTIONS
-print(f"🚀 Initializing TalkToModel with AutoGen Multi-Agent System...")
-print(f"🤖 ENABLING GENERALIZED TOOL-AUGMENTED AGENTS!")
-BOT = EnhancedExplainBot(
+# Initialize the generalized bot with Dynamic Code Generation
+print(f"🚀 Initializing TalkToModel with Generalized Dynamic Code Generation...")
+print(f"⚡ ENABLING TRULY GENERALIZABLE QUERY PROCESSING!")
+BOT = GeneralizedExplainBot(
     model_file_path="data/diabetes_model_logistic_regression.pkl",
     dataset_file_path="data/diabetes.csv", 
     background_dataset_file_path="data/diabetes.csv",
@@ -52,22 +51,33 @@ BOT = EnhancedExplainBot(
     remove_underscores=True,
     name="diabetes",
     openai_api_key=OPENAI_API_KEY,
-    gpt_model=GPT_MODEL,
-    use_generalized_actions=True,  # 🚀 ENABLE GENERALIZED SYSTEM
-    preload_explanations=False     # Faster startup
+    gpt_model=GPT_MODEL
 )
-print(f"✅ AutoGen Multi-Agent TalkToModel ready with GENERALIZED TOOL-AUGMENTED ACTIONS!")
-print(f"🎯 System Benefits:")
-print(f"   ✅ Automatically adapts to any dataset structure")
-print(f"   ✅ Dynamic code generation instead of hardcoded rules")
-print(f"   ✅ Tool-augmented agents with pandas/sklearn access")
-print(f"   ✅ Self-describing operations and transparent execution")
+
+print(f"✅ Generalized TalkToModel ready with Dynamic Code Generation!")
+
+# Check for optional dependencies
+try:
+    from explain.explanation import DICE_ML_AVAILABLE
+    if not DICE_ML_AVAILABLE:
+        print(f"⚠️  dice_ml not available - counterfactual explanations disabled")
+        print(f"   💡 For full features, build with: docker build -t ttm-gpt4-full --target full .")
+except ImportError:
+    pass
+
+print(f"🎯 Generalized System Benefits:")
+print(f"   🔧 Dynamic code generation for ANY query combination")
+print(f"   🤖 AutoGen-powered intelligent extraction")
+print(f"   ⚡ No predefined action strings - truly generalizable")
+print(f"   🎛️ Supports unlimited filters, operators, and operations")
+print(f"   🔀 Automatically optimized pandas/numpy execution")
+print(f"   💻 Generated code is human-readable and debuggable")
 
 
 @bp.route('/')
 def home():
     """Load the explanation interface."""
-    app.logger.info("Loaded interface with AutoGen multi-agent backend")
+    app.logger.info("Loaded interface with generalized dynamic code generation backend")
     objective = BOT.conversation.describe.get_dataset_objective()
     return render_template("index.html", 
                          currentUserId="user", 
@@ -76,22 +86,22 @@ def home():
 
 @bp.route("/get_response", methods=['POST'])
 def get_bot_response():
-    """Get bot response using AutoGen multi-agent system."""
+    """Get bot response using Generalized Dynamic Code Generation."""
     if request.method == "POST":
-        app.logger.info("Generating AutoGen multi-agent response...")
+        app.logger.info("Generating response with dynamic code generation...")
         try:
             data = json.loads(request.data)
             user_text = data["userInput"]
             
-            # 🤖 MULTI-AGENT SYSTEM - Specialized agents collaborate for best results!
+            # 🚀 GENERALIZED SYSTEM - Dynamic code generation for ANY query!
             response = BOT.update_state(user_text, BOT.conversation)
             
-            app.logger.info("✅ AutoGen multi-agent response generated successfully")
+            app.logger.info("✅ Generalized response generated successfully")
             return response
             
         except Exception as e:
-            app.logger.error(f"Error with AutoGen multi-agent system: {e}")
-            return "I encountered an error. Please try rephrasing your question."
+            app.logger.error(f"Error with generalized system: {e}")
+            return "I encountered an error processing your question. Please try rephrasing it."
 
 
 @bp.route("/sample_prompt", methods=["POST"])
@@ -115,7 +125,7 @@ def sample_prompt():
         "username": username,
         "requested_action_generation": action,
         "generated_prompt": prompt,
-        "system": "autogen_multi_agent"
+        "system": "generalized_dynamic_code_generation"
     })
     
     return prompt
@@ -138,7 +148,7 @@ def log_feedback():
             "id": message_id,
             "feedback_text": feedback_text,
             "username": username,
-            "system": "autogen_multi_agent"
+            "system": "generalized_dynamic_code_generation"
         })
     
     return ""
@@ -150,18 +160,38 @@ app.register_blueprint(bp, url_prefix=BASE_URL)
 
 # Example usage and comparison
 if __name__ == "__main__":
-    print("\n🤖 AutoGen Multi-Agent Query Examples:")
-    print("Before (complex parsing): 'um, can you like explain why patient 5 got diabetes?'")
-    print("After (Multi-Agent):      Intent Agent → Action Agent → Validator → Perfect understanding")
+    print("\n🤖 Generalized Dynamic Code Generation Examples:")
+    print("=" * 60)
+    print("📊 ANY Statistical Query:")
+    print("  'average age for diabetic patients' → Generates pandas code to filter and calculate")
+    print("  'statistics for women with BMI > 30' → Dynamically creates filter + stats code")
     print()
-    print("Before (single model): One model handles everything")
-    print("After (Multi-Agent):   Specialized agents collaborate for better accuracy")
+    print("🎯 ANY Performance Query:")
+    print("  'accuracy for patients over 50 with glucose > 140' → Multi-filter accuracy code")
+    print("  'how well does model perform on young patients' → Age filter + performance code")
     print()
-    print("Query complexity: ANY → Multi-Agent team handles it all with specialized expertise ✨")
-    print("🎯 Intent Extraction Agent: Understands what you want")
-    print("⚡ Action Planning Agent: Plans the right action")
-    print("✅ Validation Agent: Ensures correctness")
-    print("🤝 Coordinator Agent: Brings it all together")
+    print("🔮 ANY Prediction Query:")
+    print("  'predict for patients with age > 45 and BMI > 28' → Multi-filter prediction code")
+    print("  'what would model predict for pregnant women' → Pregnancy filter + prediction")
+    print()
+    print("🧠 Generated Code Example:")
+    print("Instead of static 'filter age greater 50 score accuracy' strings...")
+    print("We generate executable Python:")
+    print("""
+    def execute_query(dataset, model, explainer, conversation):
+        filtered_dataset = dataset[dataset['age'] > 50]
+        filtered_dataset = filtered_dataset[filtered_dataset['glucose'] > 140]
+        accuracy = model.score(filtered_dataset.drop('y', axis=1), filtered_dataset['y'])
+        return f'Accuracy (age>50, glucose>140): {accuracy:.2f}%'
+    """)
+    print()
+    print("🎉 Benefits:")
+    print("✅ Handles UNLIMITED filter combinations")
+    print("✅ Supports ANY operation type")
+    print("✅ Automatically optimized execution")
+    print("✅ Human-readable generated code")
+    print("✅ Easy to extend with new operations")
+    print("✅ No hardcoded action mappings needed")
     
     # Run Flask app on all interfaces for Docker
-    app.run(host='0.0.0.0', port=4455, debug=False) 
+    app.run(host='0.0.0.0', port=4455, debug=False)

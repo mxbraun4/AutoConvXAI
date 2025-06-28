@@ -10,7 +10,14 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
     data = conversation.temp_dataset.contents['X']
 
     if len(conversation.temp_dataset.contents['X']) == 0:
-        return 'There are no instances that meet this description!', 0
+        # Check if there was a recent filter error for better error messages
+        if hasattr(conversation, 'last_filter_error') and conversation.last_filter_error:
+            error_msg = conversation.last_filter_error
+            # Clear the error after use
+            conversation.last_filter_error = None
+            return f'No instances found: {error_msg}', 0
+        else:
+            return 'There are no instances that meet this description!', 0
 
     model_predictions = model.predict(data)
 
