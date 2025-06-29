@@ -236,9 +236,17 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
         if feature_name.lower() == 'id':
             updated_dset, interp_parse_text = _handle_id_filtering(temp_dataset, conversation, feature_value)
         else:
-            # Regular feature filtering
-            if feature_name not in temp_dataset['X'].columns:
+            # Regular feature filtering - handle case-insensitive matching
+            actual_feature_name = None
+            for col in temp_dataset['X'].columns:
+                if col.lower() == feature_name.lower():
+                    actual_feature_name = col
+                    break
+            
+            if actual_feature_name is None:
                 raise ValueError(f"Unknown feature name: {feature_name}. Available features: {list(temp_dataset['X'].columns)}")
+            
+            feature_name = actual_feature_name  # use the actual column name
                 
             # Apply the filtering based on operator
             if operation == '>' or operation == 'greater':

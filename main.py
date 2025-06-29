@@ -116,98 +116,72 @@ action_dispatcher = SimpleActionDispatcher(dataset, model)
 # Component 3: LLM formatter for natural language output
 formatter = LLMFormatter(decoder)
 
-# Simple conversation context
-class SimpleConversation:
-    def __init__(self, dataset, model):
-        self.history = []
-        
-        # Create proper dataset structure with y values (target column)
-        # Separate features (X) from target (y) but keep full dataset for filtering.
+class DatasetManager:
+    """Manages dataset structure, X/y splits, and data preparation"""
+    
+    def __init__(self, dataset):
+        self.original_dataset = dataset
+        self.X_data = None
+        self.y_data = None
+        self.full_data_with_target = None
+        self.target_col = None
+        self._prepare_dataset()
+    
+    def _prepare_dataset(self):
+        """Prepare dataset with proper X/y split"""
         # The diabetes dataset uses the target column name 'y'. Fallback to 'Outcome' for compatibility.
-        target_col = 'y' if 'y' in dataset.columns else ('Outcome' if 'Outcome' in dataset.columns else None)
+        self.target_col = 'y' if 'y' in self.original_dataset.columns else ('Outcome' if 'Outcome' in self.original_dataset.columns else None)
 
-        if target_col:
-            X_data = dataset.drop(target_col, axis=1)  # Features only for model prediction
-            y_data = dataset[target_col]               # Target variable
-            full_data_with_target = dataset            # Full dataset includes target
+        if self.target_col:
+            self.X_data = self.original_dataset.drop(self.target_col, axis=1)  # Features only for model prediction
+            self.y_data = self.original_dataset[self.target_col]               # Target variable
+            self.full_data_with_target = self.original_dataset            # Full dataset includes target
         else:
             # No explicit target column found – assume dataset contains only features
-            X_data = dataset
-            y_data = None
-            full_data_with_target = dataset
-        
-        # Core data storage that actions expect
-        self.stored_vars = {}
-        
-        # Add dataset with proper structure - X should only have features for model predictions
-        # but we keep the full dataset with target for filtering operations
-        dataset_contents = {
-            'X': X_data,  # Only features - this goes to the model (8 features)
-            'y': y_data,  # Target variable separately
-            'full_data': full_data_with_target,  # Full dataset with target for filtering
+            self.X_data = self.original_dataset
+            self.y_data = None
+            self.full_data_with_target = self.original_dataset
+    
+    def get_dataset_contents(self):
+        """Return dataset contents in the format expected by actions"""
+        return {
+            'X': self.X_data,  # Only features - this goes to the model (8 features)
+            'y': self.y_data,  # Target variable separately
+            'full_data': self.full_data_with_target,  # Full dataset with target for filtering
             'cat': [],  # Categorical features (diabetes dataset is all numeric)
-            'numeric': list(X_data.columns),  # Feature names only (8 features)
+            'numeric': list(self.X_data.columns),  # Feature names only (8 features)
             'ids_to_regenerate': []
         }
-        dataset_obj = type('Variable', (), {'contents': dataset_contents})()
-        model_obj = type('Variable', (), {'contents': model})()
-        
-        # Initialize mega_explainer for LIME explanations
-        def prediction_function(x):
-            """Wrapper for model prediction"""
-            return model.predict_proba(x)
-        
-        import os
-        cache_dir = os.path.join(os.getcwd(), "cache")
-        os.makedirs(cache_dir, exist_ok=True)
-        cache_path = os.path.join(cache_dir, "mega-explainer-tabular.pkl")
-        mega_explainer = MegaExplainer(
-            prediction_fn=prediction_function,
-            data=X_data,  # Only feature columns, not target
-            cat_features=[],  # All numeric features for diabetes dataset
-            cache_location=cache_path,
-            class_names=["No Diabetes", "Diabetes"],
-            use_selection=False  # Use LIME directly as requested
-        )
-        mega_explainer_obj = type('Variable', (), {'contents': mega_explainer})()
-        
-        self.stored_vars = {
-            'dataset': dataset_obj,
-            'model': model_obj,
-            'mega_explainer': mega_explainer_obj
-        }
-        
-        # Initialize temp_dataset to the same structure (used for filtering)
-        self.temp_dataset = dataset_obj
-        
-        # Essential conversation attributes that actions expect
-        self.parse_operation = []  # Tracks filtering operations for interpretability
-        self.last_parse_string = []  # History of parse operations
-        self.rounding_precision = 2
-        self.default_metric = "accuracy"  # Default metric for model evaluation
-        self.class_names = {0: "No Diabetes", 1: "Diabetes"}  # Label mappings
-        self.feature_definitions = {}  # Feature descriptions (empty for now)
-        self.username = "user"
-        self.followup = ""  # For storing followup descriptions
-        
-        # Create a proper describe object with methods
-        describe_obj = type('Describe', (), {})()
-        describe_obj.get_dataset_description = lambda: "diabetes prediction based on patient health metrics"
-        describe_obj.get_eval_performance = lambda model, metric: ""
-        describe_obj.get_score_text = lambda y_true, y_pred, metric, precision, data_name: f"Model accuracy: {(y_true == y_pred).mean():.3f} on {data_name}"
-        self.describe = describe_obj
-        
-    def add_turn(self, query, response):
-        self.history.append({'query': query, 'response': response})
+
+class VariableStore:
+    """Manages stored variables used by actions"""
     
-    def get_var(self, name):
-        """Retrieve stored variables by name"""
-        return self.stored_vars.get(name)
+    def __init__(self):
+        self.stored_vars = {}
     
     def add_var(self, name, contents, kind=None):
         """Store new variables"""
         var_obj = type('Variable', (), {'contents': contents})()
         self.stored_vars[name] = var_obj
+    
+    def get_var(self, name):
+        """Retrieve stored variables by name"""
+        return self.stored_vars.get(name)
+    
+    def get_all_vars(self):
+        """Get all stored variables"""
+        return self.stored_vars
+
+class ConversationHistory:
+    """Manages conversation history and followup descriptions"""
+    
+    def __init__(self):
+        self.history = []
+        self.followup = ""
+    
+    def add_turn(self, query, response):
+        """Add a conversation turn"""
+        self.history.append({'query': query, 'response': response})
     
     def store_followup_desc(self, desc):
         """Store followup description for later use"""
@@ -216,28 +190,94 @@ class SimpleConversation:
     def get_followup_desc(self):
         """Retrieve followup description"""
         return self.followup
+
+class ExplainerManager:
+    """Manages LIME explainer setup and configuration"""
     
-    def add_interpretable_parse_op(self, text):
-        """Add interpretable operation description"""
-        self.parse_operation.append(text)
+    def __init__(self, model, X_data):
+        self.model = model
+        self.X_data = X_data
+        self.mega_explainer = None
+        self._setup_explainer()
     
-    def get_class_name_from_label(self, label):
-        """Convert label to class name"""
-        return self.class_names.get(label, str(label))
+    def _setup_explainer(self):
+        """Initialize mega_explainer for LIME explanations"""
+        def prediction_function(x):
+            """Wrapper for model prediction"""
+            return self.model.predict_proba(x)
+        
+        import os
+        cache_dir = os.path.join(os.getcwd(), "cache")
+        os.makedirs(cache_dir, exist_ok=True)
+        cache_path = os.path.join(cache_dir, "mega-explainer-tabular.pkl")
+        
+        from explain.explanation import MegaExplainer
+        self.mega_explainer = MegaExplainer(
+            prediction_fn=prediction_function,
+            data=self.X_data,  # Only feature columns, not target
+            cat_features=[],  # All numeric features for diabetes dataset
+            cache_location=cache_path,
+            class_names=["No Diabetes", "Diabetes"],
+            use_selection=False  # Use LIME directly as requested
+        )
+    
+    def get_explainer(self):
+        """Get the configured explainer"""
+        return self.mega_explainer
+
+class MetadataManager:
+    """Manages feature definitions and class name mappings"""
+    
+    def __init__(self):
+        self.feature_definitions = {}
+        self.class_names = {0: "No Diabetes", 1: "Diabetes"}
+        self.rounding_precision = 2
+        self.default_metric = "accuracy"
+        self.username = "user"
     
     def get_feature_definition(self, feature_name):
         """Get feature description"""
         return self.feature_definitions.get(feature_name, "")
     
+    def get_class_name_from_label(self, label):
+        """Convert label to class name"""
+        return self.class_names.get(label, str(label))
+
+class FilterStateManager:
+    """Manages temporary dataset and parse operations for filtering"""
+    
+    def __init__(self, dataset_manager, variable_store):
+        self.dataset_manager = dataset_manager
+        self.variable_store = variable_store
+        self.parse_operation = []
+        self.last_parse_string = []
+        self.temp_dataset = None
+        # Don't reset immediately - wait for variables to be initialized
+    
+    def add_interpretable_parse_op(self, text):
+        """Add interpretable operation description"""
+        self.parse_operation.append(text)
+    
     def build_temp_dataset(self, save=True):
         """Create temporary dataset for filtering operations"""
         # For now, just return the main dataset
         # In a full implementation, this would apply current filters
-        return self.get_var('dataset')
+        return self.variable_store.get_var('dataset')
     
     def reset_temp_dataset(self):
         """Properly reset temp_dataset to full dataset with deep copy"""
-        original_dataset = self.get_var('dataset').contents
+        self._reset_temp_dataset()
+        
+        # Clear filter history
+        self.parse_operation = []
+        
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Reset temp_dataset to full dataset: {len(self.temp_dataset.contents['X'])} instances")
+    
+    def _reset_temp_dataset(self):
+        """Internal method to reset temp dataset"""
+        original_dataset = self.variable_store.get_var('dataset').contents
         
         # Create a deep copy of the dataset structure
         import copy
@@ -252,11 +292,118 @@ class SimpleConversation:
         
         # Create new temp_dataset object with copied contents
         self.temp_dataset = type('Variable', (), {'contents': reset_contents})()
+
+# Simple conversation context - now using composition
+class SimpleConversation:
+    def __init__(self, dataset, model):
+        # Initialize all the specialized managers in correct order
+        self.dataset_manager = DatasetManager(dataset)
+        self.variable_store = VariableStore()
+        self.history_manager = ConversationHistory()
+        self.explainer_manager = ExplainerManager(model, self.dataset_manager.X_data)
+        self.metadata_manager = MetadataManager()
         
-        # Clear filter history
-        self.parse_operation = []
+        # Initialize variables that actions expect BEFORE FilterStateManager
+        self._setup_variables(model)
         
-        logger.info(f"Reset temp_dataset to full dataset: {len(reset_contents['X'])} instances")
+        # Initialize FilterStateManager after variables are set up
+        self.filter_manager = FilterStateManager(self.dataset_manager, self.variable_store)
+        
+        # Now initialize the temp dataset
+        self.filter_manager._reset_temp_dataset()
+        
+        # Create a proper describe object with methods
+        describe_obj = type('Describe', (), {})()
+        describe_obj.get_dataset_description = lambda: "diabetes prediction based on patient health metrics"
+        describe_obj.get_eval_performance = lambda model, metric: ""
+        describe_obj.get_score_text = lambda y_true, y_pred, metric, precision, data_name: f"Model accuracy: {(y_true == y_pred).mean():.3f} on {data_name}"
+        self.describe = describe_obj
+    
+    def _setup_variables(self, model):
+        """Setup variables that actions expect"""
+        dataset_contents = self.dataset_manager.get_dataset_contents()
+        dataset_obj = type('Variable', (), {'contents': dataset_contents})()
+        model_obj = type('Variable', (), {'contents': model})()
+        mega_explainer_obj = type('Variable', (), {'contents': self.explainer_manager.get_explainer()})()
+        
+        self.variable_store.add_var('dataset', dataset_contents)
+        self.variable_store.add_var('model', model)
+        self.variable_store.add_var('mega_explainer', self.explainer_manager.get_explainer())
+        
+        # For backward compatibility, expose temp_dataset
+        self.temp_dataset = dataset_obj
+    
+    # Delegate methods to appropriate managers
+    def add_turn(self, query, response):
+        return self.history_manager.add_turn(query, response)
+    
+    def get_var(self, name):
+        return self.variable_store.get_var(name)
+    
+    def add_var(self, name, contents, kind=None):
+        return self.variable_store.add_var(name, contents, kind)
+    
+    def store_followup_desc(self, desc):
+        return self.history_manager.store_followup_desc(desc)
+    
+    def get_followup_desc(self):
+        return self.history_manager.get_followup_desc()
+    
+    def add_interpretable_parse_op(self, text):
+        return self.filter_manager.add_interpretable_parse_op(text)
+    
+    def get_class_name_from_label(self, label):
+        return self.metadata_manager.get_class_name_from_label(label)
+    
+    def get_feature_definition(self, feature_name):
+        return self.metadata_manager.get_feature_definition(feature_name)
+    
+    def build_temp_dataset(self, save=True):
+        return self.filter_manager.build_temp_dataset(save)
+    
+    def reset_temp_dataset(self):
+        return self.filter_manager.reset_temp_dataset()
+    
+    # Expose metadata attributes for backward compatibility
+    @property
+    def history(self):
+        return self.history_manager.history
+    
+    @property
+    def stored_vars(self):
+        return self.variable_store.get_all_vars()
+    
+    @property
+    def parse_operation(self):
+        return self.filter_manager.parse_operation
+    
+    @property
+    def last_parse_string(self):
+        return self.filter_manager.last_parse_string
+    
+    @property
+    def rounding_precision(self):
+        return self.metadata_manager.rounding_precision
+    
+    @property
+    def default_metric(self):
+        return self.metadata_manager.default_metric
+    
+    @property
+    def class_names(self):
+        return self.metadata_manager.class_names
+    
+    @property
+    def feature_definitions(self):
+        return self.metadata_manager.feature_definitions
+    
+    @property
+    def username(self):
+        return self.metadata_manager.username
+    
+    @property
+    def followup(self):
+        return self.history_manager.followup
 
 conversation = SimpleConversation(dataset, model)
 

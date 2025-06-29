@@ -69,8 +69,17 @@ def score_operation(conversation, parse_text, i, **kwargs):
     if ent_features and ent_ops and ent_vals:
         try:
             for feat, op, val in zip(ent_features, ent_ops, ent_vals):
-                if feat not in full_data.columns:
+                # Handle case-insensitive feature matching
+                actual_feat = None
+                for col in full_data.columns:
+                    if col.lower() == feat.lower():
+                        actual_feat = col
+                        break
+                
+                if actual_feat is None:
                     continue  # skip unknown feature
+                
+                feat = actual_feat  # use the actual column name
                 
                 # Apply the filter
                 if op == '>':
