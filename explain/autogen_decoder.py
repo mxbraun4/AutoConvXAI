@@ -272,26 +272,39 @@ INTENT TYPES:
 - explain: Model explanations ("why", "how did", "explain prediction")
 - important: Feature importance ("important features", "which features matter")
 - performance: Model accuracy ("how accurate", "model performance")
-- filter: Subset data ("patients with age > 50")
+- filter: Subset data ("patients with age > 50", "show instances where model predicted 1")
 - casual: Greetings, chat ("hello", "hi")
+
+SPECIAL FILTERING TYPES:
+- Prediction filtering: "show instances where model predicted 1", "cases where model predicts diabetes"
+- Feature filtering: "patients with age > 50", "glucose less than 100"
+- Label filtering: "instances where ground truth is 1", "actual diabetic patients"
 
 EXAMPLES:
 "whats the average age in the dataset" → intent: "data"
 "how accurate is the model" → intent: "performance" 
 "explain patient 5" → intent: "explain", entities: {patient_id: 5}
 "predict for glucose > 120" → intent: "predict", entities: {features: ["glucose"], operators: [">"], values: [120]}
+"show instances where model predicted 1" → intent: "filter", entities: {filter_type: "prediction", prediction_values: [1]}
+"patients with age > 50" → intent: "filter", entities: {features: ["age"], operators: [">"], values: [50]}
+"show cases where ground truth is 1" → intent: "filter", entities: {filter_type: "label", label_values: [1]}
 
-OUTPUT FORMAT (JSON ONLY):
+OUTPUT FORMAT (JSON ONLY - NO DUPLICATE KEYS):
 {
   "intent": "detected_intent",
   "entities": {
     "patient_id": number_or_null,
-    "features": ["feature_names"],
-    "operators": ["operators"], 
-    "values": [numbers]
+    "features": ["feature_names_or_null"],
+    "operators": ["operators_or_null"], 
+    "values": [numbers_or_null],
+    "filter_type": "prediction|feature|label|null",
+    "prediction_values": [numbers_for_prediction_filtering_or_null],
+    "label_values": [numbers_for_label_filtering_or_null]
   },
   "confidence": 0.95
 }
+
+CRITICAL: Never use the same JSON key twice. Use prediction_values for prediction filtering, values for feature filtering, and label_values for label filtering.
 
 Be fast, accurate, and concise. No explanations needed."""
 
@@ -308,17 +321,34 @@ INTENT → ACTION MAPPING:
 - filter + predict → "filter [feature] [op] [value] predict"
 - filter + performance → "filter [feature] [op] [value] score accuracy"
 
+FILTERING ACTION TYPES:
+- Prediction filtering: filter_type="prediction" → Use "filter" action with prediction entities
+- Feature filtering: filter_type="feature" or features present → Use "filter" action with feature entities  
+- Label filtering: filter_type="label" → Use "filter" action with label entities
+- ID filtering: patient_id present → Use "filter" action with id entities
+
 EXAMPLES:
 Intent: data → Action: "data"
 Intent: predict, entities: {patient_id: 5} → Action: "filter id 5 predict" 
 Intent: performance, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "filter age greater 50 score accuracy"
 Intent: explain, entities: {patient_id: 2} → Action: "filter id 2 explain"
+Intent: filter, entities: {filter_type: "prediction", values: [1]} → Action: "filter"
+Intent: filter, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "filter"
+Intent: filter, entities: {filter_type: "label", values: [1]} → Action: "filter"
 
 OUTPUT FORMAT (JSON ONLY):
 {
   "action": "generated_action_string",
+  "entities": {
+    "features": ["feature_names_if_any"],
+    "operators": ["operators_if_any"],
+    "values": [values_if_any],
+    "filter_type": "prediction|feature|label|null"
+  },
   "confidence": 0.95
 }
+
+IMPORTANT: Always pass through the entities from intent extraction so the filter function has the structured data it needs.
 
 Be fast and direct. No complex reasoning needed."""
 
@@ -453,45 +483,45 @@ Be fast. Only catch obvious errors."""
         """
         # Direct execution - clean and simple
         
-            # Stage 1: Context Construction and Preparation
-            contextual_prompt = self._build_contextual_prompt(user_query, conversation)
-            logger.info(f"Processing query: {user_query[:100]}...")
+        # Stage 1: Context Construction and Preparation
+        contextual_prompt = self._build_contextual_prompt(user_query, conversation)
+        logger.info(f"Processing query: {user_query[:100]}...")
         logger.info("Stage 1: Context construction completed")
-            
-            # Stage 2: Multi-Agent Team Configuration
-            termination_handler = self._configure_termination_condition()
+        
+        # Stage 2: Multi-Agent Team Configuration
+        termination_handler = self._configure_termination_condition()
         logger.info("Stage 2: Termination condition configured")
-            
-            team_configuration = self._create_agent_team(termination_handler)
+        
+        team_configuration = self._create_agent_team(termination_handler)
         logger.info("Stage 2: Agent team created successfully")
-            
-            # Stage 3: Execute Collaborative Processing Pipeline
-            processing_prompt = (
-                f"{contextual_prompt}\n\n"
-                f"Execute the complete natural language understanding pipeline:\n"
+        
+        # Stage 3: Execute Collaborative Processing Pipeline
+        processing_prompt = (
+            f"{contextual_prompt}\n\n"
+            f"Execute the complete natural language understanding pipeline:\n"
             f"1. Intent Extraction → 2. Action Planning → 3. Validation → 4. Final Output\n"
             f"Collaborate and iterate until you reach a high-quality solution."
-            )
-            
+        )
+        
         logger.info("Stage 3: Starting agent collaboration...")
-            collaboration_result = await team_configuration.run(task=processing_prompt)
+        collaboration_result = await team_configuration.run(task=processing_prompt)
         logger.info(f"Stage 3: Agent collaboration completed with {len(collaboration_result.messages) if hasattr(collaboration_result, 'messages') else 0} messages")
-            
-            # Stage 4: Response Processing and Integration
+        
+        # Stage 4: Response Processing and Integration
         logger.info("Stage 4: Processing agent responses...")
-            final_response = self._process_agent_responses(collaboration_result)
-            
-            if final_response:
+        final_response = self._process_agent_responses(collaboration_result)
+        
+        if final_response:
             logger.info("Successfully processed query")
-                return final_response
+            return final_response
         else:
             logger.warning("Creating minimal response")
             return self._create_minimal_response(user_query, collaboration_result)
 
     def _configure_termination_condition(self):
         """Configure Agent Team Termination Conditions - direct and simple."""
-                from autogen_agentchat.conditions import MaxMessageTermination
-            return MaxMessageTermination(self.max_rounds)
+        from autogen_agentchat.conditions import MaxMessageTermination
+        return MaxMessageTermination(self.max_rounds)
 
     def _create_agent_team(self, termination_handler):
         """
@@ -585,27 +615,30 @@ Be fast. Only catch obvious errors."""
 
     def _extract_json_response(self, message, message_index: int) -> Optional[Dict]:
         """Extract JSON from agent message - clean and direct."""
-            if not (hasattr(message, 'content') and message.content and '{' in message.content):
-                return None
-                
-            content = message.content
+        if not (hasattr(message, 'content') and message.content and '{' in message.content):
+            return None
             
-        # Pattern 1: JSON code block
+        content = message.content
+        
+        try:
+            # Pattern 1: JSON code block
             import re
             json_block_match = re.search(r'```json\s*(\{.*?\})\s*```', content, re.DOTALL)
             if json_block_match:
-                    return json.loads(json_block_match.group(1))
+                return json.loads(json_block_match.group(1))
             
-        # Pattern 2: Direct JSON
+            # Pattern 2: Direct JSON
             if content.strip().startswith('{') and content.strip().endswith('}'):
-                    return json.loads(content.strip())
-                    
-        # Pattern 3: Embedded JSON
+                return json.loads(content.strip())
+                
+            # Pattern 3: Embedded JSON
             json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
             json_matches = re.findall(json_pattern, content)
             for match in json_matches:
-                    return json.loads(match)
-            
+                return json.loads(match)
+        except json.JSONDecodeError:
+            pass
+        
         return None
 
     def _classify_response_type(self, response: Dict) -> str:
@@ -794,8 +827,8 @@ Be fast. Only catch obvious errors."""
         """
         Create Minimal Response When Agents Couldn't Reach Consensus
         
-        Instead of falling back to pattern matching, this creates a response
-        that encourages the agents to try again or asks for clarification.
+        Extract intent and entities from the first agent response if available,
+        otherwise fall back to a safe default.
         
         Args:
             user_query: Original user query
@@ -806,14 +839,26 @@ Be fast. Only catch obvious errors."""
         """
         logger.info("Creating minimal response - agents didn't reach consensus")
         
-        return {
-            "generation": f"parsed: explain[e]",  # Safe default that prompts exploration
-            "confidence": 0.4,  # Low confidence indicates uncertainty
-            "method": "autogen_minimal_consensus",
-            "original_query": user_query,
-            "agent_notes": "Agents are still working through this query. You may want to rephrase or be more specific.",
-            "suggestion": "Try asking about specific aspects like 'show me the data' or 'explain the prediction'."
-        }
+        # Try to extract intent and entities from first agent response
+        intent_response = None
+        for message in collaboration_result.messages:
+            extracted_response = self._extract_json_response(message, 0)
+            if extracted_response and 'intent' in extracted_response:
+                intent_response = extracted_response
+                break
+        
+        if intent_response:
+            # Use the extracted intent and entities
+            return {
+                "intent": intent_response.get("intent"),
+                "entities": intent_response.get("entities", {}),
+                "confidence": intent_response.get("confidence", 0.8),
+                "method": "autogen_intent_extraction",
+                "original_query": user_query
+            }
+        else:
+            # NO FALLBACKS - Fail fast when AutoGen doesn't work
+            raise Exception("AutoGen failed to extract intent - no fallback allowed")
 
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """
@@ -843,7 +888,7 @@ Be fast. Only catch obvious errors."""
     
     def complete_sync(self, user_query: str, conversation, grammar: str = None) -> Dict[str, Any]:
         """Synchronous wrapper for multi-agent processing."""
-            return self._execute_in_thread(user_query, conversation, grammar)
+        return self._execute_in_thread(user_query, conversation, grammar)
 
     def _execute_in_thread(self, user_query: str, conversation, grammar: str = None) -> Dict[str, Any]:
         """Execute processing in isolated thread to avoid event loop conflicts."""

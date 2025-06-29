@@ -37,14 +37,14 @@ def score_operation(conversation, parse_text, i, **kwargs):
     
     if use_full_dataset:
         # User explicitly asked for overall/global performance
-        data = conversation.get_var('dataset').contents['X']
+        full_data = conversation.get_var('dataset').contents['X']
         y_true = conversation.get_var('dataset').contents['y']
         filter_string = ""  # No filtering applied
         is_global_query = True
         data_name = "the <b>entire dataset</b>"
     else:
         # Default: Use filtered dataset (respects user's filtering intent)
-        data = conversation.temp_dataset.contents['X']
+        full_data = conversation.temp_dataset.contents['X']
         y_true = conversation.temp_dataset.contents['y']
         filter_string = gen_parse_op_text(conversation)
         is_global_query = False
@@ -55,8 +55,54 @@ def score_operation(conversation, parse_text, i, **kwargs):
         else:
             data_name = f"instances where <b>{filter_string}</b>"
 
+    # -----------------------------------------------
+    # NEW: Apply on-the-fly filtering when the query
+    # directly specifies feature/operator/value but
+    # no prior filter action has been called (e.g.,
+    # "accuracy where age > 50"). We inspect kwargs
+    # passed through action_args.
+    # -----------------------------------------------
+    ent_features = kwargs.get('features', []) if kwargs else []
+    ent_ops = kwargs.get('operators', []) if kwargs else []
+    ent_vals = kwargs.get('values', []) if kwargs else []
+
+    if ent_features and ent_ops and ent_vals:
+        try:
+            for feat, op, val in zip(ent_features, ent_ops, ent_vals):
+                if feat not in full_data.columns:
+                    continue  # skip unknown feature
+                
+                # Apply the filter
+                if op == '>':
+                    mask = full_data[feat] > val
+                elif op == '<':
+                    mask = full_data[feat] < val
+                elif op == '=' or op == '==':
+                    mask = full_data[feat] == val
+                else:
+                    continue
+                
+                full_data = full_data[mask]
+                y_true = y_true[mask]
+                
+            # Update data description
+            filter_parts = [f"{f} {o} {v}" for f, o, v in zip(ent_features, ent_ops, ent_vals)]
+            filter_string = " and ".join(filter_parts)
+            data_name = f"instances where <b>{filter_string}</b>" if filter_string else data_name
+        except Exception:
+            pass  # fall back silently if any issue
+
+    # Remove target column if present (models expect only features, not target)
+    if 'y' in full_data.columns:
+        data = full_data.drop(columns=['y'])
+    else:
+        data = full_data
+
+    # Convert to numpy array to remove feature names (sklearn 1.0.2 compatibility)
+    data_array = data.values
+
     # Compute predictions on the selected dataset
-    y_pred = model.predict(data)
+    y_pred = model.predict(data_array)
     
     # Generate performance description
     text = conversation.describe.get_score_text(y_true,

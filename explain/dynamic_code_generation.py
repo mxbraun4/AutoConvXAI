@@ -289,49 +289,118 @@ class CodeGenerator:
         ]
     
     def _generate_prediction_code(self, query: GeneratedQuery) -> List[str]:
-        """Generate code for prediction."""
+        """Generate code for prediction queries - handles filtering by prediction values."""
         return [
-            "    # Generate predictions for filtered data",
-            "    if len(dataset) == 0:",
+            "    # Separate prediction filters from feature filters",
+            "    # Handle any variation of prediction feature names",
+            "    prediction_keywords = ['prediction', 'predicted', 'pred', 'predicts', 'classify', 'classified']",
+            "    prediction_filters = [f for f in query.filters if f.feature.lower() in prediction_keywords]",
+            "    feature_filters = [f for f in query.filters if f.feature.lower() not in prediction_keywords]",
+            "    ",
+            "    # Start with full dataset",
+            "    working_dataset = dataset.copy()",
+            "    ",
+            "    # Apply feature-based filters first (if any)",
+            "    if feature_filters:",
+            "        for filter_op in feature_filters:",
+            "            actual_feature = find_column_name(filter_op.feature, list(working_dataset.columns))",
+            "            if actual_feature in working_dataset.columns:",
+            "                if filter_op.operator == 'eq':",
+            "                    working_dataset = working_dataset[working_dataset[actual_feature] == filter_op.value]",
+            "                elif filter_op.operator == 'gt':",
+            "                    working_dataset = working_dataset[working_dataset[actual_feature] > filter_op.value]",
+            "                elif filter_op.operator == 'lt':",
+            "                    working_dataset = working_dataset[working_dataset[actual_feature] < filter_op.value]",
+            "    ",
+            "    if len(working_dataset) == 0:",
             "        return 'No data points match the specified criteria.'",
-            "",
-            "    X = dataset.drop(columns=[col for col in dataset.columns if col in ['target', 'y', 'label']], errors='ignore')",
+            "    ",
+            "    # ALWAYS generate predictions first (required for prediction filtering)",
+            "    X = working_dataset.drop(columns=[col for col in working_dataset.columns if col in ['target', 'y', 'label']], errors='ignore')",
             "    predictions = model.predict(X)",
             "    probabilities = model.predict_proba(X) if hasattr(model, 'predict_proba') else None",
-            "",
+            "    ",
+            "    # NOW apply prediction-based filtering (after predictions exist)",
+            "    if prediction_filters:",
+            "        prediction_mask = None",
+            "        for filter_op in prediction_filters:",
+            "            if filter_op.operator == 'eq':",
+            "                mask = predictions == filter_op.value",
+            "            elif filter_op.operator == 'gt':",
+            "                mask = predictions > filter_op.value",
+            "            elif filter_op.operator == 'lt':",
+            "                mask = predictions < filter_op.value",
+            "            else:",
+            "                continue",
+            "            ",
+            "            if prediction_mask is None:",
+            "                prediction_mask = mask",
+            "            else:",
+            "                prediction_mask = prediction_mask & mask",
+            "        ",
+            "        # Apply prediction filter to both dataset and predictions",
+            "        if prediction_mask is not None and prediction_mask.any():",
+            "            working_dataset = working_dataset[prediction_mask]",
+            "            predictions = predictions[prediction_mask]",
+            "            if probabilities is not None:",
+            "                probabilities = probabilities[prediction_mask]",
+            "        else:",
+            "            return f'No instances found with the specified prediction criteria.'",
+            "    ",
             "    result = []",
-            "    filter_desc = '' if len(query.filters) == 0 else f' (filtered by {_describe_filters(query.filters)})'",
-            "",
-            "    # Check if this is a single instance prediction",
-            "    if len(dataset) == 1:",
-            "        # Single instance - show detailed prediction",
-            "        instance_idx = dataset.index[0]",
-            "        prediction = predictions[0]",
-            "        ",
-            "        result.append(f'Instance {instance_idx} Prediction:')",
-            "        result.append(f'• Predicted Class: {prediction}')",
-            "        ",
-            "        if probabilities is not None:",
-            "            prob_scores = probabilities[0]",
-            "            result.append('• Prediction Probabilities:')",
-            "            for class_idx, prob in enumerate(prob_scores):",
-            "                result.append(f'  - Class {class_idx}: {prob:.3f} ({prob*100:.1f}%)')",
-            "            result.append(f'• Confidence: {max(prob_scores):.3f}')",
-            "        ",
-            "        return '\\n'.join(result)",
-            "    else:",
-            "        # Multiple instances - show summary statistics",
-            "        result.append(f'Predictions{filter_desc}:')",
-            "        result.append(f'Sample size: {len(dataset)} instances')",
+            "    ",
+            "    # Show results based on whether we filtered by predictions",
+            "    if prediction_filters:",
+            "        # Show only the instances matching prediction criteria",
+            "        filter_desc = ', '.join([f\"{f.feature}={f.value}\" for f in prediction_filters])",
+            "        result.append(f'Instances where {filter_desc}:')",
+            "        result.append(f'Found {len(working_dataset)} matching instances')",
             "        result.append('')",
-            "",
+            "        ",
+            "        # Show sample instances",
+            "        result.append('Sample instances:')",
+            "        display_count = min(10, len(working_dataset))",
+            "        sample_data = working_dataset.head(display_count)",
+            "        ",
+            "        for idx, (instance_id, row) in enumerate(sample_data.iterrows()):",
+            "            result.append(f'Instance {instance_id}:')",
+            "            feature_parts = []",
+            "            for feature, value in row.items():",
+            "                if feature not in ['target', 'y', 'label']:",
+            "                    feature_parts.append(f'{feature}={value:.1f}')",
+            "            result.append('  ' + ' | '.join(feature_parts))",
+            "            if idx < len(sample_data) - 1:",
+            "                result.append('')",
+            "        ",
+            "        if len(working_dataset) > display_count:",
+            "            result.append('')",
+            "            result.append(f'... and {len(working_dataset) - display_count} more instances')",
+            "    else:",
             "        # Show prediction summary",
+            "        filter_desc = '' if len(feature_filters) == 0 else f' (with filters)'",
+            "        result.append(f'Prediction Summary{filter_desc}:')",
+            "        result.append(f'Total instances: {len(working_dataset)}')",
+            "        result.append('')",
+            "        ",
             "        unique_preds, counts = np.unique(predictions, return_counts=True)",
             "        for pred, count in zip(unique_preds, counts):",
             "            percentage = (count / len(predictions)) * 100",
             "            result.append(f'Predicted {pred}: {count} instances ({percentage:.1f}%)')",
-            "",
-            "        return '\\n'.join(result)"
+            "        ",
+            "        result.append('')",
+            "        result.append('Sample instances:')",
+            "        sample_data = working_dataset.head(5)",
+            "        ",
+            "        for instance_id, row in sample_data.iterrows():",
+            "            result.append(f'Instance {instance_id}:')",
+            "            feature_parts = []",
+            "            for feature, value in row.items():",
+            "                if feature not in ['target', 'y', 'label']:",
+            "                    feature_parts.append(f'{feature}={value:.1f}')",
+            "            result.append('  ' + ' | '.join(feature_parts))",
+            "            result.append('')",
+            "    ",
+            "    return '\\n'.join(result)"
         ]
     
     def _generate_explanation_code(self, query: GeneratedQuery) -> List[str]:
@@ -359,24 +428,63 @@ class CodeGenerator:
         ]
     
     def _generate_importance_code(self, query: GeneratedQuery) -> List[str]:
-        """Generate code for feature importance analysis."""
+        """Generate code for feature importance/relevance analysis - maximum generalizability."""
         return [
-            "    # Calculate feature importance",
+            "    # Feature importance and relevance analysis",
+            "    feature_names = dataset.drop(columns=[col for col in dataset.columns if col in ['target', 'y', 'label']], errors='ignore').columns",
+            "    result = []",
+            "    result.append('Feature Relevance for Model Predictions:')",
+            "    result.append('')",
+            "    ",
+            "    # Method 1: Model-based feature importance (if available)",
             "    if hasattr(model, 'feature_importances_'):",
-            "        # Tree-based models",
-            "        feature_names = dataset.drop(columns=[col for col in dataset.columns if col in ['target', 'y', 'label']], errors='ignore').columns",
             "        importances = model.feature_importances_",
-            "        ",
-            "        # Sort by importance",
             "        sorted_idx = np.argsort(importances)[::-1]",
             "        ",
-            "        result = ['Feature Importance Rankings:']",
-            "        for i, idx in enumerate(sorted_idx[:10]):  # Top 10",
-            "            result.append(f'{i+1}. {feature_names[idx]}: {importances[idx]:.4f}')",
+            "        result.append('📊 Model Feature Importance Rankings:')",
+            "        for i, idx in enumerate(sorted_idx[:8]):  # Top 8",
+            "            importance_pct = importances[idx] * 100",
+            "            result.append(f'  {i+1}. {feature_names[idx]}: {importance_pct:.1f}% importance')",
+            "        result.append('')",
+            "    ",
+            "    # Method 2: Correlation with predictions (universal approach)",
+            "    try:",
+            "        X = dataset.drop(columns=[col for col in dataset.columns if col in ['target', 'y', 'label']], errors='ignore')",
+            "        predictions = model.predict(X)",
             "        ",
-            "        return '\\n'.join(result)",
-            "    else:",
-            "        return 'Feature importance not available for this model type.'"
+            "        # Calculate correlation between each feature and predictions",
+            "        feature_correlations = []",
+            "        for feature in feature_names:",
+            "            correlation = np.corrcoef(dataset[feature], predictions)[0, 1]",
+            "            if not np.isnan(correlation):",
+            "                feature_correlations.append((feature, abs(correlation)))",
+            "        ",
+            "        # Sort by absolute correlation",
+            "        feature_correlations.sort(key=lambda x: x[1], reverse=True)",
+            "        ",
+            "        result.append('🔗 Feature-Prediction Correlations:')",
+            "        for feature, correlation in feature_correlations[:8]:  # Top 8",
+            "            correlation_pct = correlation * 100",
+            "            result.append(f'  • {feature}: {correlation_pct:.1f}% correlation with predictions')",
+            "        result.append('')",
+            "    except Exception as e:",
+            "        result.append('Could not compute feature-prediction correlations.')",
+            "        result.append('')",
+            "    ",
+            "    # Method 3: Statistical relevance analysis",
+            "    result.append('📈 Feature Value Ranges & Patterns:')",
+            "    for feature in feature_names[:6]:  # Top 6 features",
+            "        feature_std = dataset[feature].std()",
+            "        feature_range = dataset[feature].max() - dataset[feature].min()",
+            "        result.append(f'  • {feature}: range={feature_range:.1f}, variability={feature_std:.1f}')",
+            "    ",
+            "    result.append('')",
+            "    result.append('💡 Key Insights:')",
+            "    result.append('  • Higher importance/correlation = more relevant for predictions')",
+            "    result.append('  • Features with high variability often have more predictive power')",
+            "    result.append('  • Model considers feature combinations, not just individual features')",
+            "    ",
+            "    return '\\n'.join(result)"
         ]
     
     def _generate_count_code(self, query: GeneratedQuery) -> List[str]:
@@ -794,11 +902,25 @@ class AutoGenQueryExtractor:
                         # Skip arithmetic operations - these are handled in counterfactual analysis
                         if op.lower() in arithmetic_operators:
                             continue
+                        
+                        # Normalize prediction-related feature names
+                        feature_lower = feature.lower()
+                        if any(pred_term in feature_lower for pred_term in ["predict", "classified", "class"]):
+                            # Convert any prediction-related term to standard "prediction"
+                            normalized_feature = "prediction"
+                        else:
+                            normalized_feature = feature
                             
                         normalized_op = operator_map.get(op, op)
-                        # Only create filter if it's a valid comparison operator
+                        # Only create filter if it's a valid comparison operator and not duplicate
                         if normalized_op in ["gt", "lt", "gte", "lte", "eq", "ne"]:
-                            filters.append(FilterOperation(feature, normalized_op, value))
+                            # Check for duplicates based on feature name and value
+                            is_duplicate = any(
+                                f.feature.lower() == normalized_feature.lower() and f.value == value
+                                for f in filters
+                            )
+                            if not is_duplicate:
+                                filters.append(FilterOperation(normalized_feature, normalized_op, value))
                 
                 # Also check if query mentions specific instance numbers in the original text
                 instance_match = re.search(r'instance\s+(\d+)', natural_language.lower())
@@ -806,7 +928,32 @@ class AutoGenQueryExtractor:
                     instance_num = int(instance_match.group(1))
                     filters.append(FilterOperation("instance", "eq", instance_num))
                 
-                # Check for age-related filtering patterns
+                # Check for prediction filtering patterns FIRST (highest priority)
+                prediction_patterns = [
+                    (r'(?:model\s+)?predicted?\s+(\d+)', 'prediction', 'eq'),
+                    (r'(?:model\s+)?predicts?\s+(\d+)', 'prediction', 'eq'),
+                    (r'prediction\s*=\s*(\d+)', 'prediction', 'eq'),
+                    (r'prediction\s+(?:is|equals?)\s+(\d+)', 'prediction', 'eq'),
+                    (r'classified?\s+as\s+(\d+)', 'prediction', 'eq'),
+                    (r'where.*predicted?\s+(\d+)', 'prediction', 'eq'),
+                    (r'instances.*predicted?\s+(\d+)', 'prediction', 'eq')
+                ]
+                
+                # Only add prediction filter if none exists yet with same value
+                for pattern, feature, operator in prediction_patterns:
+                    pred_match = re.search(pattern, natural_language.lower())
+                    if pred_match:
+                        pred_value = int(pred_match.group(1))
+                        # Check for duplicates
+                        is_duplicate = any(
+                            f.feature.lower() in ['prediction', 'predicted', 'pred'] and f.value == pred_value
+                            for f in filters
+                        )
+                        if not is_duplicate:
+                            filters.append(FilterOperation(feature, operator, pred_value))
+                        break  # Only process the first matching pattern
+                
+                # Check for age-related filtering patterns  
                 age_patterns = [
                     (r'(?:patients?|people|instances?)\s+older\s+than\s+(\d+)', 'age', 'gt'),
                     (r'(?:patients?|people|instances?)\s+younger\s+than\s+(\d+)', 'age', 'lt'),
@@ -874,12 +1021,16 @@ class AutoGenQueryExtractor:
                 is_count_query = any(pattern in query_lower for pattern in count_patterns)
                 
                 # Override intent based on specific patterns (ABSOLUTE PRIORITY)
+                # Check for prediction-related queries FIRST (highest priority)
+                prediction_keywords = ["predicted", "predicts", "prediction", "classify", "classified"]
+                has_prediction_keyword = any(keyword in query_lower for keyword in prediction_keywords)
+                
                 if is_counterfactual:
                     operation_type = "counterfactual"
-                    # Force counterfactual regardless of AutoGen intent
                 elif is_count_query:
                     operation_type = "count"
-                    # Force count for simple counting queries
+                elif has_prediction_keyword and ("instance" in query_lower or "where" in query_lower or "show" in query_lower):
+                    operation_type = "predict"  # Prediction filtering takes priority
                 elif any(phrase in query_lower for phrase in ["show me", "display", "show data"]) and "instance" in query_lower and not any(word in query_lower for word in ["important", "influential"]):
                     operation_type = "show_data"
                 elif any(phrase in query_lower for phrase in ["influential", "important"]) and "instance" in query_lower:
@@ -889,12 +1040,14 @@ class AutoGenQueryExtractor:
                 elif any(phrase in query_lower for phrase in ["system logic", "algorithm", "model type", "what kind"]):
                     operation_type = "model_info"
                 elif any(phrase in query_lower for phrase in ["interaction", "correlat", "how features"]):
-                    operation_type = "interaction"
+                    operation_type = "interaction" 
+                elif any(phrase in query_lower for phrase in ["relevant", "important", "importance", "influential", "feature relevance", "feature importance", "features are relevant"]):
+                    operation_type = "importance"
                 elif any(phrase in query_lower for phrase in ["new instance", "predict for", "given age"]) and "=" in query_lower:
                     operation_type = "new_predict"
                 else:
                     # Only use AutoGen intent if no pattern override detected
-                    operation_type = operation_map.get(intent, "statistics")
+                operation_type = operation_map.get(intent, "statistics")
                 
                 operation = QueryOperation(operation_type)
                 

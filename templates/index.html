@@ -85,19 +85,26 @@
     function doSample(rawAction) {
         let username = '{{ currentUserId }}'
         let dataPackage = {action: rawAction, thisUserName: username}
-        let jsonDataPackage = JSON.stringify(dataPackage)
-
-        let button_div = document.getElementById("")
 
         const result = $.ajax({
             type: 'POST',
             url: "{{ url_for('.sample_prompt') }}",
-            data: jsonDataPackage,
-            processData: false,
-            contentType: false,
+            data: JSON.stringify(dataPackage),
+            contentType: 'application/json',
             cache: false,
             success: function (data) {
-                ttmInput.value = data;
+                // Handle different response formats
+                if (typeof data === 'string') {
+                    ttmInput.value = data;
+                } else if (data.samples && data.samples.length > 0) {
+                    ttmInput.value = data.samples[Math.floor(Math.random() * data.samples.length)];
+                } else {
+                    ttmInput.value = "Ask me about the diabetes dataset!";
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Sample prompt error:', error);
+                ttmInput.value = "Ask me about the diabetes dataset!";
             }
         });
     }
@@ -299,16 +306,14 @@
 
       function botResponse(rawText) {
           let dataPackage = {userInput: rawText, userName: "{{ currentUserId }}"};
-          dataPackage =  JSON.stringify(dataPackage)
           $('.all-feedback').fadeOut(250, function() {
             $('.all-feedback').remove();
           });
           const result = $.ajax({
               type: 'POST',
               url: "{{ url_for('.get_bot_response') }}",
-              data: dataPackage,
-              processData: false,
-              contentType: false,
+              data: JSON.stringify(dataPackage),
+              contentType: 'application/json',
               cache: false,
               success: function (data) {
                   const splitData = data.split('<>')
@@ -316,6 +321,11 @@
                   const logText = splitData[1];
                   deleteLoadingDots();
                   addToChat("left", msgText, logText);
+              },
+              error: function(xhr, status, error) {
+                  console.error('AJAX Error:', error);
+                  deleteLoadingDots();
+                  addToChat("left", "Sorry, I encountered an error. Please try again.", "Error");
               }
           });
       }

@@ -6,17 +6,45 @@ def data_operation(conversation, parse_text, i, **kwargs):
     """Data summary operation."""
     # Get dataset size information - handle both filtered and unfiltered cases
     if hasattr(conversation, 'temp_dataset') and conversation.temp_dataset:
-    df = conversation.temp_dataset.contents['X']
-    dataset_size = len(df)
-    total_size = len(conversation.get_var('dataset').contents['X'])
+        df = conversation.temp_dataset.contents['X']
+        dataset_size = len(df)
+        total_size = len(conversation.get_var('dataset').contents['X'])
     else:
         # No filtering applied - use full dataset
         df = conversation.get_var('dataset').contents['X']
         dataset_size = len(df)
         total_size = dataset_size
     
-    # Check if user is asking for specific feature statistics
+    # Check if user is asking for specific feature statistics or class counts
     query_text = " ".join(parse_text).lower()
+    
+    # ENHANCED: Check for class counting requests (e.g., "how many diabetes", "count instances")
+    if any(word in query_text for word in ['how many', 'count', 'instances']):
+        # Check if user is asking about specific class labels
+        y_data = conversation.get_var('dataset').contents.get('y')
+        if y_data is not None:
+            # Get class names for better readability
+            class_names = getattr(conversation, 'class_names', {})
+            
+            # Use the appropriate y data based on filtering
+            if hasattr(conversation, 'temp_dataset') and conversation.temp_dataset:
+                target_data = conversation.temp_dataset.contents.get('y', y_data)
+            else:
+                target_data = y_data
+            
+            # Count each class
+            value_counts = target_data.value_counts()
+            
+            size_desc = f"{dataset_size} patients" if dataset_size == total_size else f"{dataset_size} out of {total_size} patients"
+            text = f"<b>Class Distribution</b> for {size_desc}:<br><br>"
+            
+            for class_val, count in value_counts.items():
+                class_name = class_names.get(class_val, str(class_val)) if class_names else str(class_val)
+                percentage = round((count / len(target_data)) * 100, conversation.rounding_precision)
+                text += f"• <b>{class_name}</b>: {count} instances ({percentage}%)<br>"
+            
+            text += "<br>"
+            return text, 1
     
     # ENHANCED: Check if a specific feature is mentioned in parse_text 
     # This handles cases like "data age" where AutoGen correctly identifies the feature

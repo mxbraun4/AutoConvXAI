@@ -7,6 +7,62 @@ from explain.actions.utils import gen_parse_op_text, get_parse_filter_text
 def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **kwargs):
     """The prediction operation."""
     model = conversation.get_var('model').contents
+    
+    # Check if we have specific feature values to predict on (new instance prediction)
+    ent_features = kwargs.get('features', []) if kwargs else []
+    ent_ops = kwargs.get('operators', []) if kwargs else []
+    ent_vals = kwargs.get('values', []) if kwargs else []
+    
+    # If we have specific values with '=' operators, create a new instance to predict
+    if ent_features and ent_vals and all(op == '=' for op in ent_ops):
+        try:
+            # Get dataset structure to create a properly formatted instance
+            dataset_X = conversation.get_var('dataset').contents['X']
+            
+            # Create a new instance with mean values as defaults
+            new_instance = dataset_X.mean().copy()
+            
+            # Set the specified feature values
+            for feat, val in zip(ent_features, ent_vals):
+                if feat in new_instance.index:
+                    new_instance[feat] = val
+            
+            # Convert to array and reshape for single prediction
+            data = new_instance.values.reshape(1, -1)
+            
+            # Make prediction and get probabilities
+            model_predictions = model.predict(data)
+            try:
+                model_probabilities = model.predict_proba(data)
+                confidence = model_probabilities[0][model_predictions[0]]
+            except:
+                confidence = None
+            
+            # Format response for single instance prediction
+            return_s = f"For a new instance with "
+            feature_desc = ", ".join([f"{feat}={val}" for feat, val in zip(ent_features, ent_vals)])
+            return_s += f"<b>{feature_desc}</b>, "
+            
+            if conversation.class_names is None:
+                prediction_class = str(model_predictions[0])
+                return_s += f"the model predicts <b>{prediction_class}</b>"
+            else:
+                class_text = conversation.class_names[model_predictions[0]]
+                return_s += f"the model predicts <b>{class_text}</b>"
+            
+            # Add confidence if available
+            if confidence is not None:
+                confidence_pct = round(confidence * 100, conversation.rounding_precision)
+                return_s += f" with <b>{confidence_pct}% confidence</b>"
+            
+            return_s += ".<br>"
+            return return_s, 1
+            
+        except Exception as e:
+            # Fall back to original behavior if there's any issue
+            pass
+    
+    # Original behavior for filtering/general predictions
     data = conversation.temp_dataset.contents['X']
 
     if len(conversation.temp_dataset.contents['X']) == 0:
@@ -20,6 +76,14 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
             return 'There are no instances that meet this description!', 0
 
     model_predictions = model.predict(data)
+    
+    # Get confidence scores if possible
+    try:
+        # Convert to numpy array to remove feature names for compatibility
+        data_array = data.values if hasattr(data, 'values') else data
+        model_probabilities = model.predict_proba(data_array)
+    except:
+        model_probabilities = None
 
     # Format return string
     return_s = ""
@@ -33,7 +97,15 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
             return_s += f"<b>{prediction_class}</b>"
         else:
             class_text = conversation.class_names[model_predictions[0]]
-            return_s += f"<b>{class_text}</b>."
+            return_s += f"<b>{class_text}</b>"
+        
+        # Add confidence for single prediction
+        if model_probabilities is not None:
+            confidence = model_probabilities[0][model_predictions[0]]
+            confidence_pct = round(confidence * 100, conversation.rounding_precision)
+            return_s += f" with <b>{confidence_pct}% confidence</b>"
+        
+        return_s += "."
     else:
         intro_text = get_parse_filter_text(conversation)
         return_s += f"{intro_text} the model predicts:"

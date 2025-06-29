@@ -18,53 +18,21 @@ def explain_operation(conversation, parse_text, i, **kwargs):
     regen = conversation.temp_dataset.contents['ids_to_regenerate']
     parse_op = gen_parse_op_text(conversation)
 
-    # Check if there are additional parameters after 'explain'
-    explanation_type = None
-    if i + 1 < len(parse_text):
-        explanation_type = parse_text[i+1]
+    # For AutoGen architecture: always use mega_explainer (LIME-based explanations)
+    mega_explainer_exp = conversation.get_var('mega_explainer').contents
+    full_summary, short_summary = mega_explainer_exp.summarize_explanations(data,
+                                                                            filtering_text=parse_op,
+                                                                            ids_to_regenerate=regen)
     
-    # Note, do we want to remove parsing for lime -> mega_explainer here?
-    if explanation_type == 'features' or explanation_type == 'lime':
-        # mega explainer explanation case
-        mega_explainer_exp = conversation.get_var('mega_explainer').contents
-        full_summary, short_summary = mega_explainer_exp.summarize_explanations(data,
-                                                                                filtering_text=parse_op,
-                                                                                ids_to_regenerate=regen)
-        
-        # Enhance explanation with insights about model reasoning
-        enhanced_summary = _enhance_explanation_with_insights(short_summary, data, conversation)
-        
-        conversation.store_followup_desc(full_summary)
-        return enhanced_summary, 1
-    elif explanation_type == 'cfe':
-        dice_tabular = conversation.get_var('tabular_dice').contents
-        out = dice_tabular.summarize_explanations(data,
-                                                  filtering_text=parse_op,
-                                                  ids_to_regenerate=regen)
-        additional_options, short_summary = out
-        conversation.store_followup_desc(additional_options)
-        return short_summary, 1
-    elif explanation_type == 'shap':
-        # This is when a user asks for a shap explanation
-        raise NotImplementedError
-    elif explanation_type is None:
-        # Default explanation when no specific type is requested
-        mega_explainer_exp = conversation.get_var('mega_explainer').contents
-        full_summary, short_summary = mega_explainer_exp.summarize_explanations(data,
-                                                                                filtering_text=parse_op,
-                                                                                ids_to_regenerate=regen)
-        
-        # Enhance explanation with insights about model reasoning
-        enhanced_summary = _enhance_explanation_with_insights(short_summary, data, conversation)
-        
-        conversation.store_followup_desc(full_summary)
-        return enhanced_summary, 1
-    else:
-        raise NameError(f"No explanation operation defined for {parse_text}")
+    # Enhance explanation with insights about model reasoning
+    enhanced_summary = _enhance_explanation_with_insights(short_summary, data, conversation)
+    
+    conversation.store_followup_desc(full_summary)
+    return enhanced_summary, 1
 
 
 def _enhance_explanation_with_insights(summary, data, conversation):
-    """Enhance explanations with insights about model reasoning patterns."""
+    """Enhance explanations with insights about model reasoning patterns and technical details."""
     
     # Get model predictions and confidence
     model = conversation.get_var('model').contents
@@ -76,6 +44,54 @@ def _enhance_explanation_with_insights(summary, data, conversation):
         confidence_analysis = _analyze_prediction_confidence(probabilities, predictions)
     except:
         confidence_analysis = ""
+    
+    # Add technical details for single instance
+    technical_details = ""
+    if len(data) == 1:
+        technical_details = "<br><br><b>📊 Technical Details:</b><br>"
+        technical_details += "<b>Patient Feature Values:</b><br>"
+        
+        # Show actual feature values for this patient
+        patient_data = data.iloc[0]
+        for feature_name, value in patient_data.items():
+            technical_details += f"• {feature_name}: {value:.2f}<br>"
+        
+        # Show prediction probabilities
+        if len(probabilities) > 0:
+            prob_no_diabetes = probabilities[0][0] * 100
+            prob_diabetes = probabilities[0][1] * 100
+            technical_details += f"<br><b>Model Prediction Probabilities:</b><br>"
+            technical_details += f"• No Diabetes: {prob_no_diabetes:.1f}%<br>"
+            technical_details += f"• Diabetes: {prob_diabetes:.1f}%<br>"
+        
+        # Get LIME feature influence scores from mega_explainer
+        try:
+            mega_explainer = conversation.get_var('mega_explainer').contents
+            
+            # Get explanations using the MegaExplainer's actual method
+            ids = list(data.index)
+            explanations = mega_explainer.get_explanations(ids, data, ids_to_regenerate=[])
+            
+            if explanations and len(explanations) > 0:
+                # Get the first explanation (explanations is a dict with id keys)
+                first_id = ids[0]
+                explanation = explanations[first_id]
+                
+                technical_details += f"<br><b>LIME Feature Influence Scores:</b><br>"
+                
+                # Sort features by absolute importance for better display
+                feature_scores = explanation.list_exp
+                feature_scores_sorted = sorted(feature_scores, key=lambda x: abs(x[1]), reverse=True)
+                
+                for feature_name, influence_score in feature_scores_sorted:
+                    sign = "+" if influence_score >= 0 else ""
+                    technical_details += f"• {feature_name}: {sign}{influence_score:.3f}<br>"
+            else:
+                technical_details += f"<br><b>LIME Feature Influence:</b> No explanations generated<br>"
+                
+        except Exception as e:
+            # More detailed error info for debugging
+            technical_details += f"<br><b>LIME Feature Influence:</b> Could not retrieve detailed scores (Error: {str(e)})<br>"
     
     # Analyze feature patterns across multiple instances if available
     pattern_analysis = ""
@@ -102,8 +118,8 @@ def _enhance_explanation_with_insights(summary, data, conversation):
     if pattern_analysis:
         insights += pattern_analysis
     
-    # Combine original summary with insights
-    enhanced_summary = summary + insights
+    # Combine original summary with technical details and insights
+    enhanced_summary = summary + technical_details + insights
     
     return enhanced_summary
 

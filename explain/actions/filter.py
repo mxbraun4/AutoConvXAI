@@ -11,9 +11,16 @@ from pandas.api.types import is_numeric_dtype
 
 def filter_dataset(dataset, bools):
     """Selects x and y of dataset by booleans."""
-    dataset['X'] = dataset['X'][bools]
-    dataset['y'] = dataset['y'][bools]
-    return dataset
+    # Create a copy to avoid modifying the original dataset
+    filtered_dataset = {
+        'X': dataset['X'][bools].copy(),
+        'y': dataset['y'][bools].copy() if dataset['y'] is not None else None,
+        'full_data': dataset['full_data'][bools].copy() if 'full_data' in dataset else None,
+        'cat': dataset.get('cat', []).copy(),
+        'numeric': dataset.get('numeric', []).copy(), 
+        'ids_to_regenerate': dataset.get('ids_to_regenerate', []).copy()
+    }
+    return filtered_dataset
 
 
 def format_parse_string(feature_name, feature_value, operation):
@@ -156,7 +163,7 @@ def prediction_filter(temp_dataset, conversation, feature_name):
     # feature name is given as string from grammar, bind predictions to str
     # to get correct equivalence
     str_predictions = np.array([str(p) for p in predictions])
-    bools = feature_name == str_predictions
+    bools = str_predictions == feature_name
 
     updated_dset = filter_dataset(temp_dataset, bools)
     class_text = conversation.get_class_name_from_label(int(feature_name))
@@ -181,15 +188,17 @@ def label_filter(temp_dataset, conversation, feature_name):
 def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
     """The filtering operation.
 
-    This function performs filtering on a data set.
-    It updates the temp_dataset attribute in the conversation
-    object.
+    This function performs filtering on a data set using ONLY AutoGen-parsed entities.
+    It updates the temp_dataset attribute in the conversation object.
+    
+    NO FALLBACKS - AutoGen must provide structured entities for all filtering operations.
 
     Arguments:
-        is_or:
-        conversation: The conversation object.
-        parse_text: The grammatical text string.
-        i: The index of the parse_text that filtering is called.
+        is_or: Whether this is an OR operation
+        conversation: The conversation object
+        parse_text: Legacy parameter (ignored in clean architecture)
+        i: Legacy parameter (ignored in clean architecture)
+        **kwargs: Must contain AutoGen entities (features, operators, values)
     """
     if is_or:
         # construct a new temp data set to or with
@@ -197,63 +206,73 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
     else:
         temp_dataset = conversation.temp_dataset.contents
 
-    operation = parse_text[i]
-    feature_name = parse_text[i+1]
-    if feature_name == 'id':
-        # Id isn't included as a categorical feature in the data,
-        # so get this by using .loc
-        feature_value = int(parse_text[i+2])
-        updated_dset = temp_dataset
-
-        # If id never appears in index, set the data to empty
-        # other functions will handle appropriately and indicate
-        # they can't do anything.
-        if feature_value not in list(updated_dset['X'].index):
-            updated_dset['X'] = []
-            updated_dset['y'] = []
-            
-            # Store helpful error information for better user feedback
-            available_ids = list(temp_dataset['X'].index)[:10]  # Show first 10 IDs
-            total_ids = len(list(temp_dataset['X'].index))
-            
-            # Store this info in conversation for better error messages
-            error_msg = f"ID {feature_value} not found. "
-            if total_ids > 0:
-                if total_ids <= 10:
-                    error_msg += f"Available IDs: {available_ids}"
-                else:
-                    error_msg += f"Available IDs include: {available_ids}... (showing first 10 of {total_ids})"
-            else:
-                error_msg += "No instances available."
-            
-            # Store the error message directly in conversation
-            conversation.last_filter_error = error_msg
-        else:
-            updated_dset['X'] = updated_dset['X'].loc[[feature_value]]
-            updated_dset['y'] = updated_dset['y'].loc[[feature_value]]
-        interp_parse_text = f"id equal to {feature_value}"
-    elif operation == "predictionfilter":
-        updated_dset, interp_parse_text = prediction_filter(temp_dataset, conversation, feature_name)
-    elif operation == "labelfilter":
-        updated_dset, interp_parse_text = label_filter(temp_dataset, conversation, feature_name)
-    else:
-        # ENHANCED: Check if there's an operator in the command
-        # If there's an operator word at position i+2, always use numerical_filter
-        # regardless of whether feature is categorical or numeric
-        has_operator = (len(parse_text) > i+2 and 
-                       parse_text[i+2] in ['greater', 'less', 'equal', 'not'])
+    # Extract AutoGen entities - these are REQUIRED in clean architecture
+    ent_features = kwargs.get('features', []) if kwargs else []
+    ent_ops = kwargs.get('operators', []) if kwargs else []
+    ent_vals = kwargs.get('values', []) if kwargs else []
+    ent_prediction_vals = kwargs.get('prediction_values', []) if kwargs else []
+    ent_label_vals = kwargs.get('label_values', []) if kwargs else []
+    
+    # Handle prediction-based filtering (e.g., "show instances where model predicted 1")
+    if kwargs.get('filter_type') == 'prediction' and ent_prediction_vals:
+        # This is explicit prediction-based filtering using prediction_values
+        prediction_value = ent_prediction_vals[0]
+        updated_dset, interp_parse_text = prediction_filter(temp_dataset, conversation, str(prediction_value))
         
-        if has_operator:
-            # Use numerical_filter for any command with operators
-            updated_dset, interp_parse_text = numerical_filter(parse_text, temp_dataset, i, feature_name)
-        elif feature_name in temp_dataset['cat'] or feature_name == "incorrect":
-            # Use categorical_filter only for simple categorical filters without operators
-            updated_dset, interp_parse_text = categorical_filter(parse_text, temp_dataset, conversation, i, feature_name)
-        elif feature_name in temp_dataset['numeric']:
-            # Use numerical_filter for numeric features
-            updated_dset, interp_parse_text = numerical_filter(parse_text, temp_dataset, i, feature_name)
+    # Fallback: If no filter_type but pattern suggests prediction filtering
+    elif not ent_features and ent_vals and len(ent_vals) == 1 and not kwargs.get('filter_type'):
+        # Pattern suggests prediction filtering when no features specified
+        prediction_value = ent_vals[0]
+        updated_dset, interp_parse_text = prediction_filter(temp_dataset, conversation, str(prediction_value))
+        
+    # Handle feature-based filtering using AutoGen entities
+    elif ent_features and ent_ops and ent_vals:
+        # Use AutoGen entities for clean filtering
+        feature_name = ent_features[0]  # Take first feature
+        operation = ent_ops[0]  # Take first operator  
+        feature_value = ent_vals[0]  # Take first value
+        
+        # Special case: ID filtering
+        if feature_name.lower() == 'id':
+            updated_dset, interp_parse_text = _handle_id_filtering(temp_dataset, conversation, feature_value)
         else:
-            raise NameError(f"Parsed unknown feature name {feature_name}")
+            # Regular feature filtering
+            if feature_name not in temp_dataset['X'].columns:
+                raise ValueError(f"Unknown feature name: {feature_name}. Available features: {list(temp_dataset['X'].columns)}")
+                
+            # Apply the filtering based on operator
+            if operation == '>' or operation == 'greater':
+                bools = temp_dataset['X'][feature_name] > feature_value
+            elif operation == '<' or operation == 'less':
+                bools = temp_dataset['X'][feature_name] < feature_value
+            elif operation == '=' or operation == '==' or operation == 'equal':
+                bools = temp_dataset['X'][feature_name] == feature_value
+            elif operation == '>=' or operation == 'greater_equal':
+                bools = temp_dataset['X'][feature_name] >= feature_value
+            elif operation == '<=' or operation == 'less_equal':
+                bools = temp_dataset['X'][feature_name] <= feature_value
+            elif operation == '!=' or operation == 'not_equal':
+                bools = temp_dataset['X'][feature_name] != feature_value
+            else:
+                raise ValueError(f"Unknown operator: {operation}")
+                
+            updated_dset = filter_dataset(temp_dataset, bools)
+            interp_parse_text = format_parse_string(feature_name, feature_value, operation)
+    
+    # Handle label-based filtering (ground truth filtering)
+    elif kwargs.get('filter_type') == 'label' and ent_label_vals:
+        label_value = ent_label_vals[0]
+        updated_dset, interp_parse_text = label_filter(temp_dataset, conversation, str(label_value))
+    
+    else:
+        # NO FALLBACK - AutoGen must provide proper entities
+        raise ValueError(
+            "Clean Architecture Violation: AutoGen must provide structured entities for filtering. "
+            f"Received: features={ent_features}, operators={ent_ops}, values={ent_vals}, "
+            f"prediction_values={ent_prediction_vals}, label_values={ent_label_vals}, "
+            f"filter_type={kwargs.get('filter_type')}, kwargs={kwargs}. "
+            "The AutoGen decoder needs to be improved to handle this query type."
+        )
 
     if is_or:
         current_dataset = conversation.temp_dataset.contents
@@ -266,4 +285,55 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
     conversation.add_interpretable_parse_op(interp_parse_text)
     conversation.temp_dataset.contents = updated_dset
 
-    return '', 1
+    # Return meaningful results instead of empty string
+    num_instances = len(updated_dset['X'])
+    if num_instances == 0:
+        return f"No instances found where {interp_parse_text}.", 1
+    else:
+        # Show brief summary of filtered instances
+        if num_instances <= 10:
+            # Show IDs of instances for small results
+            instance_ids = list(updated_dset['X'].index)
+            result_text = f"Found {num_instances} instances where {interp_parse_text}: {instance_ids}"
+        else:
+            # Show count and sample for large results
+            sample_ids = list(updated_dset['X'].index[:5])
+            result_text = f"Found {num_instances} instances where {interp_parse_text}. Sample IDs: {sample_ids}..."
+        
+        return result_text, 1
+
+
+def _handle_id_filtering(temp_dataset, conversation, feature_value):
+    """Handle ID-based filtering cleanly."""
+    try:
+        id_value = int(feature_value)
+    except ValueError:
+        raise ValueError(f"ID must be a number, got: {feature_value}")
+    
+    updated_dset = temp_dataset.copy()
+    
+    # If id never appears in index, set the data to empty
+    if id_value not in list(updated_dset['X'].index):
+        updated_dset['X'] = updated_dset['X'].iloc[0:0]  # Empty dataframe with same structure
+        updated_dset['y'] = updated_dset['y'].iloc[0:0]  # Empty series with same structure
+        
+        # Store helpful error information
+        available_ids = list(temp_dataset['X'].index)[:10]
+        total_ids = len(list(temp_dataset['X'].index))
+        
+        error_msg = f"ID {id_value} not found. "
+        if total_ids > 0:
+            if total_ids <= 10:
+                error_msg += f"Available IDs: {available_ids}"
+            else:
+                error_msg += f"Available IDs include: {available_ids}... (showing first 10 of {total_ids})"
+        else:
+            error_msg += "No instances available."
+        
+        conversation.last_filter_error = error_msg
+    else:
+        updated_dset['X'] = updated_dset['X'].loc[[id_value]]
+        updated_dset['y'] = updated_dset['y'].loc[[id_value]]
+    
+    interp_parse_text = f"id equal to {id_value}"
+    return updated_dset, interp_parse_text
