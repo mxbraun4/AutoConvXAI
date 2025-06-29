@@ -2,7 +2,6 @@
 
 This action controls the explanation generation operations.
 """
-from explain.actions.utils import gen_parse_op_text
 
 
 def explain_operation(conversation, parse_text, i, **kwargs):
@@ -16,12 +15,11 @@ def explain_operation(conversation, parse_text, i, **kwargs):
         return 'There are no instances that meet this description!', 0
 
     regen = conversation.temp_dataset.contents['ids_to_regenerate']
-    parse_op = gen_parse_op_text(conversation)
 
     # For AutoGen architecture: always use mega_explainer (LIME-based explanations)
     mega_explainer_exp = conversation.get_var('mega_explainer').contents
     full_summary, short_summary = mega_explainer_exp.summarize_explanations(data,
-                                                                            filtering_text=parse_op,
+                                                                            filtering_text="",
                                                                             ids_to_regenerate=regen)
     
     # Enhance explanation with insights about model reasoning

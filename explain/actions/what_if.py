@@ -2,7 +2,16 @@
 
 This operation updates the data according to some what commands.
 """
-from explain.actions.utils import convert_categorical_bools
+
+
+def convert_categorical_bools(data):
+    """Convert categorical boolean strings to numeric values."""
+    if data == 'true':
+        return 1
+    elif data == 'false':
+        return 0
+    else:
+        return data
 
 
 def is_numeric(feature_name, temp_dataset):

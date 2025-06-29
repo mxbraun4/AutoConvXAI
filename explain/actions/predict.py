@@ -1,7 +1,6 @@
 """Prediction operation."""
 import numpy as np
 
-from explain.actions.utils import gen_parse_op_text, get_parse_filter_text
 
 
 def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **kwargs):
@@ -107,7 +106,7 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
         
         return_s += "."
     else:
-        intro_text = get_parse_filter_text(conversation)
+        intro_text = "For the data,"
         return_s += f"{intro_text} the model predicts:"
         unique_preds = np.unique(model_predictions)
         return_s += "<ul>"

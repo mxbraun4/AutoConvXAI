@@ -4,8 +4,6 @@ from copy import deepcopy
 
 import numpy as np
 
-from explain.actions.utils import get_parse_filter_text
-
 
 def compute_stats(df, labels, f, conversation):
     """Computes the feature stats"""
@@ -34,7 +32,7 @@ def feature_stats(conversation, parse_text, i, n_features_to_show=float("+inf"),
     """Generates text that shows the feature stats."""
     data = conversation.temp_dataset.contents['X']
     label = conversation.temp_dataset.contents['y']
-    intro_text = get_parse_filter_text(conversation)
+    intro_text = "For the data,"
     
     if i+1 >= len(parse_text):
         return "No feature name specified for statistics.", 0

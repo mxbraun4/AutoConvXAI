@@ -1,6 +1,5 @@
 import numpy as np
 
-from explain.actions.utils import gen_parse_op_text
 
 SINGLE_INSTANCE_TEMPLATE = """
 The model predicts the instance with <b>{filter_string}</b> as:

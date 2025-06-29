@@ -1,5 +1,4 @@
 """Count the number of elements in the data."""
-from explain.actions.utils import gen_parse_op_text
 
 
 def count_data_points(conversation, parse_text, i, **kwargs):
@@ -14,14 +13,7 @@ def count_data_points(conversation, parse_text, i, **kwargs):
     data = conversation.temp_dataset.contents['X']
     num_elements = len(data)
 
-    parse_op = gen_parse_op_text(conversation)
-
-    if len(parse_op) > 0:
-        description_text = f" where <b>{parse_op}</b>"
-    else:
-        description_text = ""
-
-    message = f"There are <b>{num_elements} items</b> in the data{description_text}."
+    message = f"There are <b>{num_elements} items</b> in the data."
 
     message += "<br><br>"
     message += "Let me know if you want to see their ids."

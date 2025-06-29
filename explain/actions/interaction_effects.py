@@ -1,7 +1,6 @@
 """Measure interaction effects."""""
 import numpy as np
 
-from explain.actions.utils import gen_parse_op_text
 from explain.feature_interaction import FeatureInteraction
 
 NUM_FEATURES_TO_COMPUTE_INTERACTIONS = 4

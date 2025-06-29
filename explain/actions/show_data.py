@@ -3,7 +3,6 @@
 For single instances, this function prints out the feature values. For many instances,
 it returns the mean.
 """
-from explain.actions.utils import gen_parse_op_text
 
 
 def show_operation(conversation, parse_text, i, n_features_to_show=float("+inf"), **kwargs):

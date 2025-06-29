@@ -1,13 +1,12 @@
 """Show data labels"""
 
 
-from explain.actions.utils import get_parse_filter_text
 
 
 def show_labels_operation(conversation, parse_text, i, n_features_to_show=float("+inf"), **kwargs):
     """Generates text that shows labels."""
     y_values = conversation.temp_dataset.contents['y']
-    intro_text = get_parse_filter_text(conversation)
+    intro_text = "For the data,"
 
     if len(y_values) == 0:
         return "There are no instances in the data that meet this description.", 0

@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 
-from explain.actions.utils import get_parse_filter_text, get_rules
+from sklearn.tree import _tree
 
 
 def one_mistake(y_true, y_pred, conversation, intro_text):
@@ -42,6 +42,64 @@ def sample_mistakes(y_true, y_pred, conversation, intro_text, ids):
                          f" predicts incorrectly:<br><br>{incorrect_data}")
 
     return return_string
+
+
+def get_rules(tree, feature_names, class_names):
+    """Extract rules from decision tree."""
+    # modified from https://mljar.com/blog/extract-rules-decision-tree/
+    tree_ = tree.tree_
+    feature_name = [
+        feature_names[i] if i != _tree.TREE_UNDEFINED else "undefined!"
+        for i in tree_.feature
+    ]
+
+    paths = []
+    path = []
+
+    def recurse(node, path, paths):
+        if tree_.feature[node] != _tree.TREE_UNDEFINED:
+            name = feature_name[node]
+            threshold = tree_.threshold[node]
+            p1, p2 = list(path), list(path)
+            p1 += [f"({name} <= {np.round(threshold, 3)})"]
+            recurse(tree_.children_left[node], p1, paths)
+            p2 += [f"({name} > {np.round(threshold, 3)})"]
+            recurse(tree_.children_right[node], p2, paths)
+        else:
+            path += [(tree_.value[node], tree_.n_node_samples[node])]
+            paths += [path]
+
+    recurse(0, path, paths)
+
+    # sort by samples count
+    samples_count = [p[-1][1] for p in paths]
+    ii = list(np.argsort(samples_count))
+    paths = [paths[i] for i in reversed(ii)]
+
+    rules = []
+    for path in paths:
+        incorrect_class = False
+
+        rule = "if "
+
+        for p in path[:-1]:
+            if rule != "if ":
+                rule += " and "
+            rule += "<b>" + str(p) + "</b>"
+        rule += " then "
+        if class_names is None:
+            rule += "response: " + str(np.round(path[-1][0][0][0], 3))
+        else:
+            classes = path[-1][0][0]
+            largest = np.argmax(classes)
+            if class_names[largest] == "incorrect":
+                incorrect_class = True
+            rule += f"then the model is incorrect <em>{np.round(100.0 * classes[largest] / np.sum(classes), 2)}%</em>"
+        rule += f" over <em>{path[-1][1]:,}</em> samples"
+
+        if incorrect_class:
+            rules += [rule]
+    return rules
 
 
 def train_tree(data, target, depth: int = 1):
@@ -93,7 +151,7 @@ def show_mistakes_operation(conversation, parse_text, i, n_features_to_show=floa
     model = conversation.get_var('model').contents
 
     # The filtering text
-    intro_text = get_parse_filter_text(conversation)
+    intro_text = "For the data,"
 
     if len(y_true) == 0:
         return "There are no instances in the data that meet this description.<br><br>", 0

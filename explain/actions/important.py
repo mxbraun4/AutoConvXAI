@@ -5,7 +5,6 @@ import statsmodels.stats.api as sms
 
 from explain.utils import add_to_dict_lists
 
-from explain.actions.utils import gen_parse_op_text
 
 inflect_engine = inflect.engine()
 

@@ -2,7 +2,6 @@
 
 This operation computes a score metric on the data or the eval data.
 """
-from explain.actions.utils import gen_parse_op_text
 
 
 def score_operation(conversation, parse_text, i, **kwargs):
@@ -46,7 +45,7 @@ def score_operation(conversation, parse_text, i, **kwargs):
         # Default: Use filtered dataset (respects user's filtering intent)
         full_data = conversation.temp_dataset.contents['X']
         y_true = conversation.temp_dataset.contents['y']
-        filter_string = gen_parse_op_text(conversation)
+        filter_string = ""
         is_global_query = False
         
         # Format data description for output
