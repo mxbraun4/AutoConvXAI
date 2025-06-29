@@ -116,203 +116,44 @@ action_dispatcher = SimpleActionDispatcher(dataset, model)
 # Component 3: LLM formatter for natural language output
 formatter = LLMFormatter(decoder)
 
-class DatasetManager:
-    """Manages dataset structure, X/y splits, and data preparation"""
+class Conversation:
+    """Simple conversation context - consolidated from over-engineered managers"""
     
-    def __init__(self, dataset):
-        self.original_dataset = dataset
-        self.X_data = None
-        self.y_data = None
-        self.full_data_with_target = None
-        self.target_col = None
-        self._prepare_dataset()
-    
-    def _prepare_dataset(self):
-        """Prepare dataset with proper X/y split"""
-        # The diabetes dataset uses the target column name 'y'. Fallback to 'Outcome' for compatibility.
-        self.target_col = 'y' if 'y' in self.original_dataset.columns else ('Outcome' if 'Outcome' in self.original_dataset.columns else None)
-
+    def __init__(self, dataset, model):
+        # Dataset preparation (consolidated from DatasetManager)
+        self.target_col = 'y' if 'y' in dataset.columns else ('Outcome' if 'Outcome' in dataset.columns else None)
         if self.target_col:
-            self.X_data = self.original_dataset.drop(self.target_col, axis=1)  # Features only for model prediction
-            self.y_data = self.original_dataset[self.target_col]               # Target variable
-            self.full_data_with_target = self.original_dataset            # Full dataset includes target
+            self.X_data = dataset.drop(self.target_col, axis=1)
+            self.y_data = dataset[self.target_col]
+            self.full_data = dataset
         else:
-            # No explicit target column found – assume dataset contains only features
-            self.X_data = self.original_dataset
+            self.X_data = dataset
             self.y_data = None
-            self.full_data_with_target = self.original_dataset
-    
-    def get_dataset_contents(self):
-        """Return dataset contents in the format expected by actions"""
-        return {
-            'X': self.X_data,  # Only features - this goes to the model (8 features)
-            'y': self.y_data,  # Target variable separately
-            'full_data': self.full_data_with_target,  # Full dataset with target for filtering
-            'cat': [],  # Categorical features (diabetes dataset is all numeric)
-            'numeric': list(self.X_data.columns),  # Feature names only (8 features)
-            'ids_to_regenerate': []
-        }
-
-class VariableStore:
-    """Manages stored variables used by actions"""
-    
-    def __init__(self):
-        self.stored_vars = {}
-    
-    def add_var(self, name, contents, kind=None):
-        """Store new variables"""
-        var_obj = type('Variable', (), {'contents': contents})()
-        self.stored_vars[name] = var_obj
-    
-    def get_var(self, name):
-        """Retrieve stored variables by name"""
-        return self.stored_vars.get(name)
-    
-    def get_all_vars(self):
-        """Get all stored variables"""
-        return self.stored_vars
-
-class ConversationHistory:
-    """Manages conversation history and followup descriptions"""
-    
-    def __init__(self):
+            self.full_data = dataset
+        
+        # Simple state (consolidated from multiple managers)
         self.history = []
         self.followup = ""
-    
-    def add_turn(self, query, response):
-        """Add a conversation turn"""
-        self.history.append({'query': query, 'response': response})
-    
-    def store_followup_desc(self, desc):
-        """Store followup description for later use"""
-        self.followup = desc
-    
-    def get_followup_desc(self):
-        """Retrieve followup description"""
-        return self.followup
-
-class ExplainerManager:
-    """Manages LIME explainer setup and configuration"""
-    
-    def __init__(self, model, X_data):
-        self.model = model
-        self.X_data = X_data
-        self.mega_explainer = None
-        self._setup_explainer()
-    
-    def _setup_explainer(self):
-        """Initialize mega_explainer for LIME explanations"""
-        def prediction_function(x):
-            """Wrapper for model prediction"""
-            return self.model.predict_proba(x)
-        
-        import os
-        cache_dir = os.path.join(os.getcwd(), "cache")
-        os.makedirs(cache_dir, exist_ok=True)
-        cache_path = os.path.join(cache_dir, "mega-explainer-tabular.pkl")
-        
-        from explain.explanation import MegaExplainer
-        self.mega_explainer = MegaExplainer(
-            prediction_fn=prediction_function,
-            data=self.X_data,  # Only feature columns, not target
-            cat_features=[],  # All numeric features for diabetes dataset
-            cache_location=cache_path,
-            class_names=["No Diabetes", "Diabetes"],
-            use_selection=False  # Use LIME directly as requested
-        )
-    
-    def get_explainer(self):
-        """Get the configured explainer"""
-        return self.mega_explainer
-
-class MetadataManager:
-    """Manages feature definitions and class name mappings"""
-    
-    def __init__(self):
-        self.feature_definitions = {}
-        self.class_names = {0: "No Diabetes", 1: "Diabetes"}
-        self.rounding_precision = 2
-        self.default_metric = "accuracy"
-        self.username = "user"
-    
-    def get_feature_definition(self, feature_name):
-        """Get feature description"""
-        return self.feature_definitions.get(feature_name, "")
-    
-    def get_class_name_from_label(self, label):
-        """Convert label to class name"""
-        return self.class_names.get(label, str(label))
-
-class FilterStateManager:
-    """Manages temporary dataset and parse operations for filtering"""
-    
-    def __init__(self, dataset_manager, variable_store):
-        self.dataset_manager = dataset_manager
-        self.variable_store = variable_store
         self.parse_operation = []
         self.last_parse_string = []
-        self.temp_dataset = None
-        # Don't reset immediately - wait for variables to be initialized
-    
-    def add_interpretable_parse_op(self, text):
-        """Add interpretable operation description"""
-        self.parse_operation.append(text)
-    
-    def build_temp_dataset(self, save=True):
-        """Create temporary dataset for filtering operations"""
-        # For now, just return the main dataset
-        # In a full implementation, this would apply current filters
-        return self.variable_store.get_var('dataset')
-    
-    def reset_temp_dataset(self):
-        """Properly reset temp_dataset to full dataset with deep copy"""
-        self._reset_temp_dataset()
         
-        # Clear filter history
-        self.parse_operation = []
+        # Configuration (consolidated from MetadataManager)
+        self.rounding_precision = 2
+        self.default_metric = "accuracy" 
+        self.class_names = {0: "No Diabetes", 1: "Diabetes"}
+        self.feature_definitions = {}
+        self.username = "user"
         
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"Reset temp_dataset to full dataset: {len(self.temp_dataset.contents['X'])} instances")
-    
-    def _reset_temp_dataset(self):
-        """Internal method to reset temp dataset"""
-        original_dataset = self.variable_store.get_var('dataset').contents
+        # Variables (consolidated from VariableStore)
+        self.stored_vars = self._setup_variables(model)
         
-        # Create a deep copy of the dataset structure
-        import copy
-        reset_contents = {
-            'X': original_dataset['X'].copy(),  # Deep copy of DataFrame
-            'y': original_dataset['y'].copy() if original_dataset['y'] is not None else None,  # Deep copy of Series
-            'full_data': original_dataset['full_data'].copy(),
-            'cat': original_dataset['cat'].copy(),
-            'numeric': original_dataset['numeric'].copy(),
-            'ids_to_regenerate': original_dataset['ids_to_regenerate'].copy()
-        }
+        # Setup explainer (consolidated from ExplainerManager)
+        self._setup_explainer(model)
         
-        # Create new temp_dataset object with copied contents
-        self.temp_dataset = type('Variable', (), {'contents': reset_contents})()
-
-# Simple conversation context - now using composition
-class SimpleConversation:
-    def __init__(self, dataset, model):
-        # Initialize all the specialized managers in correct order
-        self.dataset_manager = DatasetManager(dataset)
-        self.variable_store = VariableStore()
-        self.history_manager = ConversationHistory()
-        self.explainer_manager = ExplainerManager(model, self.dataset_manager.X_data)
-        self.metadata_manager = MetadataManager()
+        # Initialize temp dataset
+        self.temp_dataset = self._create_temp_dataset()
         
-        # Initialize variables that actions expect BEFORE FilterStateManager
-        self._setup_variables(model)
-        
-        # Initialize FilterStateManager after variables are set up
-        self.filter_manager = FilterStateManager(self.dataset_manager, self.variable_store)
-        
-        # Now initialize the temp dataset
-        self.filter_manager._reset_temp_dataset()
-        
-        # Create a proper describe object with methods
+        # Create describe object for backward compatibility
         describe_obj = type('Describe', (), {})()
         describe_obj.get_dataset_description = lambda: "diabetes prediction based on patient health metrics"
         describe_obj.get_eval_performance = lambda model, metric: ""
@@ -321,93 +162,164 @@ class SimpleConversation:
     
     def _setup_variables(self, model):
         """Setup variables that actions expect"""
-        dataset_contents = self.dataset_manager.get_dataset_contents()
-        dataset_obj = type('Variable', (), {'contents': dataset_contents})()
-        model_obj = type('Variable', (), {'contents': model})()
-        mega_explainer_obj = type('Variable', (), {'contents': self.explainer_manager.get_explainer()})()
+        dataset_contents = {
+            'X': self.X_data,
+            'y': self.y_data,
+            'full_data': self.full_data,
+            'cat': [],  # All numeric features for diabetes dataset
+            'numeric': list(self.X_data.columns),
+            'ids_to_regenerate': []
+        }
         
-        self.variable_store.add_var('dataset', dataset_contents)
-        self.variable_store.add_var('model', model)
-        self.variable_store.add_var('mega_explainer', self.explainer_manager.get_explainer())
+        return {
+            'dataset': type('Variable', (), {'contents': dataset_contents})(),
+            'model': type('Variable', (), {'contents': model})(),
+            'mega_explainer': None  # Will be set after explainer setup
+        }
+    
+    def _setup_explainer(self, model):
+        """Initialize LIME explainer"""
+        def prediction_function(x):
+            return model.predict_proba(x)
         
-        # For backward compatibility, expose temp_dataset
-        self.temp_dataset = dataset_obj
+        import os
+        cache_dir = os.path.join(os.getcwd(), "cache")
+        os.makedirs(cache_dir, exist_ok=True)
+        cache_path = os.path.join(cache_dir, "mega-explainer-tabular.pkl")
+        
+        from explain.explanation import MegaExplainer
+        mega_explainer = MegaExplainer(
+            prediction_fn=prediction_function,
+            data=self.X_data,
+            cat_features=[],
+            cache_location=cache_path,
+            class_names=["No Diabetes", "Diabetes"],
+            use_selection=False
+        )
+        
+        self.stored_vars['mega_explainer'] = type('Variable', (), {'contents': mega_explainer})()
     
-    # Delegate methods to appropriate managers
-    def add_turn(self, query, response):
-        return self.history_manager.add_turn(query, response)
-    
-    def get_var(self, name):
-        return self.variable_store.get_var(name)
-    
-    def add_var(self, name, contents, kind=None):
-        return self.variable_store.add_var(name, contents, kind)
-    
-    def store_followup_desc(self, desc):
-        return self.history_manager.store_followup_desc(desc)
-    
-    def get_followup_desc(self):
-        return self.history_manager.get_followup_desc()
-    
-    def add_interpretable_parse_op(self, text):
-        return self.filter_manager.add_interpretable_parse_op(text)
-    
-    def get_class_name_from_label(self, label):
-        return self.metadata_manager.get_class_name_from_label(label)
-    
-    def get_feature_definition(self, feature_name):
-        return self.metadata_manager.get_feature_definition(feature_name)
-    
-    def build_temp_dataset(self, save=True):
-        return self.filter_manager.build_temp_dataset(save)
+    def _create_temp_dataset(self):
+        """Create temp dataset object"""
+        return type('Variable', (), {'contents': self.stored_vars['dataset'].contents.copy()})()
     
     def reset_temp_dataset(self):
-        return self.filter_manager.reset_temp_dataset()
+        """Reset temp dataset to full dataset"""
+        import copy
+        original_contents = self.stored_vars['dataset'].contents
+        
+        reset_contents = {
+            'X': original_contents['X'].copy(),
+            'y': original_contents['y'].copy() if original_contents['y'] is not None else None,
+            'full_data': original_contents['full_data'].copy(),
+            'cat': original_contents['cat'].copy(),
+            'numeric': original_contents['numeric'].copy(),
+            'ids_to_regenerate': original_contents['ids_to_regenerate'].copy()
+        }
+        
+        self.temp_dataset = type('Variable', (), {'contents': reset_contents})()
+        self.parse_operation = []
+        
+        logger.info(f"Reset temp_dataset to full dataset: {len(self.temp_dataset.contents['X'])} instances")
     
-    # Expose metadata attributes for backward compatibility
-    @property
-    def history(self):
-        return self.history_manager.history
+    # Simple interface methods
+    def add_turn(self, query, response):
+        self.history.append({'query': query, 'response': response})
     
-    @property
-    def stored_vars(self):
-        return self.variable_store.get_all_vars()
+    def get_var(self, name):
+        return self.stored_vars.get(name)
     
-    @property
-    def parse_operation(self):
-        return self.filter_manager.parse_operation
+    def add_var(self, name, contents, kind=None):
+        var_obj = type('Variable', (), {'contents': contents})()
+        self.stored_vars[name] = var_obj
     
-    @property
-    def last_parse_string(self):
-        return self.filter_manager.last_parse_string
+    def store_followup_desc(self, desc):
+        self.followup = desc
     
-    @property
-    def rounding_precision(self):
-        return self.metadata_manager.rounding_precision
+    def get_followup_desc(self):
+        return self.followup
     
-    @property
-    def default_metric(self):
-        return self.metadata_manager.default_metric
+    def add_interpretable_parse_op(self, text):
+        self.parse_operation.append(text)
     
-    @property
-    def class_names(self):
-        return self.metadata_manager.class_names
+    def get_class_name_from_label(self, label):
+        return self.class_names.get(label, str(label))
     
-    @property
-    def feature_definitions(self):
-        return self.metadata_manager.feature_definitions
+    def get_feature_definition(self, feature_name):
+        return self.feature_definitions.get(feature_name, "")
     
-    @property
-    def username(self):
-        return self.metadata_manager.username
-    
-    @property
-    def followup(self):
-        return self.history_manager.followup
+    def build_temp_dataset(self, save=True):
+        return self.get_var('dataset')
 
-conversation = SimpleConversation(dataset, model)
+conversation = Conversation(dataset, model)
 
 logger.info(f"✅ Ready! Dataset: {len(dataset)} instances, Model: {type(model).__name__}")
+
+def process_user_query(user_query):
+    """Shared processing logic for both query routes"""
+    # Reset dataset state to prevent persistent filtering between queries
+    conversation.reset_temp_dataset()
+    
+    # Simple 3-Component Pipeline
+    
+    # Component 1: AutoGen parses intent
+    autogen_response = decoder.complete_sync(user_query, conversation)
+    
+    # Extract action from AutoGen response and map intent to proper action
+    intent = autogen_response.get('intent', 'data')
+    
+    # Map intents to proper action names (based on action_functions.py mapping)
+    intent_to_action = {
+        'data': 'data',
+        'performance': 'score', 
+        'predict': 'predict',
+        'explain': 'explain',
+        'important': 'important',
+        'filter': 'filter',
+        'casual': 'function'
+    }
+    
+    # NO FALLBACKS - Fail fast if intent is not recognized
+    if intent not in intent_to_action:
+        raise ValueError(f"Unknown intent '{intent}' - AutoGen must produce valid intents only")
+    
+    action_name = intent_to_action[intent]
+    
+    # Extract entities and pass them as action arguments
+    entities = autogen_response.get('entities', {})
+    user_tokens = user_query.lower().split()
+    action_args = {
+        'features': entities.get('features', []),
+        'operators': entities.get('operators', []),
+        'values': entities.get('values', []),
+        'patient_id': entities.get('patient_id'),
+        'filter_type': entities.get('filter_type'),
+        'prediction_values': entities.get('prediction_values', []),
+        'label_values': entities.get('label_values', []),
+        'parse_text': user_tokens
+    }
+    
+    # Auto-apply ID filtering when patient_id is present
+    if entities.get('patient_id') is not None:
+        patient_id = entities.get('patient_id')
+        filter_args = {
+            'features': ['id'], 'operators': ['='], 'values': [patient_id], 'filter_type': 'feature'
+        }
+        filter_result = action_dispatcher.execute_action('filter', filter_args, conversation)
+        logger.info(f"Auto-applied ID filter for patient {patient_id}: {filter_result}")
+    
+    logger.info(f"AutoGen identified action: {action_name} with entities: {entities}")
+    
+    # Component 2: Execute explainability action
+    action_result = action_dispatcher.execute_action(action_name, action_args, conversation)
+    
+    # Component 3: Format with LLM
+    formatted_response = formatter.format_response(user_query, action_name, action_result)
+    
+    # Add to conversation history
+    conversation.add_turn(user_query, formatted_response)
+    
+    return action_name, action_result, formatted_response
 
 @app.route('/')
 def home():
@@ -416,6 +328,35 @@ def home():
                          datasetObjective="predict diabetes based on patient health metrics",
                          dataset_size=len(dataset),
                          action_count=len(action_dispatcher.actions))
+
+@app.route('/query', methods=['POST'])
+def process_query():
+    """Handle API queries - returns JSON response"""
+    try:
+        # Get query
+        if request.is_json:
+            user_query = request.get_json().get('query', '')
+        else:
+            user_query = request.form.get('query', '')
+        
+        if not user_query:
+            return jsonify({"error": "No query provided"}), 400
+        
+        logger.info(f"API query: {user_query}")
+        
+        action_name, action_result, formatted_response = process_user_query(user_query)
+        
+        logger.info(f"API response generated using action: {action_name}")
+        
+        return jsonify({
+            "response": formatted_response,
+            "action_used": action_name,
+            "raw_result": str(action_result)
+        })
+            
+    except Exception as e:
+        logger.error(f"API error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/sample_prompt', methods=['POST'])
@@ -517,67 +458,7 @@ def get_bot_response():
         
         logger.info(f"Chat query: {user_query}")
         
-        # Reset dataset state to prevent persistent filtering between queries
-        conversation.reset_temp_dataset()  # Proper deep copy reset
-        
-        # Use the same processing pipeline as /query
-        autogen_response = decoder.complete_sync(user_query, conversation)
-        
-        # Extract action from AutoGen response and map intent to proper action
-        intent = autogen_response.get('intent', 'data')
-        
-        # Map intents to proper action names (based on action_functions.py mapping)
-        intent_to_action = {
-            'data': 'data',
-            'performance': 'score', 
-            'predict': 'predict',
-            'explain': 'explain',
-            'important': 'important',
-            'filter': 'filter',
-            'casual': 'function'
-        }
-        
-        # NO FALLBACKS - Fail fast if intent is not recognized
-        if intent not in intent_to_action:
-            raise ValueError(f"Unknown intent '{intent}' - AutoGen must produce valid intents only")
-        
-        action_name = intent_to_action[intent]
-        
-        # Extract entities and pass them as action arguments
-        entities = autogen_response.get('entities', {})
-        # Build parse_text from user_query tokens for better context parsing
-        user_tokens = user_query.lower().split()
-        action_args = {
-            'features': entities.get('features', []),
-            'operators': entities.get('operators', []),
-            'values': entities.get('values', []),
-            'patient_id': entities.get('patient_id'),
-            'filter_type': entities.get('filter_type'),  # Add filter_type for clean filtering
-            'prediction_values': entities.get('prediction_values', []),  # For prediction filtering
-            'label_values': entities.get('label_values', []),  # For label filtering
-            'parse_text': user_tokens  # Provide full token list for actions that rely on parse_text
-        }
-        
-        # CLEAN ARCHITECTURE: Auto-apply ID filtering when patient_id is present
-        # This maintains generalizability by using the existing filter system with AutoGen entities
-        if entities.get('patient_id') is not None:
-            patient_id = entities.get('patient_id')
-            # Apply ID filter using clean AutoGen entities
-            filter_args = {
-                'features': ['id'],  # Use 'id' as the feature name
-                'operators': ['='],  # Use equals operator
-                'values': [patient_id],  # The patient ID value
-                'filter_type': 'feature'  # This is feature-based filtering
-            }
-            filter_result = action_dispatcher.execute_action('filter', filter_args, conversation)
-            logger.info(f"Auto-applied ID filter for patient {patient_id}: {filter_result}")
-        
-        logger.info(f"AutoGen identified action: {action_name} with entities: {entities}")
-        
-        action_result = action_dispatcher.execute_action(action_name, action_args, conversation)
-        formatted_response = formatter.format_response(user_query, action_name, action_result)
-        
-        conversation.add_turn(user_query, formatted_response)
+        action_name, action_result, formatted_response = process_user_query(user_query)
         
         logger.info(f"Chat response generated using action: {action_name}")
         

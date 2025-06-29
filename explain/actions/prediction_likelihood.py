@@ -1,4 +1,5 @@
 import numpy as np
+from explain.utils import gen_parse_op_text
 
 
 SINGLE_INSTANCE_TEMPLATE = """
