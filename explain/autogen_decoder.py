@@ -201,7 +201,8 @@ class AutoGenDecoder:
         # We maintain a whitelist of valid actions based on the system's capabilities
         valid_actions = [
             "filter", "predict", "explain", "important", "score", 
-            "show", "change", "mistake", "data"
+            "show", "change", "mistake", "data", "followup", "previousfilter",
+            "previousoperation", "model", "predictionfilter", "labelfilter", "reset"
         ]
         
         if parts[0] not in valid_actions:
@@ -273,7 +274,26 @@ INTENT TYPES:
 - important: Feature importance ("important features", "which features matter")
 - performance: Model accuracy ("how accurate", "model performance")
 - filter: Subset data ("patients with age > 50", "show instances where model predicted 1")
+- whatif: What-if analysis ("what if BMI was 25", "change glucose to 90")
+- mistakes: Model error analysis ("show mistakes", "where is the model wrong")
+- confidence: Prediction confidence ("how confident", "prediction probability")
+- interactions: Feature interactions ("how do features interact", "age and BMI together")
+- show: Display data instances ("show patient 10", "display this data")
+- statistics: Feature statistics ("glucose statistics", "BMI distribution")
+- labels: Ground truth information ("actual labels", "true values")
+- count: Count data points ("how many patients", "number of instances")
+- define: Feature definitions ("what is BMI", "define glucose")
+- about: System information ("tell me about yourself", "what can you do")
 - casual: Greetings, chat ("hello", "hi")
+
+CONVERSATIONAL CONTEXT INTENTS:
+- followup: Follow-up questions ("tell me more", "explain that better", "what about")
+- previousfilter: Use previous filter ("with the same filter", "keep that filter")
+- previousoperation: Repeat previous operation ("do that again", "same thing for age")
+- model: Model information ("about the model", "model details", "training info")
+- predictionfilter: Filter by predictions ("where model predicted diabetes", "prediction = 1")
+- labelfilter: Filter by actual labels ("actual diabetic patients", "ground truth = 1")
+- reset: Clear context ("start over", "reset", "clear filters", "new conversation")
 
 SPECIAL FILTERING TYPES:
 - Prediction filtering: "show instances where model predicted 1", "cases where model predicts diabetes"
@@ -288,6 +308,25 @@ EXAMPLES:
 "show instances where model predicted 1" → intent: "filter", entities: {filter_type: "prediction", prediction_values: [1]}
 "patients with age > 50" → intent: "filter", entities: {features: ["age"], operators: [">"], values: [50]}
 "show cases where ground truth is 1" → intent: "filter", entities: {filter_type: "label", label_values: [1]}
+"what if BMI was 25 instead" → intent: "whatif", entities: {features: ["BMI"], values: [25]}
+"show me the model's biggest mistakes" → intent: "mistakes"
+"how confident is the model" → intent: "confidence"
+"how do age and BMI interact" → intent: "interactions", entities: {features: ["age", "BMI"]}
+"show me patient 10" → intent: "show", entities: {patient_id: 10}
+"glucose statistics" → intent: "statistics", entities: {features: ["glucose"]}
+"what are the actual labels" → intent: "labels"
+"how many patients are there" → intent: "count"
+"what does BMI mean" → intent: "define", entities: {features: ["BMI"]}
+"tell me about yourself" → intent: "about"
+
+CONVERSATIONAL CONTEXT EXAMPLES:
+"tell me more about that" → intent: "followup"
+"do the same thing for age" → intent: "previousoperation", entities: {features: ["age"]}
+"keep that filter" → intent: "previousfilter"
+"what about the model itself" → intent: "model"
+"show me where the model predicted diabetes" → intent: "predictionfilter", entities: {prediction_values: [1]}
+"filter to actual diabetic patients" → intent: "labelfilter", entities: {label_values: [1]}
+"reset everything" → intent: "reset"
 
 OUTPUT FORMAT (JSON ONLY - NO DUPLICATE KEYS):
 {

@@ -18,36 +18,44 @@ def show_operation(conversation, parse_text, i, n_features_to_show=float("+inf")
     rest_of_info_string = "The rest of the features are<br><br>"
     init_len = len(rest_of_info_string)
     if len(data) == 0:
-        return "There are no instances in the data that meet this description.", 0
+        return {'type': 'error', 'message': 'There are no instances in the data that meet this description.'}, 0
+    
     if len(data) == 1:
-        return_string = f"{intro_text} the features are<br><br>"
-
+        # Single instance - show all feature values
+        features = {}
+        truncated_features = {}
+        
         for i, feature_name in enumerate(data.columns):
             feature_value = data[feature_name].values[0]
-            text = f"{feature_name}: {feature_value}<br>"
             if i < n_features_to_show:
-                return_string += text
+                features[feature_name] = feature_value
             else:
-                rest_of_info_string += text
+                truncated_features[feature_name] = feature_value
+        
+        # Store truncated info for follow-up
+        if truncated_features:
+            truncated_text = "\n".join([f"{name}: {val}" for name, val in truncated_features.items()])
+            conversation.store_followup_desc(truncated_text)
+        
+        result = {
+            'type': 'single_instance',
+            'instance_id': data.index[0],
+            'features': features,
+            'has_more_features': len(truncated_features) > 0,
+            'total_features': len(data.columns),
+            'shown_features': len(features),
+            'filter_applied': parse_op
+        }
+        return result, 1
     else:
-        """
-        return_string = f"{intro_text} the feature values are on average:<br><br>"
-        for i, feature_name in enumerate(data.columns):
-            feature_value = round(data[feature_name].mean(), conversation.rounding_precision)
-            text = f"{feature_name}: {feature_value}<br>"
-            if i < n_features_to_show:
-                return_string += text
-            else:
-                rest_of_info_string += text
-        """
-        instance_ids = str(list(data.index))
-        return_string = f"{intro_text} the instance id's are:<br><br>"
-        return_string += instance_ids
-        return_string += "<br><br>Which one do you want to see?<br><br>"
-
-    # If we've written additional info to this string
-    if len(rest_of_info_string) > init_len:
-        return_string += "<br><br>I've truncated this instance to be concise. Let me know if you"
-        return_string += " want to see the rest of it.<br><br>"
-        conversation.store_followup_desc(rest_of_info_string)
-    return return_string, 1
+        # Multiple instances - show IDs
+        instance_ids = list(data.index)
+        
+        result = {
+            'type': 'multiple_instances',
+            'instance_ids': instance_ids,
+            'total_count': len(data),
+            'filter_applied': parse_op,
+            'needs_selection': True
+        }
+        return result, 1

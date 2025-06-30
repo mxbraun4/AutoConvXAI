@@ -31,32 +31,24 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
             data = new_instance.values.reshape(1, -1)
             
             # Make prediction and get probabilities
-            model_predictions = model.predict(data)
+            from main import _safe_model_predict
+    model_predictions = _safe_model_predict(model, data)
             try:
                 model_probabilities = model.predict_proba(data)
                 confidence = model_probabilities[0][model_predictions[0]]
             except:
                 confidence = None
             
-            # Format response for single instance prediction
-            return_s = f"For a new instance with "
-            feature_desc = ", ".join([f"{feat}={val}" for feat, val in zip(ent_features, ent_vals)])
-            return_s += f"<b>{feature_desc}</b>, "
-            
-            if conversation.class_names is None:
-                prediction_class = str(model_predictions[0])
-                return_s += f"the model predicts <b>{prediction_class}</b>"
-            else:
-                class_text = conversation.class_names[model_predictions[0]]
-                return_s += f"the model predicts <b>{class_text}</b>"
-            
-            # Add confidence if available
-            if confidence is not None:
-                confidence_pct = round(confidence * 100, conversation.rounding_precision)
-                return_s += f" with <b>{confidence_pct}% confidence</b>"
-            
-            return_s += ".<br>"
-            return return_s, 1
+            # Return structured data for single instance prediction
+            result = {
+                'type': 'single_prediction',
+                'input_features': dict(zip(ent_features, ent_vals)),
+                'prediction': int(model_predictions[0]),
+                'prediction_class': conversation.class_names[model_predictions[0]] if conversation.class_names else str(model_predictions[0]),
+                'confidence': round(confidence * 100, conversation.rounding_precision) if confidence is not None else None,
+                'instance_type': 'new_instance'
+            }
+            return result, 1
             
         except Exception as e:
             # Fall back to original behavior if there's any issue
@@ -71,11 +63,12 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
             error_msg = conversation.last_filter_error
             # Clear the error after use
             conversation.last_filter_error = None
-            return f'No instances found: {error_msg}', 0
+            return {'type': 'error', 'message': f'No instances found: {error_msg}'}, 0
         else:
-            return 'There are no instances that meet this description!', 0
+            return {'type': 'error', 'message': 'There are no instances that meet this description!'}, 0
 
-    model_predictions = model.predict(data)
+    from main import _safe_model_predict
+    model_predictions = _safe_model_predict(model, data)
     
     # Get confidence scores if possible
     try:
@@ -85,43 +78,39 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
     except:
         model_probabilities = None
 
-    # Format return string
-    return_s = ""
-
+    # Create structured response
     filter_string = gen_parse_op_text(conversation)
 
     if len(model_predictions) == 1:
-        return_s += f"The instance with <b>{filter_string}</b> is predicted "
-        if conversation.class_names is None:
-            prediction_class = str(model_predictions[0])
-            return_s += f"<b>{prediction_class}</b>"
-        else:
-            class_text = conversation.class_names[model_predictions[0]]
-            return_s += f"<b>{class_text}</b>"
-        
-        # Add confidence for single prediction
+        # Single instance prediction
+        confidence = None
         if model_probabilities is not None:
-            confidence = model_probabilities[0][model_predictions[0]]
-            confidence_pct = round(confidence * 100, conversation.rounding_precision)
-            return_s += f" with <b>{confidence_pct}% confidence</b>"
+            confidence = round(model_probabilities[0][model_predictions[0]] * 100, conversation.rounding_precision)
         
-        return_s += "."
+        result = {
+            'type': 'single_prediction',
+            'prediction': int(model_predictions[0]),
+            'prediction_class': conversation.class_names[model_predictions[0]] if conversation.class_names else str(model_predictions[0]),
+            'confidence': confidence,
+            'filter_applied': filter_string,
+            'instance_type': 'filtered_data'
+        }
+        return result, 1
     else:
-        intro_text = "For the data,"
-        return_s += f"{intro_text} the model predicts:"
+        # Multiple predictions - distribution
         unique_preds = np.unique(model_predictions)
-        return_s += "<ul>"
-        for j, uniq_p in enumerate(unique_preds):
-            return_s += "<li>"
+        prediction_dist = {}
+        
+        for uniq_p in unique_preds:
             freq = np.sum(uniq_p == model_predictions) / len(model_predictions)
-            round_freq = str(round(freq * 100, conversation.rounding_precision))
-
-            if conversation.class_names is None:
-                return_s += f"<b>class {uniq_p}</b>, {round_freq}%"
-            else:
-                class_text = conversation.class_names[uniq_p]
-                return_s += f"<b>{class_text}</b>, {round_freq}%"
-            return_s += "</li>"
-        return_s += "</ul>"
-    return_s += "<br>"
-    return return_s, 1
+            round_freq = round(freq * 100, conversation.rounding_precision)
+            class_name = conversation.class_names[uniq_p] if conversation.class_names else f"class {uniq_p}"
+            prediction_dist[class_name] = round_freq
+        
+        result = {
+            'type': 'prediction_distribution',
+            'distribution': prediction_dist,
+            'total_instances': len(model_predictions),
+            'filter_applied': filter_string
+        }
+        return result, 1

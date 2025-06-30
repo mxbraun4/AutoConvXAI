@@ -177,17 +177,16 @@ def important_operation(conversation, parse_text, i, **kwargs):
     """Important features operation.
 
     For a given feature, this operation finds explanations where it is important.
-
-    TODO(dylan): resolve complexity of this function
+    Now returns structured data instead of formatted HTML.
     """
     # The maximum number of ids to show in the initial explanation
-    # This should be a hyperparam, but not haven't updated it yet
     MAXIDS = 5
 
     data = conversation.temp_dataset.contents['X']
     if len(conversation.temp_dataset.contents['X']) == 0:
         # In the case that filtering has removed all the instances
-        return 'There are no instances that meet this description!', 0
+        return {'error': 'No instances meet this description', 'type': 'no_data'}, 0
+    
     ids = list(data.index)
 
     # The feature, all, or topk that is being evaluated for importance
@@ -203,7 +202,7 @@ def important_operation(conversation, parse_text, i, **kwargs):
     # Get the explainer
     mega_explainer_exp = conversation.get_var('mega_explainer').contents
 
-    # If there's ids to regenerate from a previous operation, i.e., by changing the feature values
+    # If there's ids to regenerate from a previous operation
     regen = conversation.temp_dataset.contents['ids_to_regenerate']
 
     # Get the explanations
@@ -216,43 +215,92 @@ def important_operation(conversation, parse_text, i, **kwargs):
     # and the 95% ci's
     max_ranks, avg_ranks, ci_95s = compute_rank_stats(data, feature_name_to_rank)
 
-    # Start formatting response into a string
-    if len(parse_op) == 0:
-        # In the case that no filtering operations have been applied
-        return_s = "For the model's predictions across <b>all</b> the data,"
-    else:
-        return_s = f"For the model's predictions on instance with <b>{parse_op}</b>,"
+    # Return structured data instead of formatted HTML
+    result = {
+        'type': 'feature_importance',
+        'request_type': parsed_feature_name,  # 'all', 'topk', or specific feature name
+        'filter_applied': len(parse_op) > 0,
+        'filter_description': parse_op,
+        'total_instances': len(ids),
+        'total_features': len(data.columns),
+        'features': []
+    }
 
-    # Cases for showing all the most important features, topk most important or importance of an
-    # individual feature
+    # Process different types of importance requests
     if parsed_feature_name == "all":
-        return_s = topk_feature_importance(avg_ranks,
-                                           conversation,
-                                           parse_op,
-                                           return_s,
-                                           topk=len(avg_ranks))
+        # Return all features ranked by importance
+        ranked_features = sorted(avg_ranks.items(), key=lambda x: x[1])
+        for rank, (feature_name, avg_rank) in enumerate(ranked_features, 1):
+            ci_95 = ci_95s.get(feature_name)
+            result['features'].append({
+                'name': feature_name,
+                'rank': rank,
+                'avg_rank': round(avg_rank, conversation.rounding_precision),
+                'max_rank': max_ranks.get(feature_name, avg_rank),
+                'confidence_interval': {
+                    'low': round(ci_95[0], conversation.rounding_precision) if ci_95 else None,
+                    'high': round(ci_95[1], conversation.rounding_precision) if ci_95 else None
+                } if ci_95 else None
+            })
+            
     elif parsed_feature_name == "topk":
+        # Return top k features
         if i+2 >= len(parse_text):
-            # Default to top 5 if no number specified
             topk = 5
         else:
             try:
                 topk = int(parse_text[i+2])
             except (ValueError, IndexError):
                 topk = 5
-        return_s = topk_feature_importance(avg_ranks, conversation, parse_op, return_s, topk)
+        
+        result['top_k'] = topk
+        ranked_features = sorted(avg_ranks.items(), key=lambda x: x[1])[:topk]
+        for rank, (feature_name, avg_rank) in enumerate(ranked_features, 1):
+            ci_95 = ci_95s.get(feature_name)
+            result['features'].append({
+                'name': feature_name,
+                'rank': rank,
+                'avg_rank': round(avg_rank, conversation.rounding_precision),
+                'max_rank': max_ranks.get(feature_name, avg_rank),
+                'confidence_interval': {
+                    'low': round(ci_95[0], conversation.rounding_precision) if ci_95 else None,
+                    'high': round(ci_95[1], conversation.rounding_precision) if ci_95 else None
+                } if ci_95 else None
+            })
+            
     else:
         # Individual feature importance case
-        return_s = individual_feature_importance(avg_ranks,
-                                                 conversation,
-                                                 ci_95s,
-                                                 parsed_feature_name,
-                                                 max_ranks,
-                                                 data,
-                                                 ids,
-                                                 parse_op,
-                                                 return_s,
-                                                 feature_name_to_rank,
-                                                 MAXIDS)
+        if parsed_feature_name in avg_ranks:
+            avg_rank = avg_ranks[parsed_feature_name]
+            ci_95 = ci_95s.get(parsed_feature_name)
+            max_rank = max_ranks.get(parsed_feature_name, avg_rank)
+            
+            # Compute relative importance description
+            all_rankings = list(avg_ranks.values())
+            quartiles = np.percentile(all_rankings, [25, 50, 75])
+            
+            if avg_rank < quartiles[0]:
+                importance_level = "highly"
+            elif avg_rank < quartiles[1]:
+                importance_level = "fairly"
+            elif avg_rank < quartiles[2]:
+                importance_level = "somewhat"
+            else:
+                importance_level = "not very"
+            
+            result['features'] = [{
+                'name': parsed_feature_name,
+                'rank': None,  # Will be calculated based on avg_rank
+                'avg_rank': round(avg_rank, conversation.rounding_precision),
+                'max_rank': max_rank,
+                'importance_level': importance_level,
+                'confidence_interval': {
+                    'low': round(ci_95[0], conversation.rounding_precision) if ci_95 else None,
+                    'high': round(ci_95[1], conversation.rounding_precision) if ci_95 else None
+                } if ci_95 else None
+            }]
+        else:
+            result['error'] = f"Feature '{parsed_feature_name}' not found in dataset"
+            result['available_features'] = list(data.columns)
 
-    return return_s, 1
+    return result, 1

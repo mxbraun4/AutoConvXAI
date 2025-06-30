@@ -7,6 +7,7 @@ import os
 import logging
 import pandas as pd
 import pickle
+import openai
 from flask import Flask, request, jsonify, render_template, Response
 from explain.autogen_decoder import AutoGenDecoder
 from explain.actions.get_action_functions import get_all_action_functions_map
@@ -70,33 +71,285 @@ class SimpleActionDispatcher:
             return f"Error executing {action_name}: {str(e)}"
 
 class LLMFormatter:
-    """Formats action results into natural language using LLM"""
+    """Intelligent LLM-based formatter that creates question-tailored responses"""
     
-    def __init__(self, decoder):
-        self.decoder = decoder
+    def __init__(self, api_key, model='gpt-4o-mini'):
+        self.client = openai.OpenAI(api_key=api_key)
+        self.model = model
     
-    def format_response(self, user_query, action_name, action_result):
-        """Format raw action result into natural language"""
-        format_prompt = f"""
-        The user asked: "{user_query}"
+    def format_response(self, user_query, action_name, action_result, conversation=None):
+        """Format action result into natural, question-tailored language"""
         
-        I executed the explainability action "{action_name}" which returned:
-        {action_result}
+        # Extract context about the conversation
+        context_info = self._build_context(conversation)
         
-        Please format this result into a clear, natural language response that:
-        1. Directly answers the user's question
-        2. Explains what analysis was performed
-        3. Presents the results in an understandable way
-        4. Is concise but informative
-        
-        Response:"""
+        # Create intelligent formatting prompt based on action type and user intent
+        format_prompt = self._create_intelligent_prompt(
+            user_query, action_name, action_result, context_info, conversation
+        )
         
         try:
-            formatted = self.decoder.complete_sync(format_prompt, None)
-            return formatted.get('direct_response', str(action_result))
+            # Use direct OpenAI API call for formatting
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are a data scientist assistant. Provide clear, concise responses based only on the provided data. Be conversational but brief (2-3 sentences max). Never speculate or add information not in the data."},
+                    {"role": "user", "content": format_prompt}
+                ],
+                max_tokens=150,
+                temperature=0.3
+            )
+            
+            formatted = response.choices[0].message.content.strip()
+                
+            # Fallback to action result if formatting fails
+            if not formatted or len(formatted.strip()) < 10:
+                logger.warning(f"LLM formatter returned short response: {formatted}")
+                return self._create_fallback_response(action_result)
+                
+            return formatted
+            
         except Exception as e:
-            logger.error(f"Error formatting response: {e}")
-            return str(action_result)
+            logger.error(f"Error in LLM formatting: {e}")
+            return self._create_fallback_response(action_result)
+    
+    def _build_context(self, conversation):
+        """Extract relevant context from conversation"""
+        if not conversation:
+            return {}
+            
+        context = {}
+        
+        # Dataset context
+        try:
+            dataset = conversation.get_var('dataset')
+            if dataset:
+                context['dataset_size'] = len(dataset.contents.get('X', []))
+                context['features'] = list(dataset.contents.get('X', {}).columns) if hasattr(dataset.contents.get('X', {}), 'columns') else []
+        except:
+            pass
+            
+        # Current filtering context
+        try:
+            if hasattr(conversation, 'temp_dataset') and conversation.temp_dataset:
+                temp_size = len(conversation.temp_dataset.contents.get('X', []))
+                full_size = context.get('dataset_size', temp_size)
+                if temp_size < full_size:
+                    context['filtered'] = True
+                    context['filtered_size'] = temp_size
+                    context['filter_description'] = getattr(conversation, 'parse_operation', [])
+        except:
+            pass
+            
+        # Model context
+        try:
+            if hasattr(conversation, 'class_names'):
+                context['class_names'] = conversation.class_names
+        except:
+            pass
+            
+        return context
+    
+    def _create_intelligent_prompt(self, user_query, action_name, action_result, context_info, conversation=None):
+        """Create an intelligent prompt tailored to the specific action and user intent"""
+        
+        # Detect user intent patterns
+        query_lower = user_query.lower()
+        intent_cues = {
+            'explain': ['why', 'how', 'explain', 'reason', 'because'],
+            'predict': ['predict', 'what if', 'would happen', 'forecast'],
+            'important': ['important', 'matter', 'significant', 'key', 'main'],
+            'performance': ['accurate', 'performance', 'good', 'well'],
+            'whatif': ['what if', 'change', 'instead', 'modify'],
+            'mistakes': ['mistake', 'wrong', 'error', 'incorrect'],
+            'confidence': ['confident', 'probability', 'likelihood', 'certain'],
+            'interactions': ['interact', 'together', 'combine', 'relationship'],
+            'statistics': ['statistics', 'stats', 'distribution', 'summary'],
+            'count': ['how many', 'count', 'number of', 'total'],
+            'define': ['define', 'what does', 'what is', 'meaning'],
+            'about': ['about yourself', 'capabilities', 'what can you'],
+            'show': ['show', 'display', 'patient'],
+            'explore': ['tell me', 'what', 'describe', 'overview']
+        }
+        
+        detected_intent = 'explore'  # default
+        for intent, cues in intent_cues.items():
+            if any(cue in query_lower for cue in cues):
+                detected_intent = intent
+                break
+        
+        # Build context string
+        context_str = ""
+        if context_info.get('filtered'):
+            context_str += f"The analysis was performed on {context_info['filtered_size']} filtered instances. "
+        if context_info.get('class_names'):
+            class_list = ', '.join(context_info['class_names'].values())
+            context_str += f"The model predicts: {class_list}. "
+        
+        # Add recent conversation context for comparative questions
+        if conversation and hasattr(conversation, 'conversation_turns') and len(conversation.conversation_turns) > 0:
+            recent_turn = conversation.conversation_turns[-1]
+            if recent_turn.get('action_name') == 'score':
+                context_str += f"Previous result: {recent_turn.get('response', '')} "
+        
+        # Create tailored prompt based on action and intent
+        base_prompt = f"""
+You are an expert data scientist explaining machine learning results to users. 
+
+USER QUESTION: "{user_query}"
+ACTION PERFORMED: {action_name}
+DETECTED INTENT: {detected_intent}
+CONTEXT: {context_str}
+
+RAW RESULTS:
+{action_result}
+
+TASK: Transform these raw results into a brief, natural response (2-3 sentences max) that:
+
+1. DIRECTLY ANSWERS the user's specific question with factual data only
+2. Uses plain language (avoid technical jargon)
+3. States only what is shown in the raw results
+4. Never speculates, assumes, or adds context not in the data
+5. Be conversational but concise
+
+"""
+        
+        # Add intent-specific instructions
+        if detected_intent == 'explain':
+            base_prompt += """
+EXPLAIN INTENT: The user wants to understand WHY something happened. Focus on:
+- Clear causal explanations
+- The most influential factors
+- Use phrases like "because", "due to", "the main reason"
+- Make it feel like you're walking them through the reasoning
+"""
+        elif detected_intent == 'predict':
+            base_prompt += """
+PREDICT INTENT: The user wants to know WHAT WOULD HAPPEN. Focus on:
+- Clear prediction outcomes
+- Confidence levels
+- What factors drive the prediction
+- Use phrases like "would result in", "likely to", "expected outcome"
+"""
+        elif detected_intent == 'important':
+            base_prompt += """
+IMPORTANCE INTENT: The user wants to know WHAT MATTERS MOST. Focus on:
+- Ranking and prioritization
+- Relative importance
+- Impact on outcomes
+- Use phrases like "most critical", "key factors", "strongest influence"
+"""
+        elif detected_intent == 'performance':
+            base_prompt += """
+PERFORMANCE INTENT: The user wants to know HOW WELL the model works. Focus on:
+- Accuracy and reliability
+- Strengths and limitations
+- Practical implications
+- Use phrases like "performs well", "accurate in", "reliable for"
+"""
+        elif detected_intent == 'whatif':
+            base_prompt += """
+WHAT-IF INTENT: The user wants to explore scenarios. Focus on:
+- Clear before/after comparisons
+- Impact of changes on predictions
+- Practical implications of modifications
+- Use phrases like "if you changed", "would result in", "the impact would be"
+"""
+        elif detected_intent == 'mistakes':
+            base_prompt += """
+MISTAKES INTENT: The user wants to understand model errors. Focus on:
+- Specific cases where model was wrong
+- Patterns in mistakes
+- Why errors occurred
+- Use phrases like "incorrectly predicted", "failed to recognize", "got wrong because"
+"""
+        elif detected_intent == 'confidence':
+            base_prompt += """
+CONFIDENCE INTENT: The user wants certainty information. Focus on:
+- Probability scores and what they mean
+- Model certainty levels
+- Reliability of predictions
+- Use phrases like "confident that", "probability of", "certain about"
+"""
+        elif detected_intent == 'interactions':
+            base_prompt += """
+INTERACTIONS INTENT: The user wants to understand feature relationships. Focus on:
+- How features work together
+- Combined effects
+- Synergistic relationships
+- Use phrases like "work together", "combined effect", "interact to"
+"""
+        elif detected_intent == 'statistics':
+            base_prompt += """
+STATISTICS INTENT: The user wants numerical summaries. Focus on:
+- Clear statistical descriptions
+- Meaningful comparisons
+- Distribution characteristics
+- Use phrases like "on average", "typically", "ranges from"
+"""
+        elif detected_intent == 'define':
+            base_prompt += """
+DEFINE INTENT: The user wants explanations of terms. Focus on:
+- Clear, simple definitions
+- Practical context
+- Why it matters for health/diabetes
+- Use phrases like "refers to", "means", "is important because"
+"""
+        elif detected_intent == 'about':
+            base_prompt += """
+ABOUT INTENT: The user wants system information. Focus on:
+- Capabilities and features
+- What you can help with
+- Encouraging exploration
+- Use phrases like "I can help you", "my capabilities include", "you can ask me"
+"""
+        
+        base_prompt += """
+RESPONSE (2-3 sentences max, factual only, no speculation):"""
+        
+        return base_prompt
+    
+    def _create_fallback_response(self, action_result):
+        """Create a simple fallback when LLM formatting fails"""
+        if isinstance(action_result, tuple) and len(action_result) >= 1:
+            result_data = action_result[0]
+        else:
+            result_data = action_result
+            
+        if isinstance(result_data, dict):
+            # Handle structured data from converted actions
+            result_type = result_data.get('type', 'unknown')
+            
+            if result_type == 'performance_score':
+                return f"The model achieves {result_data['score_percentage']}% accuracy on {result_data['instances_evaluated']} instances."
+            elif result_type == 'single_prediction':
+                conf = f" with {result_data['confidence']}% confidence" if result_data.get('confidence') else ""
+                return f"The model predicts: {result_data['prediction_class']}{conf}"
+            elif result_type == 'data_summary':
+                return f"Dataset contains {result_data['dataset_size']} instances with features: {', '.join(result_data['features'][:3])}..."
+            elif result_type == 'feature_statistics':
+                stats = result_data['statistics']
+                if stats.get('type') == 'numerical':
+                    return f"{result_data['feature_name']} statistics: mean={stats['mean']}, std={stats['std']}"
+                else:
+                    return f"{result_data['feature_name']} distribution: {stats.get('distribution', {})}"
+            elif result_type == 'single_explanation':
+                conf = f" with {result_data['confidence']}% confidence" if result_data.get('confidence') else ""
+                return f"Instance {result_data['instance_id']} prediction: {result_data['prediction_class']}{conf}. Top features: {', '.join([f['feature'] for f in result_data['feature_importance'][:3]])}"
+            elif result_type == 'multiple_explanations':
+                summary = f"Analyzed {result_data['total_instances']} instances. "
+                pred_summary = result_data['prediction_summary']
+                for class_name, stats in pred_summary.items():
+                    summary += f"{class_name}: {stats['count']} ({stats['percentage']}%) "
+                return summary
+            elif result_type == 'what_if_change':
+                return f"Changed {result_data['feature_name']} by {result_data['operation']} {result_data['value']} for {result_data['instances_affected']} instance(s)"
+            elif result_type == 'error':
+                return f"Error: {result_data['message']}"
+            else:
+                return f"Result: {str(result_data)}"
+        else:
+            return str(result_data)
 
 # Initialize components
 logger.info("🚀 Initializing simple 3-component architecture...")
@@ -114,10 +367,10 @@ with open('data/diabetes_model_logistic_regression.pkl', 'rb') as f:
 action_dispatcher = SimpleActionDispatcher(dataset, model)
 
 # Component 3: LLM formatter for natural language output
-formatter = LLMFormatter(decoder)
+formatter = LLMFormatter(OPENAI_API_KEY, GPT_MODEL)
 
 class Conversation:
-    """Simple conversation context - consolidated from over-engineered managers"""
+    """Conversational context with memory for multi-turn interactions"""
     
     def __init__(self, dataset, model):
         # Dataset preparation (consolidated from DatasetManager)
@@ -131,11 +384,18 @@ class Conversation:
             self.y_data = None
             self.full_data = dataset
         
-        # Simple state (consolidated from multiple managers)
+        # Conversational memory system
         self.history = []
         self.followup = ""
         self.parse_operation = []
         self.last_parse_string = []
+        
+        # NEW: Track conversational context
+        self.last_action = None
+        self.last_action_args = None
+        self.last_filter_applied = None
+        self.last_result = None
+        self.conversation_turns = []
         
         # Configuration (consolidated from MetadataManager)
         self.rounding_precision = 2
@@ -222,9 +482,27 @@ class Conversation:
         
         logger.info(f"Reset temp_dataset to full dataset: {len(self.temp_dataset.contents['X'])} instances")
     
-    # Simple interface methods
-    def add_turn(self, query, response):
+    # Enhanced interface methods with conversational memory
+    def add_turn(self, query, response, action_name=None, action_args=None, action_result=None):
+        turn_data = {
+            'query': query, 
+            'response': response,
+            'action_name': action_name,
+            'action_args': action_args,
+            'timestamp': len(self.conversation_turns)
+        }
         self.history.append({'query': query, 'response': response})
+        self.conversation_turns.append(turn_data)
+        
+        # Update last operation tracking
+        if action_name:
+            self.last_action = action_name
+            self.last_action_args = action_args
+            self.last_result = action_result
+            
+            # Track filter operations specifically
+            if action_name == 'filter':
+                self.last_filter_applied = action_args
     
     def get_var(self, name):
         return self.stored_vars.get(name)
@@ -255,10 +533,73 @@ conversation = Conversation(dataset, model)
 
 logger.info(f"✅ Ready! Dataset: {len(dataset)} instances, Model: {type(model).__name__}")
 
+def _safe_model_predict(model, data):
+    """Utility function to predict with sklearn compatibility (avoids feature name warnings)."""
+    try:
+        # Try with DataFrame first (preserves feature names)
+        return model.predict(data)
+    except Exception:
+        # Fallback to numpy array if DataFrame fails
+        return model.predict(data.values)
+
+def _should_reset_filter_context(intent, entities, user_query, conversation):
+    """Determine if we should reset the filter context for a new query."""
+    
+    # Never reset for these intents that explicitly want to work with current context
+    context_dependent_intents = {
+        'followup', 'previousfilter', 'previousoperation', 'show', 'explain'
+    }
+    if intent in context_dependent_intents:
+        return False
+    
+    # Reset if there's no current filtering (nothing to lose)
+    if not hasattr(conversation, 'temp_dataset') or conversation.temp_dataset is None:
+        return False
+    
+    current_size = len(conversation.temp_dataset.contents['X'])
+    full_size = len(conversation.get_var('dataset').contents['X'])
+    
+    # No filter applied, nothing to reset
+    if current_size == full_size:
+        return False
+    
+    # Check for explicit patient ID references that should maintain context
+    patient_id = entities.get('patient_id')
+    if patient_id is not None:
+        return False  # Keep context when explicitly referencing specific patient
+    
+    # Check for context-preserving keywords in the query
+    context_keywords = ['same', 'this', 'that', 'here', 'current', 'filtered', 'than', 'compared', 'versus', 'vs', 'better', 'worse', 'less', 'more']
+    query_lower = user_query.lower()
+    if any(keyword in query_lower for keyword in context_keywords):
+        return False
+    
+    # Reset for new analysis intents when we have existing filters
+    new_analysis_intents = {
+        'performance', 'data', 'statistics', 'count', 'important', 'mistakes', 
+        'confidence', 'interactions', 'predict', 'whatif'
+    }
+    
+    # Reset if it's a new analysis intent with new filtering criteria
+    if intent in new_analysis_intents:
+        # Check if this query introduces its own filtering
+        has_new_filters = (
+            entities.get('features') or 
+            entities.get('filter_type') or 
+            entities.get('operators') or
+            entities.get('prediction_values') or
+            entities.get('label_values')
+        )
+        
+        # Reset if we have new filtering criteria or if it's a general question
+        return has_new_filters or intent in {'performance', 'data', 'count'}
+    
+    return False
+
 def process_user_query(user_query):
     """Shared processing logic for both query routes"""
-    # Reset dataset state to prevent persistent filtering between queries
-    conversation.reset_temp_dataset()
+    # NO MORE AUTO-RESET - Let conversational context persist!
+    # Users can explicitly say "reset" or "start fresh" if they want to clear context
     
     # Simple 3-Component Pipeline
     
@@ -267,16 +608,47 @@ def process_user_query(user_query):
     
     # Extract action from AutoGen response and map intent to proper action
     intent = autogen_response.get('intent', 'data')
+    entities = autogen_response.get('entities', {})
+    
+    # SMART FILTER RESET: Reset filters when starting a new analysis that doesn't reference previous context
+    should_reset_filter = _should_reset_filter_context(intent, entities, user_query, conversation)
+    if should_reset_filter:
+        conversation.reset_temp_dataset()
+        logger.info(f"Auto-reset filter context for new analysis: {intent}")
     
     # Map intents to proper action names (based on action_functions.py mapping)
     intent_to_action = {
+        # Core analysis intents
         'data': 'data',
         'performance': 'score', 
         'predict': 'predict',
         'explain': 'explain',
         'important': 'important',
         'filter': 'filter',
-        'casual': 'function'
+        
+        # Advanced analysis intents
+        'whatif': 'change',                    # what_if_operation
+        'mistakes': 'mistake',                 # show_mistakes_operation  
+        'confidence': 'likelihood',            # predict_likelihood
+        'interactions': 'interact',            # measure_interaction_effects
+        'show': 'show',                        # show_operation
+        'statistics': 'statistic',             # feature_stats
+        'labels': 'label',                     # show_labels_operation
+        'count': 'countdata',                  # count_data_points
+        'define': 'define',                    # define_operation
+        'about': 'self',                       # self_operation
+        
+        # Conversational context intents (NEW!)
+        'followup': 'followup',                # followup_operation
+        'previousfilter': 'previousfilter',    # last_turn_filter  
+        'previousoperation': 'previousoperation', # last_turn_operation
+        'model': 'model',                      # model_operation
+        'predictionfilter': 'predictionfilter', # prediction-based filtering
+        'labelfilter': 'labelfilter',          # label-based filtering
+        'reset': 'reset',                      # explicit context reset
+        
+        # Conversational intents  
+        'casual': 'function'                   # function_operation
     }
     
     # NO FALLBACKS - Fail fast if intent is not recognized
@@ -285,8 +657,18 @@ def process_user_query(user_query):
     
     action_name = intent_to_action[intent]
     
-    # Extract entities and pass them as action arguments
-    entities = autogen_response.get('entities', {})
+    # Handle special reset action
+    if action_name == 'reset':
+        conversation.reset_temp_dataset()
+        conversation.last_action = None
+        conversation.last_action_args = None
+        conversation.last_filter_applied = None
+        conversation.last_result = None
+        conversation.parse_operation = []
+        logger.info("Context reset requested by user")
+        return 'reset', 'Context cleared', "I've cleared the conversation context. You can start fresh with new queries!"
+    
+    # Extract entities and pass them as action arguments (already extracted above)
     user_tokens = user_query.lower().split()
     action_args = {
         'features': entities.get('features', []),
@@ -313,11 +695,11 @@ def process_user_query(user_query):
     # Component 2: Execute explainability action
     action_result = action_dispatcher.execute_action(action_name, action_args, conversation)
     
-    # Component 3: Format with LLM
-    formatted_response = formatter.format_response(user_query, action_name, action_result)
+    # Component 3: Format with LLM (pass conversation for context)
+    formatted_response = formatter.format_response(user_query, action_name, action_result, conversation)
     
-    # Add to conversation history
-    conversation.add_turn(user_query, formatted_response)
+    # Add to conversation history with full context
+    conversation.add_turn(user_query, formatted_response, action_name, action_args, action_result)
     
     return action_name, action_result, formatted_response
 
@@ -389,6 +771,41 @@ def sample_prompt():
                 "What's the prediction probability?",
                 "Show me the likelihood scores"
             ],
+            'whatif': [
+                "What if the patient's BMI was 25 instead?",
+                "Change glucose to 90 and show the prediction",
+                "What would happen if age was 30?"
+            ],
+            'mistakes': [
+                "What are the model's biggest mistakes?",
+                "Show me cases where the model was wrong",
+                "Which predictions were incorrect?"
+            ],
+            'interactions': [
+                "How do age and BMI interact with each other?",
+                "What are the feature interaction effects?",
+                "Which features work together?"
+            ],
+            'statistics': [
+                "What are the glucose statistics?",
+                "Show me BMI distribution",
+                "Give me detailed stats for age"
+            ],
+            'count': [
+                "How many patients are in this dataset?",
+                "Count the number of diabetes cases",
+                "How many instances are there?"
+            ],
+            'define': [
+                "What does BMI mean?",
+                "Define glucose levels",
+                "Explain what DiabetesPedigreeFunction is"
+            ],
+            'about': [
+                "Tell me about yourself",
+                "What can you help me with?",
+                "Describe your capabilities"
+            ],
             'show': [
                 "Show me patient 10",
                 "Display the first 5 patients",
@@ -433,6 +850,41 @@ def sample_prompt():
                 "Tell me about this dataset",
                 "What data do we have?",
                 "Describe the features"
+            ],
+            'followup': [
+                "Tell me more about that",
+                "Explain that better",
+                "What else can you tell me?"
+            ],
+            'previousoperation': [
+                "Do the same thing for age",
+                "Repeat that for BMI",
+                "Same analysis for glucose"
+            ],
+            'previousfilter': [
+                "Keep that filter",
+                "Use the same filter",
+                "With those same patients"
+            ],
+            'model': [
+                "Tell me about the model",
+                "What model are we using?",
+                "Model information"
+            ],
+            'predictionfilter': [
+                "Show cases where model predicted diabetes",
+                "Filter to model predictions = 1",
+                "Where did the model predict positive?"
+            ],
+            'labelfilter': [
+                "Show actual diabetic patients",
+                "Filter to ground truth = 1",
+                "Actual positive cases only"
+            ],
+            'reset': [
+                "Reset everything",
+                "Start over",
+                "Clear all filters"
             ]
         }
         

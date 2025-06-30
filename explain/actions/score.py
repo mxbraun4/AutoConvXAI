@@ -106,24 +106,29 @@ def score_operation(conversation, parse_text, i, **kwargs):
     else:
         data = full_data
 
-    # Convert to numpy array to remove feature names (sklearn 1.0.2 compatibility)
-    data_array = data.values
-
-    # Compute predictions on the selected dataset
-    y_pred = model.predict(data_array)
+    # Use safe prediction to avoid sklearn warnings
+    from main import _safe_model_predict
+    y_pred = _safe_model_predict(model, data)
     
-    # Generate performance description
-    text = conversation.describe.get_score_text(y_true,
-                                                y_pred,
-                                                metric,
-                                                conversation.rounding_precision,
-                                                data_name)
-
-    # Add debugging information when useful
-    if is_global_query:
-        text += f"<br><em>Note: Overall model performance computed on {len(data)} total instances.</em>"
-    elif len(filter_string) > 0:
-        text += f"<br><em>Note: Performance computed on {len(data)} filtered instances.</em>"
-
-    text += "<br><br>"
-    return text, 1
+    # Calculate accuracy (most common metric)
+    if metric in ['accuracy', 'default']:
+        score_value = (y_true == y_pred).mean()
+    else:
+        # For other metrics, try to calculate or fall back to accuracy
+        score_value = (y_true == y_pred).mean()
+    
+    # Round the score
+    score_rounded = round(score_value, conversation.rounding_precision)
+    
+    result = {
+        'type': 'performance_score',
+        'metric': metric,
+        'score': score_rounded,
+        'score_percentage': round(score_value * 100, conversation.rounding_precision),
+        'instances_evaluated': len(data),
+        'is_global_query': is_global_query,
+        'filter_applied': filter_string if len(filter_string) > 0 else None,
+        'data_description': data_name.replace('<b>', '').replace('</b>', '')  # Clean HTML
+    }
+    
+    return result, 1

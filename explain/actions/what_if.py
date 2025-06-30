@@ -58,44 +58,78 @@ def update_numeric_feature(temp_data, feature_name, update_term, update_value):
 
 
 def what_if_operation(conversation, parse_text, i, **kwargs):
-    """The what if operation."""
+    """The what if operation - now uses entity-based approach."""
 
-    # The temporary dataset to approximate
-    temp_dataset = conversation.temp_dataset.contents
-
-    # The feature name to adjust
-    if i+1 >= len(parse_text):
-        return "No feature specified for what-if analysis!", 0
+    # Extract entities from kwargs (passed from AutoGen)
+    features = kwargs.get('features', [])
+    operators = kwargs.get('operators', [])
+    values = kwargs.get('values', [])
     
-    feature_name = parse_text[i+1]
+    if not features:
+        return {'type': 'error', 'message': 'No feature specified for what-if analysis!'}, 0
+    
+    if not values:
+        return {'type': 'error', 'message': 'No value specified for what-if analysis!'}, 0
+    
+    # Get the feature name (handle case insensitive matching)
+    feature_name = features[0]
+    temp_dataset = conversation.temp_dataset.contents
+    
+    # Find actual feature name (case insensitive)
+    actual_feature = None
+    for col in temp_dataset['X'].columns:
+        if col.lower() == feature_name.lower():
+            actual_feature = col
+            break
+    
+    if actual_feature is None:
+        return {'type': 'error', 'message': f'Unknown feature: {feature_name}'}, 0
+    
+    feature_name = actual_feature
+    update_value = values[0]
+    
+    # Determine the operation type from operators or infer from context
+    if operators and operators[0] == '+':
+        update_term = "increase"
+    elif operators and operators[0] == '-':
+        update_term = "decrease"
+    else:
+        # Default to "set" if no specific operator
+        update_term = "set"
 
-    # Numerical feature case. Also putting id in here because the operations
-    # are the same
+    # Apply the what-if change
     if is_numeric(feature_name, temp_dataset):
-        update_term, update_value = get_numeric_updates(parse_text, i)
-        temp_dataset['X'], parse_op = update_numeric_feature(temp_dataset,
-                                                             feature_name,
-                                                             update_term,
-                                                             update_value)
+        try:
+            temp_dataset['X'], parse_op = update_numeric_feature(temp_dataset,
+                                                                 feature_name,
+                                                                 update_term,
+                                                                 update_value)
+        except Exception as e:
+            return {'type': 'error', 'message': f'Error updating {feature_name}: {str(e)}'}, 0
+            
     elif is_categorical(feature_name, temp_dataset):
-        # handles conversion between true/false and 1/0 for categorical features
-        if i+2 >= len(parse_text):
-            return f"No value specified for categorical feature {feature_name}!", 0
-        
-        categorical_val = convert_categorical_bools(parse_text[i+2])
+        categorical_val = convert_categorical_bools(update_value)
         temp_dataset['X'][feature_name] = categorical_val
         parse_op = f"{feature_name} is set to {str(categorical_val)}"
+        
     elif feature_name == "id":
-        # Setting what if updates on ids to no effect. I don't think there's any
-        # reason to support this.
-        return "What if updates have no effect on id's!", 0
+        return {'type': 'error', 'message': 'What-if updates have no effect on IDs!'}, 0
     else:
-        raise NameError(f"Parsed unknown feature name {feature_name}")
+        return {'type': 'error', 'message': f'Cannot modify feature {feature_name}'}, 0
 
+    # Track regeneration and parse operations
     processed_ids = list(conversation.temp_dataset.contents['X'].index)
     conversation.temp_dataset.contents['ids_to_regenerate'].extend(processed_ids)
 
     conversation.add_interpretable_parse_op("and")
     conversation.add_interpretable_parse_op(parse_op)
 
-    return '', 1
+    # Return structured result
+    return {
+        'type': 'what_if_change',
+        'feature_name': feature_name,
+        'operation': update_term,
+        'value': update_value,
+        'description': parse_op,
+        'instances_affected': len(processed_ids)
+    }, 1

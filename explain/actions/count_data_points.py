@@ -12,12 +12,14 @@ def count_data_points(conversation, parse_text, i, **kwargs):
     """
     data = conversation.temp_dataset.contents['X']
     num_elements = len(data)
-
-    message = f"There are <b>{num_elements} items</b> in the data."
-
-    message += "<br><br>"
-    message += "Let me know if you want to see their ids."
     ids = list(data.index)
-    rest_of_text = str(ids)
-    conversation.store_followup_desc(rest_of_text)
-    return message, 1
+    
+    # Store followup for potential follow-up questions
+    conversation.store_followup_desc(str(ids))
+    
+    return {
+        'type': 'count',
+        'count': num_elements,
+        'ids': ids,
+        'data_type': 'instances'
+    }, 1

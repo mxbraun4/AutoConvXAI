@@ -6,6 +6,10 @@ def model_operation(conversation, parse_text, i, **kwargs):
 
     objective = conversation.describe.get_dataset_objective()
     model = conversation.describe.get_model_description()
-    text = f"I use a <em>{model}</em> model to {objective}.<br><br>"
-
-    return text, 1
+    
+    return {
+        'type': 'model_info',
+        'model_type': model,
+        'objective': objective,
+        'task': 'classification'
+    }, 1
