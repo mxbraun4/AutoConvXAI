@@ -272,13 +272,18 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
         label_value = ent_label_vals[0]
         updated_dset, interp_parse_text = label_filter(temp_dataset, conversation, str(label_value))
     
+    # Handle ID-based filtering directly
+    elif kwargs.get('filter_type') == 'id' and kwargs.get('patient_id') is not None:
+        patient_id = kwargs.get('patient_id')
+        updated_dset, interp_parse_text = _handle_id_filtering(temp_dataset, conversation, patient_id)
+    
     else:
         # NO FALLBACK - AutoGen must provide proper entities
         raise ValueError(
             "Clean Architecture Violation: AutoGen must provide structured entities for filtering. "
             f"Received: features={ent_features}, operators={ent_ops}, values={ent_vals}, "
             f"prediction_values={ent_prediction_vals}, label_values={ent_label_vals}, "
-            f"filter_type={kwargs.get('filter_type')}, kwargs={kwargs}. "
+            f"filter_type={kwargs.get('filter_type')}, patient_id={kwargs.get('patient_id')}, kwargs={kwargs}. "
             "The AutoGen decoder needs to be improved to handle this query type."
         )
 
@@ -305,8 +310,8 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
             result_text = f"Found {num_instances} instances where {interp_parse_text}: {instance_ids}"
         else:
             # Show count and sample for large results
-            sample_ids = list(updated_dset['X'].index[:5])
-            result_text = f"Found {num_instances} instances where {interp_parse_text}. Sample IDs: {sample_ids}..."
+            sample_ids = list(updated_dset['X'].index[:10])
+            result_text = f"Found {num_instances} instances where {interp_parse_text}. Sample IDs include: {sample_ids}..."
         
         return result_text, 1
 

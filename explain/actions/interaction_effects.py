@@ -1,4 +1,4 @@
-"""Measure interaction effects."""""
+"""Measure interaction effects between features."""
 import numpy as np
 
 from explain.feature_interaction import FeatureInteraction
@@ -8,29 +8,11 @@ NUM_FEATURES_TO_COMPUTE_INTERACTIONS = 4
 NUM_TO_SAMPLE = 40
 
 
-def get_text(interactions: list[tuple], feature_names: list, parse_op: str):
-    """Gets the interaction text."""
-
-    if len(parse_op) > 0:
-        filtering_text = f"For the model's predictions on instances instances where <b>{parse_op}</b>,"
-    else:
-        filtering_text = "For the model's predictions on the data,"
-
-    output = (f"{filtering_text} most significant feature interaction effects are as follows, "
-              "where <em>higher</em> values correspond to <em>greater</em> interactions.<br><br>")
-
-    for interaction in interactions:
-        i, j, effect = interaction
-        f1, f2 = feature_names[i], feature_names[j]
-        effect = round(effect, 3)
-        this_interaction = f"<b>{f1}</b>+<b>{f2}</b>: {effect}<br>"
-        output += this_interaction
-
-    return output
-
-
 def measure_interaction_effects(conversation, parse_text, i, **kwargs):
-    """Gets the interaction scores
+    """Analyze feature interaction effects.
+
+    This function identifies which features work together and how they influence
+    model predictions synergistically. Returns structured data about feature interactions.
 
     Arguments:
         conversation: The conversation object
@@ -38,14 +20,21 @@ def measure_interaction_effects(conversation, parse_text, i, **kwargs):
         i: Index in the parse
         **kwargs: additional kwargs
     """
-
+    
     # Filtering text
     parse_op = gen_parse_op_text(conversation)
 
     # The filtered dataset
     data = conversation.temp_dataset.contents['X']
 
-    # Probability predicting func
+    if len(data) == 0:
+        return {
+            'type': 'interaction_effects',
+            'error': 'No instances meet this description',
+            'filter_applied': parse_op
+        }, 0
+
+    # Probability predicting function
     predict_proba = conversation.get_var('model_prob_predict').contents
 
     # Categorical features
@@ -67,29 +56,61 @@ def measure_interaction_effects(conversation, parse_text, i, **kwargs):
 
     # Store the feature importance arrays
     feature_importances = []
-    for i, current_id in enumerate(ids):
+    for current_id in ids:
         list_exp = explanations[current_id].list_exp
         list_imps = [coef[1] for coef in list_exp]
         feature_importances.append(list_imps)
+    
     feature_importances = np.array(feature_importances)
     mean_feature_importances = np.mean(np.abs(feature_importances), axis=0)
 
-    # Get the names of the features
+    # Get the names of the top features
     topk_features = np.argsort(mean_feature_importances)[-NUM_FEATURES_TO_COMPUTE_INTERACTIONS:]
-    topk_names = [data.columns[i] for i in topk_features]
+    topk_names = [data.columns[j] for j in topk_features]
 
     interactions = []
-    for i, f1 in enumerate(topk_names):
-        for j in range(i, len(topk_names)):
-            if i == j:
-                continue
-            f2 = topk_names[j]
+    feature_pairs = []
+    
+    for idx1, f1 in enumerate(topk_names):
+        for idx2 in range(idx1 + 1, len(topk_names)):
+            f2 = topk_names[idx2]
             i_score = interaction_explainer.feature_interaction(f1,
                                                                 f2,
                                                                 number_sub_samples=NUM_TO_SAMPLE)
-            interactions.append((i, j, i_score))
+            interactions.append(i_score)
+            feature_pairs.append((f1, f2))
 
-    # Sort to the highest scoring first
-    interactions = sorted(interactions, key=lambda x: x[2], reverse=True)
-
-    return get_text(interactions, topk_names, parse_op), 1
+    # Sort interactions by strength
+    sorted_indices = np.argsort(interactions)[::-1]  # Descending order
+    
+    # Create structured response
+    result = {
+        'type': 'interaction_effects',
+        'filter_applied': len(parse_op) > 0,
+        'filter_description': parse_op,
+        'total_instances': len(ids),
+        'analyzed_features': topk_names,
+        'interactions': []
+    }
+    
+    # Add top interactions
+    for idx in sorted_indices:
+        f1, f2 = feature_pairs[idx]
+        strength = interactions[idx]
+        
+        result['interactions'].append({
+            'feature1': f1,
+            'feature2': f2,
+            'interaction_strength': round(strength, conversation.rounding_precision),
+            'description': f"{f1} and {f2} interaction"
+        })
+    
+    # Add summary statistics
+    if interactions:
+        result['summary'] = {
+            'strongest_interaction': round(max(interactions), conversation.rounding_precision),
+            'average_interaction': round(np.mean(interactions), conversation.rounding_precision),
+            'total_pairs_analyzed': len(interactions)
+        }
+    
+    return result, 1

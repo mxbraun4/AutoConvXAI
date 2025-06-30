@@ -1,14 +1,13 @@
-"""Feature interaction index."""
+"""Feature interaction analysis for understanding how features work together."""
 import copy
 from typing import Any
 
 import numpy as np
 import pandas as pd
-import tqdm
 
 
 class FeatureInteraction:
-    """Feature interaction explainer."""
+    """Feature interaction explainer for measuring how features interact with each other."""
 
     def __init__(self,
                  data: pd.DataFrame,
@@ -16,7 +15,7 @@ class FeatureInteraction:
                  cat_features: list[str],
                  class_ind: int = None,
                  verbose: bool = False):
-        """Init.
+        """Initialize the feature interaction analyzer.
 
         Args:
             data: data to compute feature interactions
@@ -26,7 +25,6 @@ class FeatureInteraction:
             verbose: whether to enable verbosity
         """
         self.data = data
-
         self.class_ind = class_ind
         self.prediction_fn = prediction_fn
         self.cat_features = cat_features
@@ -37,17 +35,14 @@ class FeatureInteraction:
                             j: str,
                             sub_sample_pct: float = None,
                             number_sub_samples: int = None):
-        """Computes the feature interaction between i and j
+        """Compute the feature interaction between features i and j.
 
         Args:
             i: feature name one
             j: feature name two
-            sub_sample_pct: pct to sample down feature's values to make it
-                            run quicker. If number_sub_samples is not None, this
-                            will be ignored
+            sub_sample_pct: percent to sample down feature's values to make it run quicker
             number_sub_samples: the number of subsamples to use
         """
-
         # If number sub_samples is set, use this value
         if number_sub_samples is not None:
             num_sub_samples = number_sub_samples
@@ -67,11 +62,7 @@ class FeatureInteraction:
         return mean_interaction
 
     def choose_values_to_sample(self, i: str, data: pd.DataFrame, num_sub_samples: int):
-        """Samples down a feature, making marginalization easier
-
-        Returns the sampled down feature vector.
-        """
-
+        """Sample down a feature for easier marginalization."""
         unique_values = np.sort(data[i].unique())
 
         if len(unique_values) < num_sub_samples:
@@ -82,25 +73,19 @@ class FeatureInteraction:
             indices = np.random.choice(len(unique_values), size=num_sub_samples)
             samples = unique_values[indices]
         else:
-            # For sampling numeric features, take sorted feature and space out indices
-            # so sample is more representative
+            # For numeric features, space out indices evenly
             indices = list(range(0, len(unique_values), len(unique_values) // num_sub_samples))
             samples = unique_values[indices]
 
         return samples
 
     def conditional_interaction(self, i: str, j: str, data: pd.DataFrame, num_sub_samples: int):
-        """Computes the feature interaction of i conditioned on j"""
-
+        """Compute the feature interaction of i conditioned on j."""
         # Choose sub sample of feature
         unique_values_of_j = self.choose_values_to_sample(j, data, num_sub_samples)
 
         results = []
-        if self.verbose:
-            progress_bar = tqdm.tqdm(unique_values_of_j)
-        else:
-            progress_bar = unique_values_of_j
-        for unique_val in progress_bar:
+        for unique_val in unique_values_of_j:
             fixed_j_dataset = copy.deepcopy(data)
             fixed_j_dataset[j] = unique_val
             flatness_at_j = self.partial_dependence_flatness(i, fixed_j_dataset, num_sub_samples)
@@ -108,11 +93,7 @@ class FeatureInteraction:
         return np.std(results)
 
     def partial_dependence_flatness(self, i: str, data: pd.DataFrame, num_sub_samples: int) -> float:
-        """Computes a notion of flatness of the partial dependence
-
-        This metric is from: https://arxiv.org/pdf/1805.04755.pdf
-        """
-
+        """Compute a notion of flatness of the partial dependence."""
         if i in self.cat_features:
             _, dependence = self.partial_dependence(i, data, num_sub_samples)
             max_dep, min_dep = np.max(dependence, axis=0), np.min(dependence, axis=0)
@@ -125,25 +106,13 @@ class FeatureInteraction:
             flatness = np.sum((dependence - mean_dependence) ** 2) / (len(dependence) - 1)
 
         # If there are many classes and no label, return the max
-        # this could be desirable because it's important to say if
-        # interactions exist even if only for one class
-        if self.class_ind is not None:
+        if self.class_ind is None:
             return np.max(flatness)
 
-        return flatness[self.class_ind]
+        return flatness[self.class_ind] if hasattr(flatness, '__getitem__') else flatness
 
     def partial_dependence(self, i: str, data: pd.DataFrame, num_sub_samples: int) -> Any:
-        """Computes all the partial dependence values for feature i
-
-        Args:
-            num_sub_samples:
-            i: The feature names to compute partial dependence for
-            data:
-        Returns:
-            pdp: A mapping from a unique value in the column to the average prediction with that value
-                 substituted in. Plot these to get the partial dependence.
-        """
-
+        """Compute partial dependence values for feature i."""
         unique_column_values = self.choose_values_to_sample(i, data, num_sub_samples)
 
         pdp = {}

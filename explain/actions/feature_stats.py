@@ -33,11 +33,23 @@ def feature_stats(conversation, parse_text, i, n_features_to_show=float("+inf"),
     data = conversation.temp_dataset.contents['X']
     label = conversation.temp_dataset.contents['y']
     
-    if i+1 >= len(parse_text):
-        return {'type': 'error', 'message': 'No feature name specified for statistics.'}, 0
+    # Use entity-based approach from AutoGen
+    features = kwargs.get('features', [])
     
-    feature_name = parse_text[i+1]
+    if features:
+        # Use the first feature from entities
+        feature_name = features[0]
+    else:
+        # Fallback to old parsing method if no entities provided
+        if i+1 >= len(parse_text):
+            return {'type': 'error', 'message': 'No feature name specified for statistics.'}, 0
+        feature_name = parse_text[i+1]
 
+    # Validate feature exists in dataset
+    if feature_name not in data.columns:
+        available_features = ', '.join(data.columns.tolist())
+        return {'type': 'error', 'message': f'Feature "{feature_name}" not found. Available features: {available_features}'}, 0
+    
     if len(data) == 1:
         value = data[feature_name].item()
         return {

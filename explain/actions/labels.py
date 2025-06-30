@@ -13,11 +13,11 @@ def show_labels_operation(conversation, parse_text, i, n_features_to_show=float(
     if len(y_values) == 1:
         label = y_values.item()
         label_text = conversation.get_class_name_from_label(label)
-        return_string = f"{intro_text} the label is <b>{label_text}</b>."
+        return_string = f"{intro_text} the label is {label_text}."
     else:
-        return_string = f"{intro_text} the labels are:<br><br>"
+        return_string = f"{intro_text} the labels are:\n"
         for index, label in zip(list(y_values.index), y_values):
             label_text = conversation.get_class_name_from_label(label)
-            return_string += f"id {index} is labeled {label_text}<br>"
+            return_string += f"id {index} is labeled {label_text}\n"
 
     return return_string, 1

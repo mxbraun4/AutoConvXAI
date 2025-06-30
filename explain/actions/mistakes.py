@@ -22,8 +22,8 @@ def one_mistake(y_true, y_pred, conversation, intro_text):
     else:
         correct_text = "incorrect"
 
-    return_string = (f"{intro_text} the model predicts <em>{predict_text}</em> and the ground"
-                     f" label is <em>{label_text}</em>, so the model is <b>{correct_text}</b>!")
+    return_string = (f"{intro_text} the model predicts {predict_text} and the ground"
+                     f" label is {label_text}, so the model is {correct_text}!")
     return return_string
 
 
@@ -39,7 +39,7 @@ def sample_mistakes(y_true, y_pred, conversation, intro_text, ids):
         error_rate = round(incorrect_num / total_num, conversation.rounding_precision)
         return_string = (f"{intro_text} the model is incorrect {incorrect_num} out of {total_num} "
                          f"times (error rate {error_rate}). Here are the ids of instances the model"
-                         f" predicts incorrectly:<br><br>{incorrect_data}")
+                         f" predicts incorrectly:\n{incorrect_data}")
 
     return return_string
 
@@ -85,7 +85,7 @@ def get_rules(tree, feature_names, class_names):
         for p in path[:-1]:
             if rule != "if ":
                 rule += " and "
-            rule += "<b>" + str(p) + "</b>"
+            rule += str(p)
         rule += " then "
         if class_names is None:
             rule += "response: " + str(np.round(path[-1][0][0][0], 3))
@@ -94,8 +94,8 @@ def get_rules(tree, feature_names, class_names):
             largest = np.argmax(classes)
             if class_names[largest] == "incorrect":
                 incorrect_class = True
-            rule += f"then the model is incorrect <em>{np.round(100.0 * classes[largest] / np.sum(classes), 2)}%</em>"
-        rule += f" over <em>{path[-1][1]:,}</em> samples"
+            rule += f"then the model is incorrect {np.round(100.0 * classes[largest] / np.sum(classes), 2)}%"
+        rule += f" over {path[-1][1]:,} samples"
 
         if incorrect_class:
             rules += [rule]
@@ -128,9 +128,9 @@ def typical_mistakes(data, y_true, y_pred, conversation, intro_text, ids):
         if len(return_options) == 0:
             return "I couldn't find any patterns for mistakes the model typically makes."
 
-        return_string = f"{intro_text} the model typically predicts incorrect:<br><br>"
+        return_string = f"{intro_text} the model typically predicts incorrect:\n\n"
         for rule in return_options:
-            return_string += rule + "<br><br>"
+            return_string += rule + "\n\n"
 
     return return_string
 
@@ -154,14 +154,14 @@ def show_mistakes_operation(conversation, parse_text, i, n_features_to_show=floa
     intro_text = "For the data,"
 
     if len(y_true) == 0:
-        return "There are no instances in the data that meet this description.<br><br>", 0
+        return "There are no instances in the data that meet this description.", 0
 
     y_pred = model.predict(data)
     if np.sum(y_true == y_pred) == len(y_true):
         if len(y_true) == 1:
-            return f"{intro_text} the model predicts correctly!<br><br>", 1
+            return f"{intro_text} the model predicts correctly!", 1
         else:
-            return f"{intro_text} the model predicts correctly on all the instances in the data!<br><br>", 1
+            return f"{intro_text} the model predicts correctly on all the instances in the data!", 1
 
     # Check if mistake type is specified and within bounds
     mistake_type = None
@@ -177,7 +177,7 @@ def show_mistakes_operation(conversation, parse_text, i, n_features_to_show=floa
         elif "sample" in full_text:
             mistake_type = "sample"
         else:
-            # Default to typical mistakes as it's more informative
+            # Default to typical mistakes to show patterns where model fails
             mistake_type = "typical"
     
     if mistake_type == "sample":
@@ -202,5 +202,4 @@ def show_mistakes_operation(conversation, parse_text, i, n_features_to_show=floa
                                          intro_text,
                                          ids)
 
-    return_string += "<br><br>"
     return return_string, 1

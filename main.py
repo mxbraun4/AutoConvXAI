@@ -77,15 +77,15 @@ class LLMFormatter:
         self.client = openai.OpenAI(api_key=api_key)
         self.model = model
     
-    def format_response(self, user_query, action_name, action_result, conversation=None):
-        """Format action result into natural, question-tailored language"""
+    def format_response(self, user_query, action_name, action_result, autogen_intent, conversation=None):
+        """Format action result into natural, question-tailored language using AutoGen-detected intent"""
         
         # Extract context about the conversation
         context_info = self._build_context(conversation)
         
-        # Create intelligent formatting prompt based on action type and user intent
+        # Create intelligent formatting prompt based on action type and AutoGen intent
         format_prompt = self._create_intelligent_prompt(
-            user_query, action_name, action_result, context_info, conversation
+            user_query, action_name, action_result, autogen_intent, context_info, conversation
         )
         
         try:
@@ -150,33 +150,8 @@ class LLMFormatter:
             
         return context
     
-    def _create_intelligent_prompt(self, user_query, action_name, action_result, context_info, conversation=None):
-        """Create an intelligent prompt tailored to the specific action and user intent"""
-        
-        # Detect user intent patterns
-        query_lower = user_query.lower()
-        intent_cues = {
-            'explain': ['why', 'how', 'explain', 'reason', 'because'],
-            'predict': ['predict', 'what if', 'would happen', 'forecast'],
-            'important': ['important', 'matter', 'significant', 'key', 'main'],
-            'performance': ['accurate', 'performance', 'good', 'well'],
-            'whatif': ['what if', 'change', 'instead', 'modify'],
-            'mistakes': ['mistake', 'wrong', 'error', 'incorrect'],
-            'confidence': ['confident', 'probability', 'likelihood', 'certain'],
-            'interactions': ['interact', 'together', 'combine', 'relationship'],
-            'statistics': ['statistics', 'stats', 'distribution', 'summary'],
-            'count': ['how many', 'count', 'number of', 'total'],
-            'define': ['define', 'what does', 'what is', 'meaning'],
-            'about': ['about yourself', 'capabilities', 'what can you'],
-            'show': ['show', 'display', 'patient'],
-            'explore': ['tell me', 'what', 'describe', 'overview']
-        }
-        
-        detected_intent = 'explore'  # default
-        for intent, cues in intent_cues.items():
-            if any(cue in query_lower for cue in cues):
-                detected_intent = intent
-                break
+    def _create_intelligent_prompt(self, user_query, action_name, action_result, autogen_intent, context_info, conversation=None):
+        """Create an intelligent prompt tailored to the specific action and AutoGen-detected intent"""
         
         # Build context string
         context_str = ""
@@ -198,7 +173,7 @@ You are an expert data scientist explaining machine learning results to users.
 
 USER QUESTION: "{user_query}"
 ACTION PERFORMED: {action_name}
-DETECTED INTENT: {detected_intent}
+AUTOGEN INTENT: {autogen_intent}
 CONTEXT: {context_str}
 
 RAW RESULTS:
@@ -214,8 +189,8 @@ TASK: Transform these raw results into a brief, natural response (2-3 sentences 
 
 """
         
-        # Add intent-specific instructions
-        if detected_intent == 'explain':
+        # Add intent-specific instructions based on AutoGen intent
+        if autogen_intent == 'explain':
             base_prompt += """
 EXPLAIN INTENT: The user wants to understand WHY something happened. Focus on:
 - Clear causal explanations
@@ -223,7 +198,7 @@ EXPLAIN INTENT: The user wants to understand WHY something happened. Focus on:
 - Use phrases like "because", "due to", "the main reason"
 - Make it feel like you're walking them through the reasoning
 """
-        elif detected_intent == 'predict':
+        elif autogen_intent == 'predict':
             base_prompt += """
 PREDICT INTENT: The user wants to know WHAT WOULD HAPPEN. Focus on:
 - Clear prediction outcomes
@@ -231,7 +206,7 @@ PREDICT INTENT: The user wants to know WHAT WOULD HAPPEN. Focus on:
 - What factors drive the prediction
 - Use phrases like "would result in", "likely to", "expected outcome"
 """
-        elif detected_intent == 'important':
+        elif autogen_intent == 'important':
             base_prompt += """
 IMPORTANCE INTENT: The user wants to know WHAT MATTERS MOST. Focus on:
 - Ranking and prioritization
@@ -239,7 +214,7 @@ IMPORTANCE INTENT: The user wants to know WHAT MATTERS MOST. Focus on:
 - Impact on outcomes
 - Use phrases like "most critical", "key factors", "strongest influence"
 """
-        elif detected_intent == 'performance':
+        elif autogen_intent == 'performance':
             base_prompt += """
 PERFORMANCE INTENT: The user wants to know HOW WELL the model works. Focus on:
 - Accuracy and reliability
@@ -247,7 +222,7 @@ PERFORMANCE INTENT: The user wants to know HOW WELL the model works. Focus on:
 - Practical implications
 - Use phrases like "performs well", "accurate in", "reliable for"
 """
-        elif detected_intent == 'whatif':
+        elif autogen_intent == 'whatif':
             base_prompt += """
 WHAT-IF INTENT: The user wants to explore scenarios. Focus on:
 - Clear before/after comparisons
@@ -255,7 +230,7 @@ WHAT-IF INTENT: The user wants to explore scenarios. Focus on:
 - Practical implications of modifications
 - Use phrases like "if you changed", "would result in", "the impact would be"
 """
-        elif detected_intent == 'mistakes':
+        elif autogen_intent == 'mistakes':
             base_prompt += """
 MISTAKES INTENT: The user wants to understand model errors. Focus on:
 - Specific cases where model was wrong
@@ -263,7 +238,7 @@ MISTAKES INTENT: The user wants to understand model errors. Focus on:
 - Why errors occurred
 - Use phrases like "incorrectly predicted", "failed to recognize", "got wrong because"
 """
-        elif detected_intent == 'confidence':
+        elif autogen_intent == 'confidence':
             base_prompt += """
 CONFIDENCE INTENT: The user wants certainty information. Focus on:
 - Probability scores and what they mean
@@ -271,7 +246,7 @@ CONFIDENCE INTENT: The user wants certainty information. Focus on:
 - Reliability of predictions
 - Use phrases like "confident that", "probability of", "certain about"
 """
-        elif detected_intent == 'interactions':
+        elif autogen_intent == 'interactions':
             base_prompt += """
 INTERACTIONS INTENT: The user wants to understand feature relationships. Focus on:
 - How features work together
@@ -279,7 +254,7 @@ INTERACTIONS INTENT: The user wants to understand feature relationships. Focus o
 - Synergistic relationships
 - Use phrases like "work together", "combined effect", "interact to"
 """
-        elif detected_intent == 'statistics':
+        elif autogen_intent == 'statistics':
             base_prompt += """
 STATISTICS INTENT: The user wants numerical summaries. Focus on:
 - Clear statistical descriptions
@@ -287,7 +262,7 @@ STATISTICS INTENT: The user wants numerical summaries. Focus on:
 - Distribution characteristics
 - Use phrases like "on average", "typically", "ranges from"
 """
-        elif detected_intent == 'define':
+        elif autogen_intent == 'define':
             base_prompt += """
 DEFINE INTENT: The user wants explanations of terms. Focus on:
 - Clear, simple definitions
@@ -295,7 +270,7 @@ DEFINE INTENT: The user wants explanations of terms. Focus on:
 - Why it matters for health/diabetes
 - Use phrases like "refers to", "means", "is important because"
 """
-        elif detected_intent == 'about':
+        elif autogen_intent == 'about':
             base_prompt += """
 ABOUT INTENT: The user wants system information. Focus on:
 - Capabilities and features
@@ -355,7 +330,8 @@ RESPONSE (2-3 sentences max, factual only, no speculation):"""
 logger.info("🚀 Initializing simple 3-component architecture...")
 
 # Component 1: AutoGen decoder for intent parsing
-decoder = AutoGenDecoder(api_key=OPENAI_API_KEY, model=GPT_MODEL, max_rounds=2)
+# max_rounds=4 enables 3-agent collaboration without overthinking (Intent → Action → Validation → Intent)
+decoder = AutoGenDecoder(api_key=OPENAI_API_KEY, model=GPT_MODEL, max_rounds=4)
 
 # Load dataset and model
 logger.info("📊 Loading dataset and model...")
@@ -431,9 +407,14 @@ class Conversation:
             'ids_to_regenerate': []
         }
         
+        # Create prediction probability function for interaction analysis
+        def prediction_probability_function(x):
+            return model.predict_proba(x)
+        
         return {
             'dataset': type('Variable', (), {'contents': dataset_contents})(),
             'model': type('Variable', (), {'contents': model})(),
+            'model_prob_predict': type('Variable', (), {'contents': prediction_probability_function})(),
             'mega_explainer': None  # Will be set after explainer setup
         }
     
@@ -547,7 +528,7 @@ def _should_reset_filter_context(intent, entities, user_query, conversation):
     
     # Never reset for these intents that explicitly want to work with current context
     context_dependent_intents = {
-        'followup', 'previousfilter', 'previousoperation', 'show', 'explain'
+        'followup', 'previousfilter', 'previousoperation'
     }
     if intent in context_dependent_intents:
         return False
@@ -563,10 +544,26 @@ def _should_reset_filter_context(intent, entities, user_query, conversation):
     if current_size == full_size:
         return False
     
-    # Check for explicit patient ID references that should maintain context
+    # Check for explicit patient ID references - reset if it's a DIFFERENT patient
     patient_id = entities.get('patient_id')
     if patient_id is not None:
-        return False  # Keep context when explicitly referencing specific patient
+        # If we have a current filter and it's filtering by a different patient ID, reset
+        current_filter_ops = getattr(conversation, 'parse_operation', [])
+        current_patient_match = None
+        for op in current_filter_ops:
+            if 'id equal to' in str(op):
+                # Extract the current patient ID from the filter description
+                try:
+                    current_patient_match = int(str(op).split('id equal to ')[1])
+                    break
+                except:
+                    pass
+        
+        # Reset if asking about a different patient than currently filtered
+        if current_patient_match is not None and current_patient_match != patient_id:
+            return True
+        
+        return False  # Keep context when asking about the same patient
     
     # Check for context-preserving keywords in the query
     context_keywords = ['same', 'this', 'that', 'here', 'current', 'filtered', 'than', 'compared', 'versus', 'vs', 'better', 'worse', 'less', 'more']
@@ -592,7 +589,7 @@ def _should_reset_filter_context(intent, entities, user_query, conversation):
         )
         
         # Reset if we have new filtering criteria or if it's a general question
-        return has_new_filters or intent in {'performance', 'data', 'count'}
+        return has_new_filters or intent in {'performance', 'data', 'count', 'mistakes'}
     
     return False
 
@@ -606,56 +603,30 @@ def process_user_query(user_query):
     # Component 1: AutoGen parses intent
     autogen_response = decoder.complete_sync(user_query, conversation)
     
-    # Extract action from AutoGen response and map intent to proper action
-    intent = autogen_response.get('intent', 'data')
-    entities = autogen_response.get('entities', {})
+    # Extract action and entities from AutoGen response
+    final_action = autogen_response.get('final_action', 'data')
+    entities = autogen_response.get('command_structure', {})
     
-    # SMART FILTER RESET: Reset filters when starting a new analysis that doesn't reference previous context
-    should_reset_filter = _should_reset_filter_context(intent, entities, user_query, conversation)
-    if should_reset_filter:
+    # Extract intent from the nested intent_response for filter reset logic
+    intent_response = autogen_response.get('intent_response', {})
+    intent = intent_response.get('intent', 'data')
+    
+    # CRITICAL THINKING FILTER RESET: Check if validation agent determined this query needs full dataset
+    validation_response = autogen_response.get('validation_response', {})
+    requires_full_dataset = validation_response.get('requires_full_dataset', False)
+    
+    if requires_full_dataset:
         conversation.reset_temp_dataset()
-        logger.info(f"Auto-reset filter context for new analysis: {intent}")
+        logger.info(f"Critical thinking agent determined query requires full dataset - reset filter for: {intent}")
+    else:
+        # SMART FILTER RESET: Reset filters when starting a new analysis that doesn't reference previous context
+        should_reset_filter = _should_reset_filter_context(intent, entities, user_query, conversation)
+        if should_reset_filter:
+            conversation.reset_temp_dataset()
+            logger.info(f"Auto-reset filter context for new analysis: {intent}")
     
-    # Map intents to proper action names (based on action_functions.py mapping)
-    intent_to_action = {
-        # Core analysis intents
-        'data': 'data',
-        'performance': 'score', 
-        'predict': 'predict',
-        'explain': 'explain',
-        'important': 'important',
-        'filter': 'filter',
-        
-        # Advanced analysis intents
-        'whatif': 'change',                    # what_if_operation
-        'mistakes': 'mistake',                 # show_mistakes_operation  
-        'confidence': 'likelihood',            # predict_likelihood
-        'interactions': 'interact',            # measure_interaction_effects
-        'show': 'show',                        # show_operation
-        'statistics': 'statistic',             # feature_stats
-        'labels': 'label',                     # show_labels_operation
-        'count': 'countdata',                  # count_data_points
-        'define': 'define',                    # define_operation
-        'about': 'self',                       # self_operation
-        
-        # Conversational context intents (NEW!)
-        'followup': 'followup',                # followup_operation
-        'previousfilter': 'previousfilter',    # last_turn_filter  
-        'previousoperation': 'previousoperation', # last_turn_operation
-        'model': 'model',                      # model_operation
-        'predictionfilter': 'predictionfilter', # prediction-based filtering
-        'labelfilter': 'labelfilter',          # label-based filtering
-        'reset': 'reset',                      # explicit context reset
-        
-        # Conversational intents  
-        'casual': 'function'                   # function_operation
-    }
-    
-    # NO FALLBACKS - Fail fast if intent is not recognized
-    if intent not in intent_to_action:
-        raise ValueError(f"Unknown intent '{intent}' - AutoGen must produce valid intents only")
-    
-    action_name = intent_to_action[intent]
+    # Use the action directly from AutoGen (no more intent mapping needed!)
+    action_name = final_action
     
     # Handle special reset action
     if action_name == 'reset':
@@ -681,22 +652,52 @@ def process_user_query(user_query):
         'parse_text': user_tokens
     }
     
-    # Auto-apply ID filtering when patient_id is present
+    # Auto-apply filtering when entities contain filtering criteria
     if entities.get('patient_id') is not None:
         patient_id = entities.get('patient_id')
         filter_args = {
-            'features': ['id'], 'operators': ['='], 'values': [patient_id], 'filter_type': 'feature'
+            'patient_id': patient_id, 'filter_type': 'id'
         }
         filter_result = action_dispatcher.execute_action('filter', filter_args, conversation)
         logger.info(f"Auto-applied ID filter for patient {patient_id}: {filter_result}")
+    
+    # Auto-apply feature filtering when entities contain feature filtering criteria
+    elif entities.get('features') and entities.get('operators') and entities.get('values') and action_name != 'filter':
+        filter_args = {
+            'features': entities.get('features'),
+            'operators': entities.get('operators'),
+            'values': entities.get('values'),
+            'filter_type': 'feature'
+        }
+        filter_result = action_dispatcher.execute_action('filter', filter_args, conversation)
+        logger.info(f"Auto-applied feature filter: {filter_result}")
+    
+    # Auto-apply prediction filtering when entities contain prediction filtering criteria
+    elif entities.get('filter_type') == 'prediction' and entities.get('prediction_values'):
+        filter_args = {
+            'prediction_values': entities.get('prediction_values'),
+            'filter_type': 'prediction'
+        }
+        filter_result = action_dispatcher.execute_action('filter', filter_args, conversation)
+        logger.info(f"Auto-applied prediction filter: {filter_result}")
+    
+    # Auto-apply label filtering when entities contain label filtering criteria  
+    elif entities.get('filter_type') == 'label' and entities.get('label_values'):
+        filter_args = {
+            'label_values': entities.get('label_values'),
+            'filter_type': 'label'
+        }
+        filter_result = action_dispatcher.execute_action('filter', filter_args, conversation)
+        logger.info(f"Auto-applied label filter: {filter_result}")
     
     logger.info(f"AutoGen identified action: {action_name} with entities: {entities}")
     
     # Component 2: Execute explainability action
     action_result = action_dispatcher.execute_action(action_name, action_args, conversation)
     
-    # Component 3: Format with LLM (pass conversation for context)
-    formatted_response = formatter.format_response(user_query, action_name, action_result, conversation)
+    # Component 3: Format with LLM (pass AutoGen intent and conversation for context)
+    logger.info(f"Action result before formatting: {action_result}")
+    formatted_response = formatter.format_response(user_query, action_name, action_result, intent, conversation)
     
     # Add to conversation history with full context
     conversation.add_turn(user_query, formatted_response, action_name, action_args, action_result)
@@ -840,11 +841,6 @@ def sample_prompt():
                 "What do these labels mean?",
                 "Explain the target variable",
                 "What is the dataset trying to predict?"
-            ],
-            'interactions': [
-                "How do features interact with each other?",
-                "What are the feature interaction effects?",
-                "Which features work together?"
             ],
             'description': [
                 "Tell me about this dataset",

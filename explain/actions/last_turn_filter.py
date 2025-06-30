@@ -30,7 +30,7 @@ def last_turn_filter(conversation, parse_text, i, **kwargs):
     last_turn_conversation = deepcopy(conversation)
 
     # Now newest operation is first
-    last_turn_operations = last_turn_conversation.get_last_parse()[::-1]
+    last_turn_operations = last_turn_conversation.last_parse_string[::-1]
     most_recent_filter = get_most_recent_filter(last_turn_operations)
 
     # If previousoperation is None, we haven't found any filters

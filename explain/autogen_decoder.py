@@ -243,20 +243,20 @@ class AutoGenDecoder:
             system_message=self._create_intent_extraction_prompt()
         )
         
-        # Agent 2: Action Planning and Syntax Generation  
-        # This agent translates semantic understanding into executable actions
+        # Agent 2: Intent Validation and Critical Analysis
+        # This agent critically examines if the intent was correctly interpreted
+        self.intent_validation_agent = AssistantAgent(
+            name="IntentValidator",
+            model_client=self.model_client,
+            system_message=self._create_intent_validation_prompt()
+        )
+        
+        # Agent 3: Action Planning and Syntax Generation  
+        # This agent translates validated intent into executable actions
         self.action_planning_agent = AssistantAgent(
             name="ActionPlanner", 
             model_client=self.model_client,
             system_message=self._create_action_planning_prompt()
-        )
-        
-        # Agent 3: Validation and Error Correction
-        # This agent ensures output quality and system compatibility
-        self.validation_agent = AssistantAgent(
-            name="ActionValidator",
-            model_client=self.model_client,
-            system_message=self._create_validation_prompt()
         )
         
         logger.info("Successfully initialized three-agent architecture")
@@ -349,76 +349,135 @@ Be fast, accurate, and concise. No explanations needed."""
 
     def _create_action_planning_prompt(self) -> str:
         """Generate concise action planning prompt for speed."""
-        return """You are an action planning agent. Convert intents to executable actions QUICKLY.
+        return """You are an action planning agent. Convert intents to simple actions QUICKLY.
 
 INTENT → ACTION MAPPING:
 - data → "data" 
-- predict → "predict" (+ filters if needed)
-- explain → "explain" (+ filters if needed)
-- important → "important all"
-- performance → "score accuracy" (+ filters if needed)
-- filter + predict → "filter [feature] [op] [value] predict"
-- filter + performance → "filter [feature] [op] [value] score accuracy"
+- predict → "predict"
+- explain → "explain"
+- important → "important"
+- performance → "score"
+- filter → "filter"
+- whatif → "change"
+- mistakes → "mistake"
+- confidence → "likelihood"
+- interactions → "interact"
+- show → "show"
+- statistics → "statistic"
+- labels → "label"
+- count → "countdata"
+- define → "define"
+- about → "self"
 
-FILTERING ACTION TYPES:
-- Prediction filtering: filter_type="prediction" → Use "filter" action with prediction entities
-- Feature filtering: filter_type="feature" or features present → Use "filter" action with feature entities  
-- Label filtering: filter_type="label" → Use "filter" action with label entities
-- ID filtering: patient_id present → Use "filter" action with id entities
+IMPORTANT: Return ONLY the single action name. DO NOT generate compound actions like "filter age greater 50 score accuracy". The main system handles filtering automatically based on entities.
 
 EXAMPLES:
 Intent: data → Action: "data"
-Intent: predict, entities: {patient_id: 5} → Action: "filter id 5 predict" 
-Intent: performance, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "filter age greater 50 score accuracy"
-Intent: explain, entities: {patient_id: 2} → Action: "filter id 2 explain"
-Intent: filter, entities: {filter_type: "prediction", values: [1]} → Action: "filter"
+Intent: predict, entities: {patient_id: 5} → Action: "predict" 
+Intent: performance, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "score"
+Intent: explain, entities: {patient_id: 2} → Action: "explain"
 Intent: filter, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "filter"
-Intent: filter, entities: {filter_type: "label", values: [1]} → Action: "filter"
 
 OUTPUT FORMAT (JSON ONLY):
 {
-  "action": "generated_action_string",
+  "action": "single_action_name_only",
   "entities": {
     "features": ["feature_names_if_any"],
     "operators": ["operators_if_any"],
     "values": [values_if_any],
-    "filter_type": "prediction|feature|label|null"
+    "filter_type": "prediction|feature|label|null",
+    "patient_id": patient_id_if_any
   },
   "confidence": 0.95
 }
 
-IMPORTANT: Always pass through the entities from intent extraction so the filter function has the structured data it needs.
+CRITICAL: Always pass through ALL entities from intent extraction. The main system uses these entities to handle filtering automatically.
 
-Be fast and direct. No complex reasoning needed."""
+Be fast and direct."""
 
-    def _create_validation_prompt(self) -> str:
-        """Generate concise validation prompt for speed."""
-        return """You are a validation agent. Check action syntax QUICKLY.
+    def _create_intent_validation_prompt(self) -> str:
+        """Generate critical thinking validation prompt for intent analysis."""
+        return """You are an intent validation agent. CRITICALLY EXAMINE if the intent was correctly interpreted.
 
-VALID ACTIONS: data, predict, explain, important, score, filter, show
-VALID FEATURES: age, glucose, bmi, pregnancies, bloodpressure, insulin, skinthickness, diabetespedigreefunction
-VALID OPERATORS: greater, less, equal, greaterequal, lessequal
+Your job: Look at the user's original query and the extracted intent, then ask "Did we really understand what they meant?"
 
-VALIDATION RULES:
-- Check action keywords are valid
-- Check feature names exist in dataset
-- Check syntax is correct
-- Fix obvious errors
+CRITICAL ANALYSIS QUESTIONS:
+1. Could this query have multiple interpretations?
+2. Did we capture the user's real goal?
+3. Is there a better way to understand this request?
+4. Are we missing important context or nuance?
+5. CONTEXT-SENSITIVE: If dataset is currently filtered, does this query need full dataset or filtered dataset?
 
-EXAMPLES:
-"data" → Valid ✓
-"filter age greater 50 score accuracy" → Valid ✓  
-"filter invalid_feature equal 1" → Invalid (bad feature)
-"invalid_action" → Invalid (bad action)
+INTENT TYPES TO CONSIDER:
+- data: General dataset info, summaries (when no specific feature mentioned)
+- statistics: Detailed stats about specific features (mean, std, distribution)
+- predict: Model predictions for specific cases
+- explain: Why did the model make this prediction
+- important: Which features matter most
+- performance: How accurate/good is the model
+- filter: Show subset of data
+- interactions: How features work together
+- mistakes: Where does the model fail (CRITICAL: Always needs full dataset for meaningful analysis)
+
+CONTEXT-SENSITIVE VALIDATION:
+When the dataset is currently filtered, critically analyze:
+- "mistakes": MUST use full dataset (reset filter) - user wants to understand overall model errors
+- "performance": MUST use full dataset (reset filter) - user wants overall model accuracy  
+- "important": MUST use full dataset (reset filter) - user wants global feature importance
+- "data": MUST use full dataset (reset filter) - user wants general dataset statistics
+- "statistics": Depends on context - could be filtered or full dataset
+- "explain": Keep current filter if asking about specific filtered instances
+- "predict": Keep current filter if asking about specific instances
+
+CRITICAL DECISION: 
+- If user asks about "average", "mean", "std", "distribution" of a SPECIFIC FEATURE → use "statistics"
+- If user asks about general dataset info without specific features → use "data"
+
+EXAMPLES OF CRITICAL VALIDATION:
+
+User: "How does age affect the model?"
+Initial Intent: "performance" 
+Critical Analysis: "This is ambiguous! Could mean:
+- Feature importance of age (important)
+- Performance across age groups (statistics) 
+- Age interaction effects (interactions)
+- Model accuracy on age-filtered data (performance)
+Recommend: Ask for clarification or choose 'important' as most likely."
+
+User: "Show me patients over 40"
+Initial Intent: "filter"
+Critical Analysis: "Correct! User clearly wants to filter data by age > 40."
+
+User: "What's the accuracy on older patients?"
+Initial Intent: "performance" 
+Critical Analysis: "Good interpretation, but 'older' is vague. Should we assume age > 40, > 50, or > 65? Intent is correct but entities need clarification."
+
+User: "What's the average age in the dataset?"
+Initial Intent: "data"
+Critical Analysis: "This asks for a specific statistic (average) about a specific feature (age). Should be 'statistics' not 'data'. Data is for general dataset info."
+Validated Intent: "statistics" with entities: {"features": ["Age"]}
+
+CRITICAL: When validating entities, preserve the EXACT SAME structure as the original entities. Use the same keys (features not feature, values not value, etc.)
 
 OUTPUT FORMAT (JSON ONLY):
 {
-  "valid": true_or_false,
-  "issues": ["list_of_issues"],
-  "confidence": 0.95
+  "validated_intent": "final_intent_decision",
+  "entities": {
+    "patient_id": number_or_null,
+    "features": ["feature_names_or_null"],
+    "operators": ["operators_or_null"], 
+    "values": [numbers_or_null],
+    "filter_type": "prediction|feature|label|null",
+    "prediction_values": [numbers_for_prediction_filtering_or_null],
+    "label_values": [numbers_for_label_filtering_or_null]
+  },
+  "confidence": 0.95,
+  "critical_analysis": "your_reasoning_about_potential_issues_or_ambiguities",
+  "alternative_interpretations": ["list", "of", "other", "possible", "meanings"],
+  "requires_full_dataset": true_or_false
 }
 
-Be fast. Only catch obvious errors."""
+Be thoughtful and question everything. Better to catch ambiguity now than give wrong answers later."""
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
         """
@@ -582,8 +641,8 @@ Be fast. Only catch obvious errors."""
         team_parameters = {
             "participants": [
                 self.intent_extraction_agent,
-                self.action_planning_agent, 
-                self.validation_agent,
+                self.intent_validation_agent,
+                self.action_planning_agent,
             ]
         }
         
@@ -621,8 +680,8 @@ Be fast. Only catch obvious errors."""
         """
         # Initialize response containers
         intent_response = None
+        intent_validation_response = None
         action_response = None  
-        validation_response = None
         
         logger.info(f"Processing {len(collaboration_result.messages)} agent messages")
         
@@ -640,17 +699,20 @@ Be fast. Only catch obvious errors."""
                     if intent_response.get('intent') == 'casual':
                         return self._create_casual_response()
                         
+                elif response_type == "intent_validation" and not intent_validation_response:
+                    intent_validation_response = extracted_response
+                        
                 elif response_type == "action" and not action_response:
                     action_response = extracted_response
                     # Handle null action cases (conversational queries)
                     if action_response.get('action') is None:
                         return self._create_casual_response()
-                        
-                elif response_type == "validation" and not validation_response:
-                    validation_response = extracted_response
+        
+        # Log what we found from agents for debugging
+        logger.info(f"Agent responses found: Intent={bool(intent_response)}, IntentValidation={bool(intent_validation_response)}, Action={bool(action_response)}")
         
         # Integrate responses based on available information
-        return self._integrate_agent_outputs(intent_response, action_response, validation_response)
+        return self._integrate_agent_outputs(intent_response, intent_validation_response, action_response)
 
     def _extract_json_response(self, message, message_index: int) -> Optional[Dict]:
         """Extract JSON from agent message - clean and direct."""
@@ -696,6 +758,8 @@ Be fast. Only catch obvious errors."""
         """
         if 'intent' in response:
             return "intent"
+        elif 'validated_intent' in response:
+            return "intent_validation"
         elif 'action' in response:
             return "action"
         elif 'valid' in response:
@@ -725,7 +789,7 @@ Be fast. Only catch obvious errors."""
             "confidence": 0.95
         }
 
-    def _integrate_agent_outputs(self, intent_response, action_response, validation_response) -> Optional[Dict[str, Any]]:
+    def _integrate_agent_outputs(self, intent_response, intent_validation_response, action_response) -> Optional[Dict[str, Any]]:
         """
         Integrate Multi-Agent Outputs into Unified Response
         
@@ -742,15 +806,15 @@ Be fast. Only catch obvious errors."""
         
         Args:
             intent_response: Output from intent extraction agent
+            intent_validation_response: Output from intent validation agent
             action_response: Output from action planning agent
-            validation_response: Output from validation agent
             
         Returns:
             Integrated response ready for action execution
         """
         # Scenario 1: Complete agent collaboration (ideal case)
-        if intent_response and action_response and validation_response:
-            return self._create_complete_response(intent_response, action_response, validation_response)
+        if intent_response and intent_validation_response and action_response:
+            return self._create_complete_response(intent_response, intent_validation_response, action_response)
             
         # Scenario 2: Partial collaboration (fallback case)
         elif intent_response and action_response:
@@ -761,60 +825,74 @@ Be fast. Only catch obvious errors."""
             logger.warning("Insufficient agent responses for integration")
             return None
 
-    def _create_complete_response(self, intent_response, action_response, validation_response) -> Dict[str, Any]:
+    def _create_complete_response(self, intent_response, intent_validation_response, action_response) -> Dict[str, Any]:
         """
         Create Response from Complete Agent Collaboration
         
         Constructs the final response when all three agents have successfully
-        contributed to the processing pipeline. Uses the universal command parser
-        to handle structured commands from the action planning agent.
+        contributed to the processing pipeline. Uses the validated intent from
+        the intent validation agent and actions from the action planning agent.
         
         Args:
-            intent_response: Validated intent extraction results
-            action_response: Generated action commands (now structured)
-            validation_response: Validation results and corrections
+            intent_response: Original intent extraction results
+            intent_validation_response: Critical thinking validation results
+            action_response: Generated action commands  
             
         Returns:
-            Complete integrated response with universal command parsing
+            Complete integrated response from 3-agent collaboration
         """
-        # Import universal parser
-        from .universal_command_parser import create_universal_parser
+        # Use validated intent from the critical thinking agent
+        validated_intent = intent_validation_response.get('validated_intent', intent_response.get('intent', 'data'))
         
-        # Extract command structure from action response
-        command_structure = action_response.get('command', action_response.get('action', {}))
+        # Extract action directly from action planning agent response
+        final_action = action_response.get('action', 'explain')
         
-        # Use universal parser to generate action list
-        universal_parser = create_universal_parser()
-        action_list = universal_parser.parse_autogen_response(action_response)
+        # Use validated entities from intent validation, falling back to original entities
+        validated_entities = intent_validation_response.get('entities', {})
+        original_entities = action_response.get('entities', {})
         
-        # Join actions for backward compatibility
-        final_action = " ".join(action_list) if action_list else "explain"
+        # Normalize entity keys (handle both singular and plural forms)
+        if 'feature' in validated_entities and 'features' not in validated_entities:
+            validated_entities['features'] = [validated_entities.pop('feature')]
+        
+        command_structure = {**original_entities, **validated_entities}  # Validation takes precedence
+        
+        # Create action list for backward compatibility
+        action_list = [final_action] if final_action else ["explain"]
         
         # Calculate aggregate confidence score
         confidence_score = min(
             intent_response.get('confidence', 0.8),
-            action_response.get('confidence', 0.8),
-            validation_response.get('confidence', 0.8)
+            intent_validation_response.get('confidence', 0.8),
+            action_response.get('confidence', 0.8)
         )
         
         return {
             "generation": f"parsed: {final_action}[e]",
             "confidence": confidence_score,
-            "method": "autogen_universal_pipeline",
-            "intent_response": intent_response,  # Include full intent response for context reset detection
+            "method": "autogen_critical_thinking_pipeline",
+            "intent_response": {
+                "intent": validated_intent,  # Use validated intent for filter reset logic
+                "entities": command_structure,
+                "confidence": confidence_score
+            },
+            "validation_response": {
+                "requires_full_dataset": intent_validation_response.get('requires_full_dataset', False),
+                "critical_analysis": intent_validation_response.get('critical_analysis', ''),
+                "alternative_interpretations": intent_validation_response.get('alternative_interpretations', [])
+            },
             "agent_reasoning": {
-                "intent_analysis": intent_response.get('reasoning', ''),
-                "action_planning": action_response.get('reasoning', ''),
-                "validation_results": (
-                    f"Valid: {validation_response.get('valid', False)}, "
-                    f"Issues: {validation_response.get('issues', [])}"
-                )
+                "original_intent": intent_response.get('intent', 'data'),
+                "validated_intent": validated_intent,
+                "critical_analysis": intent_validation_response.get('critical_analysis', ''),
+                "alternative_interpretations": intent_validation_response.get('alternative_interpretations', []),
+                "action_planning": action_response.get('reasoning', '')
             },
             "command_structure": command_structure,
             "action_list": action_list,
             "final_action": final_action,
-            "validation_passed": validation_response.get('valid', False),
-            "identified_issues": validation_response.get('issues', [])
+            "validation_passed": True,  # Critical thinking validation always passes with improvements
+            "identified_issues": intent_validation_response.get('alternative_interpretations', [])
         }
 
     def _create_partial_response(self, intent_response, action_response) -> Dict[str, Any]:

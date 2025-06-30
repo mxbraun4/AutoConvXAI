@@ -1,12 +1,8 @@
 """Important features operation."""
-import inflect
 import numpy as np
 import statsmodels.stats.api as sms
 
 from explain.utils import add_to_dict_lists, gen_parse_op_text
-
-
-inflect_engine = inflect.engine()
 
 
 def gen_feature_name_to_rank_dict(data, explanations):
@@ -92,85 +88,6 @@ def compute_quart_description(all_rankings, avg_ranking):
     return describe_imp
 
 
-def individual_feature_importance(avg_ranks,
-                                  conversation,
-                                  ci_95s,
-                                  parsed_feature_name,
-                                  max_ranks,
-                                  data,
-                                  ids,
-                                  parse_op,
-                                  return_s,
-                                  feature_name_to_rank,
-                                  max_ids):
-    """TODO(dylan): docstring"""
-
-    # Get the ranking for the particular feature name
-    avg_ranking = avg_ranks[parsed_feature_name]
-
-    # Format CI's for the feature name
-    ci_95 = ci_95s[parsed_feature_name]
-    if ci_95 is not None:
-        present_ci_low = round(ci_95[0], conversation.rounding_precision)
-        present_ci_high = round(ci_95[1], conversation.rounding_precision)
-    else:
-        present_ci_low, present_ci_high = None, None
-
-    # Format ranking
-    presen_avg_ranking = round(avg_ranking, conversation.rounding_precision)
-
-    # Add inflections for the max ranking
-    # presen_max_rank = inflect_engine.ordinal(max_ranks[parsed_feature_name] + 1)
-    # max_rank = max_ranks[parsed_feature_name]
-
-    # Format the ranking
-    if len(ids) > 1:
-        return_s += f" the {parsed_feature_name} feature is ranked on average <b>{presen_avg_ranking}</b> "
-    else:
-        return_s += f" the {parsed_feature_name} feature is ranked {presen_avg_ranking} "
-
-    # Add CI if more than 1 instance
-    if ci_95 is not None:
-        return_s += f"(95% CI [{present_ci_low}, {present_ci_high}])."
-
-    # compute description of rankings
-    if data.shape[1] > 1:
-        plural = "s"
-    else:
-        plural = ""
-    return_s += f" Here, rank 1 is the most important feature (out of {data.shape[1]} feature{plural})."
-
-    # Add max ranking
-    if len(ids) > 1:
-        all_rankings = [avg_ranks[f_name] for f_name in avg_ranks.keys()]
-        describe_imp = compute_quart_description(all_rankings, avg_ranking)
-
-        if len(parse_op) == 0:
-            return_s += "<br><br>Compared to other instances in the data,"
-        else:
-            return_s += f" Compared to other instances where {parse_op},"
-
-        return_s += f" {parsed_feature_name} is a <b>{describe_imp} important feature</b>.<br><br>"
-
-    return_s += "\n\n"
-
-    return return_s
-
-
-def topk_feature_importance(avg_ranks, conversation, parse_op, return_s, topk):
-
-    if topk == len(avg_ranks):
-        return_s += (" the importance of the features have the following ranking, where 1 is the "
-                     "most important feature:<br><br>")
-    else:
-        return_s += (f" the <b>top {topk}</b> most important features are as follows, where 1 is the most "
-                     "important feature:<br><br>")
-    avg_ranks = list((key, avg_ranks[key]) for key in avg_ranks)
-    avg_ranks = sorted(avg_ranks, key=lambda x: x[1])
-    for i in range(topk):
-        return_s += f"<b>{i+1}:</b> {avg_ranks[i][0]}<br>"
-    conversation.store_followup_desc("")
-    return return_s
 
 
 def important_operation(conversation, parse_text, i, **kwargs):
@@ -179,9 +96,6 @@ def important_operation(conversation, parse_text, i, **kwargs):
     For a given feature, this operation finds explanations where it is important.
     Now returns structured data instead of formatted HTML.
     """
-    # The maximum number of ids to show in the initial explanation
-    MAXIDS = 5
-
     data = conversation.temp_dataset.contents['X']
     if len(conversation.temp_dataset.contents['X']) == 0:
         # In the case that filtering has removed all the instances

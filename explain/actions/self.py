@@ -11,6 +11,6 @@ def self_operation(conversation, parse_text, i, **kwargs):
     text = f"I'm a machine learning model trained to {objective}."
 
     dataset = conversation.describe.get_dataset_description()
-    text += f" I was trained on a {dataset} dataset.<br><br>"
+    text += f" I was trained on a {dataset} dataset."
 
     return text, 1

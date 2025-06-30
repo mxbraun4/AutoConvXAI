@@ -37,7 +37,7 @@ def last_turn_operation(conversation, parse_text, i, **kwargs):
     """
 
     # Just get the operations run in the last parse
-    last_turn_operations = conversation.get_last_parse()[::-1]
+    last_turn_operations = conversation.last_parse_string[::-1]
 
     # Store the conversation
     last_turn_conversation = deepcopy(conversation)

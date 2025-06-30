@@ -32,7 +32,7 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
             
             # Make prediction and get probabilities
             from main import _safe_model_predict
-    model_predictions = _safe_model_predict(model, data)
+            model_predictions = _safe_model_predict(model, data)
             try:
                 model_probabilities = model.predict_proba(data)
                 confidence = model_probabilities[0][model_predictions[0]]
