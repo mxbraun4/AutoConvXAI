@@ -15,8 +15,6 @@ from explain.actions.followup import followup_operation
 from explain.actions.function import function_operation
 from explain.actions.interaction_effects import measure_interaction_effects
 from explain.actions.labels import show_labels_operation
-from explain.actions.last_turn_filter import last_turn_filter
-from explain.actions.last_turn_operation import last_turn_operation
 from explain.actions.mistakes import show_mistakes_operation
 from explain.actions.model import model_operation
 from explain.actions.predict import predict_operation
@@ -25,6 +23,7 @@ from explain.actions.score import score_operation
 from explain.actions.self import self_operation
 from explain.actions.show_data import show_operation
 from explain.actions.what_if import what_if_operation
+from explain.actions.counterfactual import counterfactual_operation, alternatives_operation, scenarios_operation
 
 
 def get_all_action_functions_map():
@@ -36,8 +35,6 @@ def get_all_action_functions_map():
         'explain': explain_operation,
         'predict': predict_operation,
         'self': self_operation,
-        'previousfilter': last_turn_filter,
-        'previousoperation': last_turn_operation,
         'data': data_operation,
         'followup': followup_operation,
         'important': important_operation,
@@ -52,6 +49,9 @@ def get_all_action_functions_map():
         'statistic': feature_stats,
         'define': define_operation,
         'predictionfilter': filter_operation,
-        'labelfilter': filter_operation
+        'labelfilter': filter_operation,
+        'counterfactual': counterfactual_operation,
+        'alternatives': alternatives_operation,
+        'scenarios': scenarios_operation
     }
     return actions

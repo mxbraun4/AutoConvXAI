@@ -38,33 +38,22 @@ from typing import Dict, Any, Optional, List, Tuple
 # Configure logging for research and debugging purposes
 logger = logging.getLogger(__name__)
 
-# AutoGen Framework Integration
-# The AutoGen library provides the foundational multi-agent infrastructure for our system.
-# We implement version-agnostic imports to ensure compatibility across different releases,
-# as the API has evolved significantly between versions 0.4 and 0.6+
+# AutoGen Framework Integration  
+# Using modern AutoGen architecture (v0.4+)
 try:
-    # Modern AutoGen architecture (v0.4+)
     from autogen_agentchat.agents import AssistantAgent
     from autogen_agentchat.teams import RoundRobinGroupChat
     from autogen_ext.models.openai import OpenAIChatCompletionClient
     AUTOGEN_AVAILABLE = True
-    logger.info("Successfully imported modern AutoGen components (v0.4+)")
+    logger.info("Successfully imported AutoGen components (v0.4+)")
 except ImportError:
-    try:
-        # Legacy AutoGen architecture (pre-v0.4)
-        from autogen.agentchat.agents import AssistantAgent
-        from autogen.agentchat.teams import RoundRobinGroupChat
-        from autogen.models.openai import OpenAIChatCompletionClient
-        AUTOGEN_AVAILABLE = True
-        logger.info("Successfully imported legacy AutoGen components")
-    except ImportError:
-        # Graceful degradation when AutoGen is not available
-        # This allows the system to fail gracefully and provide meaningful error messages
-        AUTOGEN_AVAILABLE = False
-        AssistantAgent = None
-        RoundRobinGroupChat = None
-        OpenAIChatCompletionClient = None
-        logger.warning("AutoGen framework not available - decoder will be disabled")
+    # Graceful degradation when AutoGen is not available
+    AUTOGEN_AVAILABLE = False
+    AssistantAgent = None
+    RoundRobinGroupChat = None
+    OpenAIChatCompletionClient = None
+    logger.error("AutoGen v0.4+ is required but not available - decoder will be disabled")
+    raise ImportError("AutoGen v0.4+ is required. Please install with: pip install autogen-agentchat autogen-ext")
 
 
 class AutoGenDecoder:
@@ -201,8 +190,8 @@ class AutoGenDecoder:
         # We maintain a whitelist of valid actions based on the system's capabilities
         valid_actions = [
             "filter", "predict", "explain", "important", "score", 
-            "show", "change", "mistake", "data", "followup", "previousfilter",
-            "previousoperation", "model", "predictionfilter", "labelfilter", "reset"
+            "show", "change", "mistake", "data", "followup",
+            "model", "predictionfilter", "labelfilter", "reset"
         ]
         
         if parts[0] not in valid_actions:
@@ -275,6 +264,7 @@ INTENT TYPES:
 - performance: Model accuracy ("how accurate", "model performance")
 - filter: Subset data ("patients with age > 50", "show instances where model predicted 1")
 - whatif: What-if analysis ("what if BMI was 25", "change glucose to 90")
+- counterfactual: Counterfactual explanations ("show counterfactuals", "what are the alternatives", "scenarios to flip prediction")
 - mistakes: Model error analysis ("show mistakes", "where is the model wrong")
 - confidence: Prediction confidence ("how confident", "prediction probability")
 - interactions: Feature interactions ("how do features interact", "age and BMI together")
@@ -288,8 +278,6 @@ INTENT TYPES:
 
 CONVERSATIONAL CONTEXT INTENTS:
 - followup: Follow-up questions ("tell me more", "explain that better", "what about")
-- previousfilter: Use previous filter ("with the same filter", "keep that filter")
-- previousoperation: Repeat previous operation ("do that again", "same thing for age")
 - model: Model information ("about the model", "model details", "training info")
 - predictionfilter: Filter by predictions ("where model predicted diabetes", "prediction = 1")
 - labelfilter: Filter by actual labels ("actual diabetic patients", "ground truth = 1")
@@ -309,6 +297,10 @@ EXAMPLES:
 "patients with age > 50" → intent: "filter", entities: {features: ["age"], operators: [">"], values: [50]}
 "show cases where ground truth is 1" → intent: "filter", entities: {filter_type: "label", label_values: [1]}
 "what if BMI was 25 instead" → intent: "whatif", entities: {features: ["BMI"], values: [25]}
+"show counterfactuals for patient 5" → intent: "counterfactual", entities: {patient_id: 5}
+"what are the alternatives to flip this prediction" → intent: "counterfactual"
+"show me scenarios that would change the outcome" → intent: "counterfactual"
+"what changes would make this patient non-diabetic" → intent: "counterfactual"
 "show me the model's biggest mistakes" → intent: "mistakes"
 "how confident is the model" → intent: "confidence"
 "how do age and BMI interact" → intent: "interactions", entities: {features: ["age", "BMI"]}
@@ -321,8 +313,6 @@ EXAMPLES:
 
 CONVERSATIONAL CONTEXT EXAMPLES:
 "tell me more about that" → intent: "followup"
-"do the same thing for age" → intent: "previousoperation", entities: {features: ["age"]}
-"keep that filter" → intent: "previousfilter"
 "what about the model itself" → intent: "model"
 "show me where the model predicted diabetes" → intent: "predictionfilter", entities: {prediction_values: [1]}
 "filter to actual diabetic patients" → intent: "labelfilter", entities: {label_values: [1]}
@@ -359,6 +349,7 @@ INTENT → ACTION MAPPING:
 - performance → "score"
 - filter → "filter"
 - whatif → "change"
+- counterfactual → "counterfactual"
 - mistakes → "mistake"
 - confidence → "likelihood"
 - interactions → "interact"
@@ -377,6 +368,7 @@ Intent: predict, entities: {patient_id: 5} → Action: "predict"
 Intent: performance, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "score"
 Intent: explain, entities: {patient_id: 2} → Action: "explain"
 Intent: filter, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "filter"
+Intent: counterfactual, entities: {patient_id: 5} → Action: "counterfactual"
 
 OUTPUT FORMAT (JSON ONLY):
 {
@@ -415,7 +407,9 @@ INTENT TYPES TO CONSIDER:
 - explain: Why did the model make this prediction
 - important: Which features matter most
 - performance: How accurate/good is the model
-- filter: Show subset of data
+- filter: Show subset of data based on criteria
+- show: Display specific data instances (individual patients or records)
+- counterfactual: Generate counterfactual explanations for predictions
 - interactions: How features work together
 - mistakes: Where does the model fail (CRITICAL: Always needs full dataset for meaningful analysis)
 
@@ -447,6 +441,14 @@ Recommend: Ask for clarification or choose 'important' as most likely."
 User: "Show me patients over 40"
 Initial Intent: "filter"
 Critical Analysis: "Correct! User clearly wants to filter data by age > 40."
+
+User: "What are the feature values of patient 5?"
+Initial Intent: "show"
+Critical Analysis: "Correct! User wants to display data for a specific patient instance (patient 5), not filter the dataset. This is a 'show' request."
+
+User: "Show me patient 10"
+Initial Intent: "show"
+Critical Analysis: "Correct! User wants to display a specific patient's data, which is exactly what 'show' intent is for."
 
 User: "What's the accuracy on older patients?"
 Initial Intent: "performance" 

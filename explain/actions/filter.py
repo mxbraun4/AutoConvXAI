@@ -6,7 +6,6 @@ correct filtering based on the parse.
 """
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
 
 
 def filter_dataset(dataset, bools):
@@ -27,129 +26,6 @@ def format_parse_string(feature_name, feature_value, operation):
     """Formats a string that describes the filtering parse."""
     return f"{feature_name} {operation} {str(feature_value)}"
 
-
-def numerical_filter(parse_text, temp_dataset, i, feature_name):
-    """Performs numerical filtering.
-
-    All this routine does (though it looks a bit clunky) is look at
-    the parse_text and decide which filtering operation to do (e.g.,
-    greater than, equal to, etc.) and then performs the operation.
-    """
-    # Greater than or equal to
-    if parse_text[i+2] == 'greater' and i+3 < len(parse_text) and parse_text[i+3] == 'equal':
-        print(parse_text)
-        if i+5 >= len(parse_text):
-            raise ValueError(f"Missing value for filter operation at position {i+5}")
-        feature_value = float(parse_text[i+5])
-        bools = temp_dataset['X'][feature_name] >= feature_value
-        updated_dset = filter_dataset(temp_dataset, bools)
-        interpretable_parse_text = format_parse_string(
-            feature_name, feature_value, "greater than or equal to")
-    # Greater than
-    elif parse_text[i+2] == 'greater':
-        if i+3 >= len(parse_text):
-            raise ValueError(f"Missing value for filter operation at position {i+3}")
-        # For "filter age greater 50", the value is at i+3
-        value_index = i+3
-        
-        try:
-            feature_value = float(parse_text[value_index])
-        except ValueError:
-            raise ValueError(f"Expected numeric value after 'greater', got '{parse_text[value_index]}'")
-            
-        bools = temp_dataset['X'][feature_name] > feature_value
-        updated_dset = filter_dataset(temp_dataset, bools)
-        interpretable_parse_text = format_parse_string(
-            feature_name, feature_value, "greater than")
-    # Less than or equal to
-    elif parse_text[i+2] == 'less' and i+3 < len(parse_text) and parse_text[i+3] == 'equal':
-        if i+5 >= len(parse_text):
-            raise ValueError(f"Missing value for filter operation at position {i+5}")
-        feature_value = float(parse_text[i+5])
-        bools = temp_dataset['X'][feature_name] <= feature_value
-        updated_dset = filter_dataset(temp_dataset, bools)
-        interpretable_parse_text = format_parse_string(
-            feature_name, feature_value, "less than or equal to")
-    # Less than
-    elif parse_text[i+2] == 'less':
-        if i+3 >= len(parse_text):
-            raise ValueError(f"Missing value for filter operation at position {i+3}")
-        value_index = i+3
-        try:
-            feature_value = float(parse_text[value_index])
-        except ValueError:
-            raise ValueError(f"Expected numeric value after 'less', got '{parse_text[value_index]}'")
-            
-        bools = temp_dataset['X'][feature_name] < feature_value
-        updated_dset = filter_dataset(temp_dataset, bools)
-        interpretable_parse_text = format_parse_string(
-            feature_name, feature_value, "less than")
-    # Equal to
-    elif parse_text[i+2] == 'equal':
-        if i+3 >= len(parse_text):
-            raise ValueError(f"Missing value for filter operation at position {i+3}")
-        value_index = i+3
-        try:
-            feature_value = float(parse_text[value_index])
-        except ValueError:
-            raise ValueError(f"Expected numeric value after 'equal', got '{parse_text[value_index]}'")
-            
-        bools = temp_dataset['X'][feature_name] == feature_value
-        updated_dset = filter_dataset(temp_dataset, bools)
-        interpretable_parse_text = format_parse_string(
-            feature_name, feature_value, "equal to")
-    # Not equal to
-    elif parse_text[i+2] == 'not':
-        if i+4 >= len(parse_text):
-            raise ValueError(f"Missing value for filter operation at position {i+4}")
-        value_index = i+4
-        try:
-            feature_value = float(parse_text[value_index])
-        except ValueError:
-            raise ValueError(f"Expected numeric value after 'not equal', got '{parse_text[value_index]}'")
-            
-        bools = temp_dataset['X'][feature_name] != feature_value
-        updated_dset = filter_dataset(temp_dataset, bools)
-        interpretable_parse_text = format_parse_string(
-            feature_name, feature_value, "not equal to")
-    else:
-        raise NameError(f"Uh oh, looks like something is wrong with {parse_text}")
-    return updated_dset, interpretable_parse_text
-
-
-def categorical_filter(parse_text, temp_dataset, conversation, i, feature_name):
-    """Perform categorical filtering of a data set."""
-    feature_value = parse_text[i+2]
-
-    interpretable_parse_text = f"{feature_name} equal to {str(feature_value)}"
-
-    if feature_name == "incorrect":
-        # In the case the user asks for the incorrect predictions
-        data = temp_dataset['X']
-        y_values = temp_dataset['y']
-
-        # compute model predictions
-        model = conversation.get_var('model').contents
-        y_pred = model.predict(data)
-
-        # set bools to when the predictions are not the same
-        # this with parse out to when incorrect is true, filter by
-        # predictions != ground truth
-        if feature_value == "true":
-            bools = y_values != y_pred
-        else:
-            bools = y_values == y_pred
-    else:
-        if is_numeric_dtype(temp_dataset['X'][feature_name]):
-            if feature_value == 'true':
-                feature_value = 1
-            elif feature_value == 'false':
-                feature_value = 0
-            else:
-                feature_value = float(feature_value)
-        bools = temp_dataset['X'][feature_name] == feature_value
-    updated_dset = filter_dataset(temp_dataset, bools)
-    return updated_dset, interpretable_parse_text
 
 
 def prediction_filter(temp_dataset, conversation, feature_name):

@@ -72,24 +72,6 @@ def compute_rank_stats(data, feature_name_to_rank):
     return max_ranks, avg_ranks, ci_95s
 
 
-def compute_quart_description(all_rankings, avg_ranking):
-    """Compute the ranking quartiles"""
-    quartiles = np.percentile(all_rankings, [25, 50, 75])
-
-    if avg_ranking < quartiles[0]:
-        describe_imp = "highly"
-    elif avg_ranking < quartiles[1]:
-        describe_imp = "fairly"
-    elif avg_ranking < quartiles[2]:
-        describe_imp = "somewhat"
-    else:
-        describe_imp = "not very"
-
-    return describe_imp
-
-
-
-
 def important_operation(conversation, parse_text, i, **kwargs):
     """Important features operation.
 
@@ -104,11 +86,15 @@ def important_operation(conversation, parse_text, i, **kwargs):
     ids = list(data.index)
 
     # The feature, all, or topk that is being evaluated for importance
-    if i+1 >= len(parse_text):
+    # Use AutoGen entities instead of legacy text parsing
+    ent_features = kwargs.get('features', []) if kwargs else []
+    
+    if ent_features and len(ent_features) > 0:
+        # Specific feature requested via AutoGen entities
+        parsed_feature_name = ent_features[0]
+    else:
         # No specific feature specified, default to showing all features
         parsed_feature_name = "all"
-    else:
-        parsed_feature_name = parse_text[i+1]
 
     # Generate the text for the filtering operation
     parse_op = gen_parse_op_text(conversation)

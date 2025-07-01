@@ -1,5 +1,4 @@
 """Compares many explanations to determine the best one."""
-"""Compares many explanations to determine the best one."""
 import copy
 from dataclasses import dataclass
 from functools import partial
@@ -286,9 +285,6 @@ class Explainer:
                                                                           label,
                                                                           k,
                                                                           metric="topk")
-
-        if return_fidelities:
-            return fidelity_scores_topk
 
         if len(fidelity_scores_topk) >= 2:
             top2 = heapq.nlargest(2, fidelity_scores_topk, key=fidelity_scores_topk.get)

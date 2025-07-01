@@ -15,8 +15,7 @@ def show_operation(conversation, parse_text, i, n_features_to_show=float("+inf")
         intro_text = f"For the data with <b>{parse_op}</b>,"
     else:
         intro_text = "For all the instances in the data,"
-    rest_of_info_string = "The rest of the features are<br><br>"
-    init_len = len(rest_of_info_string)
+    
     if len(data) == 0:
         return {'type': 'error', 'message': 'There are no instances in the data that meet this description.'}, 0
     

@@ -230,6 +230,15 @@ WHAT-IF INTENT: The user wants to explore scenarios. Focus on:
 - Practical implications of modifications
 - Use phrases like "if you changed", "would result in", "the impact would be"
 """
+        elif autogen_intent == 'counterfactual':
+            base_prompt += """
+COUNTERFACTUAL INTENT: The user wants alternative scenarios to change the outcome. Focus on:
+- What specific changes would flip the prediction
+- Clear feature modifications needed
+- Practical actionable changes
+- Alternative pathways to different outcomes
+- Use phrases like "to change the outcome", "alternatively", "if instead", "would need to modify"
+"""
         elif autogen_intent == 'mistakes':
             base_prompt += """
 MISTAKES INTENT: The user wants to understand model errors. Focus on:
@@ -319,6 +328,12 @@ RESPONSE (2-3 sentences max, factual only, no speculation):"""
                 return summary
             elif result_type == 'what_if_change':
                 return f"Changed {result_data['feature_name']} by {result_data['operation']} {result_data['value']} for {result_data['instances_affected']} instance(s)"
+            elif result_type == 'counterfactual_explanation':
+                summary = f"Generated {result_data['total_counterfactuals']} counterfactual scenarios for instance {result_data['instance_id']}. "
+                summary += f"Original prediction: {result_data['original_prediction_class']}. "
+                if result_data.get('summary'):
+                    summary += f"Key changes: {result_data['summary']}"
+                return summary
             elif result_type == 'error':
                 return f"Error: {result_data['message']}"
             else:
@@ -408,7 +423,7 @@ class Conversation:
         }
         
         # Create prediction probability function for interaction analysis
-        def prediction_probability_function(x):
+        def prediction_probability_function(x, *args, **kwargs):
             return model.predict_proba(x)
         
         return {
@@ -419,7 +434,7 @@ class Conversation:
         }
     
     def _setup_explainer(self, model):
-        """Initialize LIME explainer"""
+        """Initialize LIME explainer and TabularDice explainer"""
         def prediction_function(x):
             return model.predict_proba(x)
         
@@ -439,6 +454,22 @@ class Conversation:
         )
         
         self.stored_vars['mega_explainer'] = type('Variable', (), {'contents': mega_explainer})()
+        
+        # Initialize TabularDice for counterfactual explanations
+        from explain.explanation import TabularDice
+        dice_cache_path = os.path.join(cache_dir, "dice-tabular.pkl")
+        tabular_dice = TabularDice(
+            model=model,
+            data=self.X_data,
+            num_features=list(self.X_data.columns),
+            num_cfes_per_instance=10,
+            num_in_short_summary=3,
+            desired_class="opposite",
+            cache_location=dice_cache_path,
+            class_names={0: "No Diabetes", 1: "Diabetes"}
+        )
+        
+        self.stored_vars['tabular_dice'] = type('Variable', (), {'contents': tabular_dice})()
     
     def _create_temp_dataset(self):
         """Create temp dataset object"""
@@ -528,7 +559,7 @@ def _should_reset_filter_context(intent, entities, user_query, conversation):
     
     # Never reset for these intents that explicitly want to work with current context
     context_dependent_intents = {
-        'followup', 'previousfilter', 'previousoperation'
+        'followup'
     }
     if intent in context_dependent_intents:
         return False
@@ -833,9 +864,30 @@ def sample_prompt():
                 "Which predictions were incorrect?"
             ],
             'cfe': [
+                "Show counterfactuals for this patient",
+                "What are the alternatives to flip this prediction?",
                 "How can we change this prediction?",
                 "What would make this patient less likely to have diabetes?",
-                "Which features should be different?"
+                "Which features should be different?",
+                "Show me scenarios that would change the outcome"
+            ],
+            'counterfactual': [
+                "Show counterfactuals for patient 5",
+                "Generate counterfactual explanations",
+                "What changes would flip this prediction?",
+                "Show me alternative scenarios"
+            ],
+            'alternatives': [
+                "What are the alternatives to this outcome?",
+                "Show alternative scenarios",
+                "What other possibilities exist?",
+                "Give me alternative explanations"
+            ],
+            'scenarios': [
+                "Show different scenarios",
+                "What scenarios would change the outcome?",
+                "Generate alternative scenarios",
+                "Explore different possibilities"
             ],
             'labels': [
                 "What do these labels mean?",
@@ -851,16 +903,6 @@ def sample_prompt():
                 "Tell me more about that",
                 "Explain that better",
                 "What else can you tell me?"
-            ],
-            'previousoperation': [
-                "Do the same thing for age",
-                "Repeat that for BMI",
-                "Same analysis for glucose"
-            ],
-            'previousfilter': [
-                "Keep that filter",
-                "Use the same filter",
-                "With those same patients"
             ],
             'model': [
                 "Tell me about the model",
