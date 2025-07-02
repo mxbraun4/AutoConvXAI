@@ -2,7 +2,7 @@
 import numpy as np
 import statsmodels.stats.api as sms
 
-from explain.utils import add_to_dict_lists, gen_parse_op_text
+from explain.core.utils import add_to_dict_lists, gen_parse_op_text
 
 
 def gen_feature_name_to_rank_dict(data, explanations):
@@ -85,7 +85,6 @@ def important_operation(conversation, parse_text, i, **kwargs):
     
     ids = list(data.index)
 
-    # The feature, all, or topk that is being evaluated for importance
     # Use AutoGen entities instead of legacy text parsing
     ent_features = kwargs.get('features', []) if kwargs else []
     

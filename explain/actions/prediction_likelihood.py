@@ -1,5 +1,5 @@
 import numpy as np
-from explain.utils import gen_parse_op_text
+from explain.core.utils import gen_parse_op_text
 
 
 def predict_likelihood(conversation, parse_text, i, **kwargs):

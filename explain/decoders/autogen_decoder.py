@@ -1,32 +1,11 @@
-"""Multi-Agent Natural Language Understanding System for Conversational Machine Learning
+"""AutoGen-based multi-agent decoder for natural language to action translation.
 
-This module implements a sophisticated multi-agent architecture for parsing and understanding
-natural language queries in the context of machine learning model exploration. The system
-is based on the AutoGen framework and employs a three-stage processing pipeline that
-separates concerns between intent understanding, action planning, and validation.
+This module uses a 3-agent pipeline to convert user queries into executable actions:
+1. Intent Extraction Agent - Identifies user intent and extracts entities
+2. Intent Validation Agent - Validates and refines the extracted intent  
+3. Action Planning Agent - Converts validated intent into action commands
 
-Theoretical Foundation:
-    The architecture follows the principle of computational specialization, where different
-    agents are responsible for distinct aspects of the natural language understanding task.
-    This approach draws from distributed cognitive systems theory and multi-agent AI research,
-    allowing for better error isolation, improved maintainability, and enhanced robustness.
-
-Architecture Overview:
-    1. Intent Extraction Agent: Performs semantic analysis to identify user goals and extract
-       relevant entities from natural language input
-    2. Action Planning Agent: Translates extracted intents and entities into executable
-       action syntax using domain-specific grammar rules
-    3. Validation Agent: Performs syntactic and semantic validation of generated actions,
-       ensuring consistency with the underlying data model and system constraints
-
-Research Contributions:
-    - Novel application of multi-agent systems to conversational ML interfaces
-    - Robust error handling through redundant validation layers
-    - Flexible architecture that can adapt to different domain vocabularies
-    - Integration of modern LLMs with structured action systems
-
-Author: [Your Name] - PhD Thesis Research
-Institution: [Your Institution]
+The agents collaborate through AutoGen's round-robin communication to reach consensus.
 """
 
 import os
@@ -57,51 +36,26 @@ except ImportError:
 
 
 class AutoGenDecoder:
-    """
-    Multi-Agent Natural Language Understanding Decoder
+    """Multi-agent decoder that converts natural language queries to executable actions.
     
-    This class implements the core multi-agent architecture for natural language understanding
-    in conversational machine learning interfaces. The system employs three specialized agents
-    that work collaboratively to transform user queries into executable actions.
+    Uses three specialized agents working together:
+    - Intent extraction: Understands what the user wants
+    - Intent validation: Critically examines and refines the intent
+    - Action planning: Converts intent to specific action commands
     
-    Design Philosophy:
-        The architecture is based on the principle of separation of concerns, where each agent
-        has a well-defined responsibility. This design choice provides several advantages:
-        
-        1. Maintainability: Each agent can be modified independently without affecting others
-        2. Debuggability: Issues can be traced to specific processing stages
-        3. Extensibility: New agents can be added to handle additional processing requirements
-        4. Robustness: Failures in one agent don't necessarily cascade to others
-    
-    Research Context:
-        This implementation addresses the challenge of bridging the gap between natural language
-        queries and structured action execution in machine learning systems. Traditional
-        approaches using rule-based parsing or single-model solutions often lack the flexibility
-        needed for robust conversational interfaces.
+    The agents collaborate through multiple rounds to reach the best interpretation.
     """
     
     def __init__(self, 
                  api_key: Optional[str] = None,
                  model: str = "gpt-4o-mini",  # Faster model for real-time collaboration
                  max_rounds: int = 3):
-        """
-        Initialize the Multi-Agent Natural Language Understanding System
-        
-        The initialization process sets up the foundational infrastructure for multi-agent
-        collaboration, including model client configuration and agent instantiation.
+        """Initialize the multi-agent decoder.
         
         Args:
-            api_key: OpenAI API key for LLM access. If not provided, attempts to read
-                    from OPENAI_API_KEY environment variable
-            model: Language model identifier. GPT-4o is chosen for its strong reasoning
-                  capabilities and consistent JSON output formatting
-            max_rounds: Maximum conversation rounds between agents. This parameter controls
-                       the trade-off between processing depth and computational efficiency
-        
-        Design Rationale:
-            - GPT-4o is selected for its superior performance on structured reasoning tasks
-            - Round-robin communication ensures all agents contribute to the final decision
-            - Environment variable fallback provides flexibility in deployment scenarios
+            api_key: OpenAI API key (or uses OPENAI_API_KEY environment variable)
+            model: Language model to use for all agents
+            max_rounds: Maximum conversation rounds between agents
         """
         # Validate AutoGen availability before proceeding
         if not AUTOGEN_AVAILABLE:
@@ -134,29 +88,16 @@ class AutoGenDecoder:
         logger.info(f"Initialized AutoGenDecoder with model={model}, max_rounds={max_rounds}")
     
     def _validate_and_fix_action_syntax(self, action_syntax: str) -> str:
-        """
-        Perform Final Action Syntax Validation and Correction
+        """Apply final validation and fix common action syntax errors.
         
-        This method implements a final validation layer that addresses edge cases not
-        handled by the validation agent. It focuses on critical syntax errors that
-        could cause system failures while preserving the flexibility for downstream
-        components to handle complex cases.
-        
-        Design Philosophy:
-            The validation approach is conservative - it only fixes clear, unambiguous
-            errors while leaving more complex cases to the smart action dispatcher.
-            This design prevents over-correction while ensuring system stability.
+        Handles known issues like incorrect filter syntax and invalid action keywords
+        while leaving complex cases to the downstream dispatcher.
         
         Args:
-            action_syntax: Raw action string from the action planning agent
+            action_syntax: Raw action string from action planning agent
             
         Returns:
-            Validated and potentially corrected action syntax
-            
-        Research Note:
-            This validation layer emerged from empirical analysis of common failure modes
-            in the multi-agent system. The most frequent issues involve incomplete action
-            specifications and invalid action keywords.
+            Validated and corrected action syntax
         """
         # Handle null or invalid input gracefully
         if not action_syntax or not isinstance(action_syntax, str):
@@ -191,7 +132,7 @@ class AutoGenDecoder:
         valid_actions = [
             "filter", "predict", "explain", "important", "score", 
             "show", "change", "mistake", "data", "followup",
-            "model", "predictionfilter", "labelfilter", "reset"
+            "model", "predictionfilter", "labelfilter"
         ]
         
         if parts[0] not in valid_actions:
@@ -203,25 +144,12 @@ class AutoGenDecoder:
         return action_syntax
 
     def _setup_agent_architecture(self):
-        """
-        Initialize the Specialized Agent Network
+        """Initialize the three specialized agents for the processing pipeline.
         
-        This method configures the three core agents that form the natural language
-        understanding pipeline. Each agent is designed with specific expertise and
-        operating parameters optimized for their particular task.
-        
-        Agent Architecture Design:
-            The three-agent architecture represents a novel application of multi-agent
-            systems to conversational AI. The design is inspired by cognitive science
-            models of human language processing, where different brain regions specialize
-            in specific aspects of language understanding.
-        
-        Research Innovation:
-            Unlike traditional single-model approaches, this architecture allows for:
-            - Specialized prompt engineering per processing stage
-            - Independent optimization of each processing component
-            - Robust error handling through redundant validation
-            - Clear separation of concerns for maintainability
+        Creates:
+        - Intent extraction agent: Understands user intent and extracts entities
+        - Intent validation agent: Critically examines and refines intent
+        - Action planning agent: Converts validated intent to action commands
         """
         
         # Agent 1: Intent Extraction and Entity Recognition
@@ -271,7 +199,7 @@ INTENT TYPES:
 - show: Display data instances ("show patient 10", "display this data")
 - statistics: Feature statistics ("glucose statistics", "BMI distribution")
 - labels: Ground truth information ("actual labels", "true values")
-- count: Count data points ("how many patients", "number of instances")
+- count: Count data points (analyze if user wants filtered count or total dataset count) ("how many patients", "number of instances")
 - define: Feature definitions ("what is BMI", "define glucose")
 - about: System information ("tell me about yourself", "what can you do")
 - casual: Greetings, chat ("hello", "hi")
@@ -281,7 +209,6 @@ CONVERSATIONAL CONTEXT INTENTS:
 - model: Model information ("about the model", "model details", "training info")
 - predictionfilter: Filter by predictions ("where model predicted diabetes", "prediction = 1")
 - labelfilter: Filter by actual labels ("actual diabetic patients", "ground truth = 1")
-- reset: Clear context ("start over", "reset", "clear filters", "new conversation")
 
 SPECIAL FILTERING TYPES:
 - Prediction filtering: "show instances where model predicted 1", "cases where model predicts diabetes"
@@ -316,7 +243,6 @@ CONVERSATIONAL CONTEXT EXAMPLES:
 "what about the model itself" → intent: "model"
 "show me where the model predicted diabetes" → intent: "predictionfilter", entities: {prediction_values: [1]}
 "filter to actual diabetic patients" → intent: "labelfilter", entities: {label_values: [1]}
-"reset everything" → intent: "reset"
 
 OUTPUT FORMAT (JSON ONLY - NO DUPLICATE KEYS):
 {
@@ -356,14 +282,22 @@ INTENT → ACTION MAPPING:
 - show → "show"
 - statistics → "statistic"
 - labels → "label"
-- count → "countdata"
+- count → "data"
 - define → "define"
 - about → "self"
+- casual → "self"
+- followup → "self"
+- model → "self"
+- predictionfilter → "filter"
+- labelfilter → "filter"
+
+CRITICAL: If the intent is "count", you MUST return "data" as the action. NEVER return "count" as an action.
 
 IMPORTANT: Return ONLY the single action name. DO NOT generate compound actions like "filter age greater 50 score accuracy". The main system handles filtering automatically based on entities.
 
 EXAMPLES:
 Intent: data → Action: "data"
+Intent: count → Action: "data" (NEVER "count")
 Intent: predict, entities: {patient_id: 5} → Action: "predict" 
 Intent: performance, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "score"
 Intent: explain, entities: {patient_id: 2} → Action: "explain"
@@ -384,6 +318,9 @@ OUTPUT FORMAT (JSON ONLY):
 }
 
 CRITICAL: Always pass through ALL entities from intent extraction. The main system uses these entities to handle filtering automatically.
+
+IMPORTANT: The 'requires_full_dataset' field from validation is just metadata - it does NOT mean you should change the action to 'reset'. 
+Always use the validated_intent to determine the action, not any metadata fields.
 
 Be fast and direct."""
 
@@ -412,16 +349,31 @@ INTENT TYPES TO CONSIDER:
 - counterfactual: Generate counterfactual explanations for predictions
 - interactions: How features work together
 - mistakes: Where does the model fail (CRITICAL: Always needs full dataset for meaningful analysis)
+- whatif: What-if analysis scenarios
+- confidence: Prediction confidence scores
+- labels: Ground truth information
+- count: Count data points (analyze if user wants filtered count or total dataset count)
+- define: Feature definitions
+- about: System information
+- casual: Greetings, chat
+- followup: Follow-up questions
+- model: Model information
+- predictionfilter: Filter by predictions
+- labelfilter: Filter by actual labels
 
 CONTEXT-SENSITIVE VALIDATION:
 When the dataset is currently filtered, critically analyze:
 - "mistakes": MUST use full dataset (reset filter) - user wants to understand overall model errors
 - "performance": MUST use full dataset (reset filter) - user wants overall model accuracy  
 - "important": MUST use full dataset (reset filter) - user wants global feature importance
-- "data": MUST use full dataset (reset filter) - user wants general dataset statistics
+- "data": Depends on context - for general counts without "overall"/"total", keep current filter
 - "statistics": Depends on context - could be filtered or full dataset
 - "explain": Keep current filter if asking about specific filtered instances
 - "predict": Keep current filter if asking about specific instances
+- "count": CRITICAL - If user asks "overall", "total", "in the dataset" → needs full dataset
+           If user asks "how many" with NEW filtering criteria (features, operators, values) → ALWAYS needs full dataset 
+           If user asks "how many" without qualifiers and no new filters → use current filter context
+           EXAMPLE: "how many instances are there with age > 40" has NEW criteria → requires_full_dataset: true
 
 CRITICAL DECISION: 
 - If user asks about "average", "mean", "std", "distribution" of a SPECIFIC FEATURE → use "statistics"
@@ -458,6 +410,11 @@ User: "What's the average age in the dataset?"
 Initial Intent: "data"
 Critical Analysis: "This asks for a specific statistic (average) about a specific feature (age). Should be 'statistics' not 'data'. Data is for general dataset info."
 Validated Intent: "statistics" with entities: {"features": ["Age"]}
+
+User: "How many instances are there with age > 40?"
+Initial Intent: "count"
+Critical Analysis: "This count query introduces NEW filtering criteria (age > 40), so it needs the full dataset to apply the filter from scratch. Even if the dataset is currently filtered to diabetes cases, the user wants to know about age > 40 across ALL patients."
+Validated Intent: "count" with entities: {"features": ["Age"], "operators": [">"], "values": [40]} and requires_full_dataset: true
 
 CRITICAL: When validating entities, preserve the EXACT SAME structure as the original entities. Use the same keys (features not feature, values not value, etc.)
 
@@ -553,33 +510,20 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         return "\n".join(context_components)
     
     async def complete(self, user_query: str, conversation, grammar: str = None) -> Dict[str, Any]:
-        """
-        Execute Multi-Agent Natural Language Understanding Pipeline
+        """Execute the multi-agent pipeline to convert user query to action.
         
-        This method orchestrates the complete natural language understanding process,
-        coordinating the three specialized agents to transform user queries into
-        executable actions. The agents are allowed to collaborate and self-correct
-        through multiple rounds until they reach a satisfactory solution.
-        
-        Pipeline Architecture:
-            1. Context Construction: Build comprehensive situational context
-            2. Multi-Agent Collaboration: Execute round-robin agent communication  
-            3. Response Integration: Combine agent outputs into final result
-            4. Quality Assurance: Apply final validation and error correction
-            5. Agent Self-Correction: Allow agents to retry and improve their responses
+        Process:
+        1. Build context from conversation state
+        2. Run agent collaboration using round-robin communication
+        3. Integrate agent responses into final action command
         
         Args:
             user_query: Natural language input from user
-            conversation: System context and conversation state  
-            grammar: Legacy parameter maintained for API compatibility
+            conversation: Current conversation context and system state
+            grammar: Legacy parameter (unused, maintained for compatibility)
             
         Returns:
-            Structured response compatible with existing action execution system
-            
-        Research Note:
-            The asynchronous design enables concurrent processing and improves system
-            responsiveness, particularly important for interactive ML exploration.
-            Agents are given multiple opportunities to collaborate and self-correct.
+            Structured response with action and entities for execution
         """
         # Direct execution - clean and simple
         
@@ -661,18 +605,10 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         return RoundRobinGroupChat(**team_parameters)
 
     def _process_agent_responses(self, collaboration_result) -> Optional[Dict[str, Any]]:
-        """
-        Process and Integrate Multi-Agent Responses
+        """Extract and integrate JSON responses from the three agents.
         
-        This method implements sophisticated response processing logic to extract
-        and integrate the outputs from all three agents. The processing handles
-        various response formats and ensures robust information extraction.
-        
-        Response Processing Strategy:
-            1. Parse structured JSON responses from each agent
-            2. Handle partial responses when some agents fail
-            3. Implement cascading fallback for missing information
-            4. Apply final quality assurance measures
+        Parses each agent's JSON output and combines them into a final response.
+        Handles cases where some agents fail to provide valid responses.
         
         Args:
             collaboration_result: Raw output from agent collaboration
@@ -775,20 +711,27 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         
         Creates appropriate responses for non-analytical user interactions,
         such as greetings or general questions about system capabilities.
+        Uses consistent format with final_action to maintain generalizability.
         
         Returns:
             Formatted casual conversation response
         """
         return {
-            "generation": None,
-            "direct_response": (
-                "Hello! I'm an AI assistant specialized in machine learning model exploration "
-                "for diabetes risk assessment. I can help you analyze patient data, understand "
-                "model predictions, explore feature importance, and perform what-if analyses. "
-                "What would you like to investigate?"
-            ),
+            "generation": "parsed: self[e]",
+            "confidence": 0.95,
             "method": "autogen_conversational",
-            "confidence": 0.95
+            "final_action": "self",
+            "command_structure": {
+                "greeting": True,
+                "casual_response": (
+                    "Hello! I'm an AI assistant specialized in machine learning model exploration "
+                    "for diabetes risk assessment. I can help you analyze patient data, understand "
+                    "model predictions, explore feature importance, and perform what-if analyses. "
+                    "What would you like to investigate?"
+                )
+            },
+            "action_list": ["self"],
+            "validation_passed": True
         }
 
     def _integrate_agent_outputs(self, intent_response, intent_validation_response, action_response) -> Optional[Dict[str, Any]]:
@@ -1080,55 +1023,27 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
             logger.warning(f"Resource cleanup warning: {e}")
 
 
-# Factory Functions for System Integration
-# These functions provide clean interfaces for integrating the multi-agent system
-# with existing codebases while maintaining backward compatibility.
+# Factory functions for creating decoder instances
 
 def create_autogen_decoder(**kwargs) -> AutoGenDecoder:
-    """
-    Factory Function for AutoGen Decoder Instantiation
-    
-    Provides a clean interface for creating decoder instances with
-    appropriate parameter validation and error handling.
-    
-    Args:
-        **kwargs: Configuration parameters for decoder initialization
-        
-    Returns:
-        Configured AutoGenDecoder instance
-    """
+    """Factory function to create AutoGenDecoder instances."""
     return AutoGenDecoder(**kwargs)
 
 
 def get_autogen_predict_func(api_key: str = None, model: str = "gpt-4o"):
-    """
-    Generate Prediction Function Compatible with Legacy Interfaces
-    
-    Creates a prediction function that maintains compatibility with existing
-    decoder interfaces while leveraging the new multi-agent architecture.
-    This enables gradual migration of existing systems.
+    """Create a prediction function compatible with legacy decoder interfaces.
     
     Args:
-        api_key: OpenAI API key for LLM access
+        api_key: OpenAI API key 
         model: Language model identifier
         
     Returns:
-        Compatible prediction function for legacy system integration
-        
-    Design Note:
-        This function bridges the gap between old and new architectures,
-        allowing for seamless integration without requiring extensive
-        refactoring of existing codebases.
+        Prediction function that can replace legacy decoders
     """
     decoder = AutoGenDecoder(api_key=api_key, model=model)
     
     def prediction_function(prompt: str, grammar: str = None, conversation=None):
-        """
-        Legacy-Compatible Prediction Function
-        
-        Extracts user queries from legacy prompt formats and processes
-        them through the multi-agent pipeline.
-        """
+        """Legacy-compatible prediction function that extracts queries and processes them."""
         # Extract user query from legacy prompt format
         if "Query:" in prompt:
             user_query = prompt.split("Query:")[-1].strip()

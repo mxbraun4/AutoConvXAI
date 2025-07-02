@@ -1,7 +1,11 @@
-"""Explanation class for generating different types of explanations.
+"""Explanation classes for generating model explanations and counterfactuals.
 
-This module provides a clean, direct approach to model explanations without fallbacks.
-Built for maximum generalizability with AutoGen-powered query processing.
+This module provides three main classes:
+- Explanation: Base class with caching functionality for explanations
+- TabularDice: Counterfactual explanations using DiCE ML library  
+- MegaExplainer: Wrapper for the multi-method explanation selection system
+
+All classes support caching to improve performance for repeated queries.
 """
 
 import os
@@ -21,7 +25,7 @@ app = Flask(__name__)
 
 
 def load_cache(cache_location: str):
-    """Loads the cache."""
+    """Load explanation cache from disk or create empty cache if file doesn't exist."""
     if os.path.isfile(cache_location):
         with open(cache_location, 'rb') as file:
             cache = pkl.load(file)
@@ -31,19 +35,24 @@ def load_cache(cache_location: str):
 
 
 class Explanation:
-    """A top level class defining explanations."""
+    """Base class for explanation methods with caching functionality.
+    
+    Provides common functionality for caching explanations to disk and managing
+    cache size limits. Subclasses implement specific explanation algorithms.
+    """
 
     def __init__(self,
                  cache_location: str,
                  class_names: dict = None,
                  max_cache_size: int = 1_000_000,
                  rounding_precision: int = 3):
-        """Init.
+        """Initialize explanation base class with caching support.
 
-        Arguments:
-            cache_location:
-            class_names:
-            max_cache_size:
+        Args:
+            cache_location: File path to store explanation cache
+            class_names: Mapping from class indices to human-readable names
+            max_cache_size: Maximum number of explanations to cache
+            rounding_precision: Number of decimal places for rounding results
         """
         self.max_cache_size = max_cache_size
         self.cache_loc = cache_location
@@ -52,7 +61,7 @@ class Explanation:
         self.rounding_precision = rounding_precision
 
     def get_label_text(self, label: int):
-        """Gets the label text."""
+        """Convert class label to human-readable text using class_names mapping."""
         if self.class_names is not None:
             label_name = self.class_names[label]
         else:
@@ -60,18 +69,20 @@ class Explanation:
         return label_name
 
     def update_cache_size(self, new_cache_size: int):
-        """Change the size of the cache."""
+        """Update the maximum cache size limit."""
         self.max_cache_size = new_cache_size
 
     def _cache_size(self):
+        """Return current number of cached explanations."""
         return len(self.cache)
 
     def _save_cache(self):
-        """Saves the current self.cache."""
+        """Save current cache to disk."""
         with open(self.cache_loc, 'wb') as file:
             pkl.dump(self.cache, file)
 
     def _get_from_cache(self, ids: list[int], ids_to_regenerate: list[int] = None):
+        """Retrieve explanations from cache, identifying cache hits and misses."""
         if ids_to_regenerate is None:
             ids_to_regenerate = []
         misses, hits = [], {}
@@ -84,11 +95,11 @@ class Explanation:
         return misses, hits
 
     def _write_to_cache(self, expls: dict):
-        """Writes explanations to cache at ids, overwriting."""
+        """Store explanations in cache and manage cache size limits."""
         for i, c_id in enumerate(expls):
             self.cache[c_id] = expls[c_id]
 
-        # resize if we exceed cache, I haven't tested this currently
+        # Remove random entries if cache exceeds size limit
         while len(self.cache) > self.max_cache_size:
             keys = list(self.cache)
             to_remove = np.random.choice(keys)
@@ -101,10 +112,19 @@ class Explanation:
                          data: pd.DataFrame,
                          ids_to_regenerate: list[int] = None,
                          save_to_cache: bool = True):
-        """Gets explanations corresponding to ids in data, where data is a pandas df.
+        """Get explanations for specified instance IDs, using cache when available.
 
-        This routine will pull explanations from the cache if they exist. If
-        they don't it will call run_explanation on these ids.
+        Checks cache first, then generates explanations for cache misses using
+        the run_explanation method (implemented by subclasses).
+
+        Args:
+            ids: List of instance IDs to explain
+            data: DataFrame containing the instances
+            ids_to_regenerate: IDs to regenerate even if cached
+            save_to_cache: Whether to save new explanations to cache
+
+        Returns:
+            Dictionary mapping instance IDs to their explanations
         """
         if ids_to_regenerate is None:
             ids_to_regenerate = []
@@ -126,7 +146,11 @@ class Explanation:
 
 
 class TabularDice(Explanation):
-    """Tabular dice counterfactual explanations."""
+    """Counterfactual explanation generator using DiCE ML library.
+    
+    Generates counterfactual examples that show how to change feature values
+    to flip model predictions. Uses DiCE's random sampling method.
+    """
 
     def __init__(self,
                  model,
@@ -137,18 +161,17 @@ class TabularDice(Explanation):
                  desired_class: str = "opposite",
                  cache_location: str = "./cache/dice-tabular.pkl",
                  class_names: dict = None):
-        """Init.
+        """Initialize DiCE counterfactual explanation generator.
 
-        Arguments:
-            model: the sklearn style model, where model.predict(data) returns the predictions
-                   and model.predict_proba returns the prediction probabilities
-            data: the pandas df data
-            num_features: The *names* of the numerical features in the dataframe
-            num_cfes_per_instance: The total number of cfes to generate per instance
-            num_in_short_summary: The number of cfes to include in the short summary
-            desired_class: Set to "opposite" to compute opposite class
-            cache_location: Location to store cache.
-            class_names: The map between class names and text class description.
+        Args:
+            model: Sklearn-style model with predict() and predict_proba() methods
+            data: Training data as pandas DataFrame
+            num_features: List of numerical feature names
+            num_cfes_per_instance: Number of counterfactuals to generate per instance
+            num_in_short_summary: Number of counterfactuals to show in summary
+            desired_class: Target class for counterfactuals ("opposite" or specific class)
+            cache_location: File path to store counterfactual cache
+            class_names: Mapping from class indices to readable names
         """
         # dice_ml is imported directly - no fallbacks needed
             
@@ -181,7 +204,7 @@ class TabularDice(Explanation):
             self.dice_data, self.dice_model, method="random")
 
     def wrap(self, model: Any):
-        """Wraps model, converting pd to df to silence dice warnings"""
+        """Wrap model to convert pandas DataFrames to numpy arrays (suppresses DiCE warnings)."""
         class Model:
             def __init__(self, m):
                 self.model = m
@@ -330,10 +353,11 @@ class TabularDice(Explanation):
 
 
 class MegaExplainer(Explanation):
-    """Generates many model agnostic explanations and selects the best one.
+    """Wrapper for the multi-method explanation selection system.
 
-    Note that this class can be used to recover a single explanation as well
-    by setting the available explanations to the particular one, i.e., 'lime'
+    This class provides a unified interface to the Explainer class, which
+    automatically selects the best explanation method (LIME variants or SHAP)
+    based on faithfulness and stability testing.
     """
 
     def __init__(self,
@@ -343,15 +367,15 @@ class MegaExplainer(Explanation):
                  cache_location: str = "./cache/mega-explainer-tabular.pkl",
                  class_names: list[str] = None,
                  use_selection: bool = True):
-        """Init.
+        """Initialize the multi-method explanation system.
 
         Args:
-            prediction_fn: A callable function that computes the prediction probabilities on some
-                           data.
-            data:
-            cat_features:
-            cache_location:
-            class_names:
+            prediction_fn: Model prediction function (returns probabilities)
+            data: Training data as pandas DataFrame
+            cat_features: Categorical feature indices or names
+            cache_location: File path to store explanation cache
+            class_names: List of human-readable class names
+            use_selection: Whether to use multi-method selection (vs just LIME)
         """
         super().__init__(cache_location, class_names)
         self.prediction_fn = prediction_fn

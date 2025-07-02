@@ -1,8 +1,28 @@
-"""Utils"""
+"""Utility functions for data manipulation and text generation.
+
+This module provides helper functions used across the explanation system:
+- Dictionary manipulation for storing lists of values
+- Text generation for filtering operation descriptions
+"""
 
 
 def add_to_dict_lists(key, value, dictionary):
-    """Stores values in list corresponding to key in place."""
+    """Add a value to a list stored in a dictionary, creating the list if needed.
+    
+    This function treats dictionary values as lists and appends new values.
+    If the key doesn't exist, it creates a new list with the value.
+    Modifies the dictionary in place.
+    
+    Args:
+        key: Dictionary key to store the value under
+        value: Value to append to the list at the given key
+        dictionary: Dictionary to modify (updated in place)
+        
+    Example:
+        data = {}
+        add_to_dict_lists('scores', 0.85, data)  # data = {'scores': [0.85]}
+        add_to_dict_lists('scores', 0.92, data)  # data = {'scores': [0.85, 0.92]}
+    """
     if key not in dictionary:
         dictionary[key] = [value]
     else:

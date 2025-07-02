@@ -1,8 +1,8 @@
 """Measure interaction effects between features."""
 import numpy as np
 
-from explain.feature_interaction import FeatureInteraction
-from explain.utils import gen_parse_op_text
+from explain.core.feature_interaction import FeatureInteraction
+from explain.core.utils import gen_parse_op_text
 
 NUM_FEATURES_TO_COMPUTE_INTERACTIONS = 4
 NUM_TO_SAMPLE = 40

@@ -1,4 +1,9 @@
-"""Feature interaction analysis for understanding how features work together."""
+"""Feature interaction analysis for understanding how features work together.
+
+This module measures feature interactions by analyzing how the effect of one feature
+changes when another feature is held at different values. Uses partial dependence
+and conditional interaction analysis.
+"""
 import copy
 from typing import Any
 
@@ -7,7 +12,18 @@ import pandas as pd
 
 
 class FeatureInteraction:
-    """Feature interaction explainer for measuring how features interact with each other."""
+    """Measures feature interactions using partial dependence analysis.
+    
+    Computes interaction strength by examining how the effect of feature i changes
+    when feature j is held at different values. Higher interaction means the features
+    work together synergistically to influence predictions.
+    
+    Method:
+    1. For each value of feature j, fix j at that value across all data
+    2. Compute partial dependence of feature i on the modified data
+    3. Measure variance in partial dependence across different j values
+    4. Higher variance = stronger interaction between features i and j
+    """
 
     def __init__(self,
                  data: pd.DataFrame,
@@ -18,11 +34,11 @@ class FeatureInteraction:
         """Initialize the feature interaction analyzer.
 
         Args:
-            data: data to compute feature interactions
-            prediction_fn: the prediction function
-            cat_features: categorical features
-            class_ind: the class index to compute the feature interaction effects on
-            verbose: whether to enable verbosity
+            data: Training data for computing interactions
+            prediction_fn: Model prediction function that returns probabilities
+            cat_features: List of categorical feature names
+            class_ind: Specific class index to analyze (if None, uses max across classes)
+            verbose: Enable detailed logging output
         """
         self.data = data
         self.class_ind = class_ind
@@ -35,13 +51,19 @@ class FeatureInteraction:
                             j: str,
                             sub_sample_pct: float = None,
                             number_sub_samples: int = None):
-        """Compute the feature interaction between features i and j.
+        """Compute bidirectional interaction strength between two features.
+
+        Measures how much feature i's effect changes when feature j varies, and vice versa.
+        Returns the average of both directions to get symmetric interaction strength.
 
         Args:
-            i: feature name one
-            j: feature name two
-            sub_sample_pct: percent to sample down feature's values to make it run quicker
-            number_sub_samples: the number of subsamples to use
+            i: Name of first feature to analyze
+            j: Name of second feature to analyze  
+            sub_sample_pct: Percentage (0-100) of unique values to sample for efficiency
+            number_sub_samples: Exact number of values to sample (overrides percentage)
+            
+        Returns:
+            float: Symmetric interaction strength (higher = more interaction)
         """
         # If number sub_samples is set, use this value
         if number_sub_samples is not None:
@@ -62,7 +84,19 @@ class FeatureInteraction:
         return mean_interaction
 
     def choose_values_to_sample(self, i: str, data: pd.DataFrame, num_sub_samples: int):
-        """Sample down a feature for easier marginalization."""
+        """Select representative values from a feature for efficient computation.
+        
+        For categorical features: randomly samples values
+        For numerical features: evenly spaces values across the range
+        
+        Args:
+            i: Feature name to sample from
+            data: Dataset containing the feature
+            num_sub_samples: Target number of values to sample
+            
+        Returns:
+            np.array: Selected representative values for the feature
+        """
         unique_values = np.sort(data[i].unique())
 
         if len(unique_values) < num_sub_samples:
@@ -80,7 +114,24 @@ class FeatureInteraction:
         return samples
 
     def conditional_interaction(self, i: str, j: str, data: pd.DataFrame, num_sub_samples: int):
-        """Compute the feature interaction of i conditioned on j."""
+        """Measure how feature i's effect varies when feature j is held constant.
+        
+        For each value of feature j:
+        1. Fix j at that value across all data points
+        2. Compute partial dependence of feature i 
+        3. Measure the 'flatness' (variance) of i's effect
+        
+        Higher standard deviation = stronger interaction between i and j.
+        
+        Args:
+            i: Feature whose effect we're measuring
+            j: Feature we're conditioning on (holding constant)
+            data: Dataset to analyze
+            num_sub_samples: Number of j values to test
+            
+        Returns:
+            float: Standard deviation of i's effect across different j values
+        """
         # Choose sub sample of feature
         unique_values_of_j = self.choose_values_to_sample(j, data, num_sub_samples)
 
@@ -93,7 +144,22 @@ class FeatureInteraction:
         return np.std(results)
 
     def partial_dependence_flatness(self, i: str, data: pd.DataFrame, num_sub_samples: int) -> float:
-        """Compute a notion of flatness of the partial dependence."""
+        """Measure how much a feature's effect varies across its value range.
+        
+        For categorical features: Uses (max - min) / 4 as flatness measure
+        For numerical features: Uses sample variance as flatness measure
+        
+        Higher flatness = feature has more variable/non-linear effects
+        Lower flatness = feature has consistent/linear effects
+        
+        Args:
+            i: Feature name to analyze
+            data: Dataset to compute partial dependence on
+            num_sub_samples: Number of feature values to sample
+            
+        Returns:
+            float: Flatness score for the specified class (or max across classes)
+        """
         if i in self.cat_features:
             _, dependence = self.partial_dependence(i, data, num_sub_samples)
             max_dep, min_dep = np.max(dependence, axis=0), np.min(dependence, axis=0)
@@ -112,7 +178,22 @@ class FeatureInteraction:
         return flatness[self.class_ind] if hasattr(flatness, '__getitem__') else flatness
 
     def partial_dependence(self, i: str, data: pd.DataFrame, num_sub_samples: int) -> Any:
-        """Compute partial dependence values for feature i."""
+        """Compute partial dependence plot data for a single feature.
+        
+        Partial dependence shows the marginal effect of a feature on predictions:
+        1. For each unique value of feature i
+        2. Set all data points to have that value for feature i
+        3. Compute average prediction across all modified data points
+        4. This reveals i's isolated effect on the model
+        
+        Args:
+            i: Feature name to analyze
+            data: Dataset to compute partial dependence on  
+            num_sub_samples: Number of feature values to sample
+            
+        Returns:
+            tuple: (feature_values, dependence_values) both sorted by feature value
+        """
         unique_column_values = self.choose_values_to_sample(i, data, num_sub_samples)
 
         pdp = {}

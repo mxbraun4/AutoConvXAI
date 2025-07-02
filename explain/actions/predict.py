@@ -1,6 +1,6 @@
 """Prediction operation."""
 import numpy as np
-from explain.utils import gen_parse_op_text
+from explain.core.utils import gen_parse_op_text
 
 
 

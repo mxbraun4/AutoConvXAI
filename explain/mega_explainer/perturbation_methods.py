@@ -1,12 +1,20 @@
-"""TODO(satya): docstring."""
+"""Data perturbation methods for testing explanation faithfulness and stability.
+
+This module provides methods to generate slightly modified versions of input data
+for testing how robust and faithful explanations are.
+"""
 import torch
 
 
 class BasePerturbation:
-    """Base Class for perturbation methods."""
+    """Base class for data perturbation methods used in explanation testing."""
 
     def __init__(self, data_format):
-        """Initialize generic parameters for the perturbation method."""
+        """Initialize perturbation method.
+        
+        Args:
+            data_format: Type of data to perturb ("tabular" only currently supported)
+        """
         assert data_format == "tabular", "Currently, only tabular data is supported!"
         self.data_format = data_format
 
@@ -16,18 +24,34 @@ class BasePerturbation:
                              num_samples: int,
                              feature_metadata: list,
                              max_distance: int = None) -> torch.tensor:
-        """Logic of the perturbation methods which will return perturbed samples.
+        """Generate perturbed versions of input sample for explanation testing.
 
-        This method should be overwritten.
+        This method should be overridden by subclasses to implement specific
+        perturbation strategies (Gaussian noise, random flips, etc.).
+        
+        Args:
+            original_sample: The input instance to perturb
+            feature_mask: Boolean mask indicating which features to keep unchanged
+            num_samples: Number of perturbed samples to generate
+            feature_metadata: List of 'c'/'d' indicating continuous/discrete features
+            max_distance: Maximum allowed distance from original sample
+            
+        Returns:
+            torch.tensor: Generated perturbed samples for testing
         """
+        raise NotImplementedError("Subclasses must implement get_perturbed_inputs")
 
 
 class NormalPerturbation(BasePerturbation):
-    """TODO(satya): docstring.
-
-    TODO(satya): Should we scale the std. based on the size of the feature? This could lead to
-    some odd results if the features aren't scaled the same and we apply the same std noise
-    across all the features.
+    """Gaussian perturbation method for continuous features with random flips for discrete features.
+    
+    This method perturbs data by:
+    - Adding Gaussian noise to continuous features 
+    - Randomly flipping discrete/categorical features based on flip percentage
+    - Respecting feature masks to keep certain features unchanged
+    
+    Note: Uses same std deviation across all features - may need feature-specific scaling
+    for datasets where features have very different scales.
     """
 
     def __init__(self,
@@ -35,14 +59,13 @@ class NormalPerturbation(BasePerturbation):
                  mean: float = 0.0,
                  std: float = 0.05,
                  flip_percentage: float = 0.3):
-        """Init.
+        """Initialize Gaussian perturbation method.
 
         Args:
-            data_format: A string describing the format of the data, i.e., "tabular" for tabular
-                         data.
-            mean: the mean of the gaussian perturbations
-            std: the standard deviation of the gaussian perturbations
-            flip_percentage: The percent of features to flip while perturbing
+            data_format: Type of data ("tabular" only currently supported)
+            mean: Mean of Gaussian noise added to continuous features (usually 0.0)
+            std: Standard deviation of Gaussian noise (controls perturbation strength)
+            flip_percentage: Probability of flipping each discrete feature (0.0 to 1.0)
         """
         self.mean = mean
         self.std_dev = std
@@ -70,51 +93,48 @@ class NormalPerturbation(BasePerturbation):
             perturbed_samples: The original_original sample perturbed with Gaussian perturbations
                                num_samples times.
         """
-        # Ensure tensor dtype/shape consistency -------------------------------------------
-        # Convert the incoming numpy array (or list) to a 1-D torch tensor
+        # Input validation and format conversion
         if not isinstance(original_sample, torch.Tensor):
             original_sample = torch.tensor(original_sample, dtype=torch.float32)
+        original_sample = original_sample.flatten()  # Ensure 1D
 
-        # Flatten in case the sample is 2-D (e.g., shape (1, n_features))
-        original_sample = original_sample.flatten()
-
-        # Make sure the boolean mask is a torch tensor as well
         if not isinstance(feature_mask, torch.Tensor):
             feature_mask = torch.tensor(feature_mask, dtype=torch.bool)
 
-        # Align lengths (defensive programming – avoid truncating original sample)
+        # Ensure all arrays have matching lengths
         if len(feature_mask) < len(original_sample):
-            # Pad feature_mask with False (i.e., allow perturbation) for missing dims
+            # Pad mask with False (allow perturbation) for missing dimensions
             pad_size = len(original_sample) - len(feature_mask)
             pad = torch.zeros(pad_size, dtype=torch.bool)
             feature_mask = torch.cat([feature_mask, pad])
         elif len(feature_mask) > len(original_sample):
-            # Trim mask if somehow longer
             feature_mask = feature_mask[: len(original_sample)]
 
-        # Ensure feature_type length matches
+        # Align feature metadata length with sample
         feature_type = feature_metadata[: len(original_sample)]
 
+        # Create boolean masks for feature types
         continuous_features = torch.tensor([i == 'c' for i in feature_type])
         discrete_features = torch.tensor([i == 'd' for i in feature_type])
 
-        # -------------------------------------------------------------------------------
-        # Generate perturbations --------------------------------------------------------
-        mean = self.mean
-        std_dev = self.std_dev
+        # Generate perturbations based on feature types
+        # Step 1: Add Gaussian noise to continuous features
+        noise = torch.normal(self.mean, self.std_dev, [num_samples, len(feature_type)])
+        perturbations = noise * continuous_features + original_sample
 
-        # Continuous columns – add Gaussian noise
-        perturbations = (torch.normal(mean, std_dev, [num_samples, len(feature_type)])
-                         * continuous_features + original_sample)
+        # Step 2: Handle discrete features with random flips
+        # Generate random flip decisions for each discrete feature
+        flip_probs = torch.empty(num_samples, len(feature_type)).fill_(self.flip_percentage)
+        random_flips = torch.bernoulli(flip_probs)
+        
+        # Apply flips only to discrete features: flip by subtracting from absolute value
+        perturbations = (perturbations * (~discrete_features) +  # Keep continuous perturbations
+                        torch.abs((perturbations * discrete_features) -  # For discrete features
+                                 (random_flips * discrete_features)))     # Apply random flips
 
-        # Discrete columns – randomly flip a percentage of values
-        flip_percentage = self.flip_percentage
-        p = torch.empty(num_samples, len(feature_type)).fill_(flip_percentage)
-        perturbations = (perturbations * (~discrete_features)
-                         + torch.abs((perturbations * discrete_features)
-                                     - (torch.bernoulli(p) * discrete_features)))
-
-        # Keep the top-K (masked == True) features static
-        perturbed_samples = original_sample * feature_mask + perturbations * (~feature_mask)
+        # Step 3: Respect feature mask - keep masked features unchanged
+        # feature_mask: True = keep original, False = allow perturbation
+        perturbed_samples = (original_sample * feature_mask +        # Keep masked features
+                           perturbations * (~feature_mask))         # Perturb unmasked features
 
         return perturbed_samples

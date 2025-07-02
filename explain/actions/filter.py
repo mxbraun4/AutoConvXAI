@@ -174,6 +174,10 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
     conversation.add_interpretable_parse_op(interp_parse_text)
     conversation.temp_dataset.contents = updated_dset
 
+    # NEW: Mark that this query applied a filter for clearer response communication
+    resulting_size = len(updated_dset['X'])
+    conversation.mark_query_filter_applied(interp_parse_text, resulting_size)
+
     # Return meaningful results instead of empty string
     num_instances = len(updated_dset['X'])
     if num_instances == 0:
@@ -193,22 +197,29 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
 
 
 def _handle_id_filtering(temp_dataset, conversation, feature_value):
-    """Handle ID-based filtering cleanly."""
+    """Handle ID-based filtering cleanly.
+    
+    When filtering by ID, we reset to the full dataset first since the user
+    is asking about a specific instance regardless of current filters.
+    """
     try:
         id_value = int(feature_value)
     except ValueError:
         raise ValueError(f"ID must be a number, got: {feature_value}")
     
-    updated_dset = temp_dataset.copy()
+    # Use full dataset for ID filtering, not current filtered dataset
+    # This ensures we can find any valid instance ID
+    full_dataset = conversation.get_var('dataset').contents
+    updated_dset = full_dataset.copy()
     
     # If id never appears in index, set the data to empty
     if id_value not in list(updated_dset['X'].index):
         updated_dset['X'] = updated_dset['X'].iloc[0:0]  # Empty dataframe with same structure
         updated_dset['y'] = updated_dset['y'].iloc[0:0]  # Empty series with same structure
         
-        # Store helpful error information
-        available_ids = list(temp_dataset['X'].index)[:10]
-        total_ids = len(list(temp_dataset['X'].index))
+        # Store helpful error information from full dataset
+        available_ids = list(full_dataset['X'].index)[:10]
+        total_ids = len(list(full_dataset['X'].index))
         
         error_msg = f"ID {id_value} not found. "
         if total_ids > 0:

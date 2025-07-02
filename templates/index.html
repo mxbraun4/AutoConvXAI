@@ -1,21 +1,29 @@
-<!-- This code is modified from a script provided in https://studygyaan.com/python/create-web-based-chatbot-in-python-django-flask -->
+<!--
+TalkToModel Chat Interface
+Original design modified from: https://studygyaan.com/python/create-web-based-chatbot-in-python-django-flask
+This is the main chat interface for interacting with ML model explanations.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>TalkToModel</title>
-  <meta charset="UTF-8">
+  <!-- Responsive design and browser compatibility -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <!-- External dependencies -->
   <link rel="stylesheet" href="/static/styles/style.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
 
 <body>
     <messagebody>
-        <!-- The text interaction part of the method -->
+        <!-- Main chat interface container -->
         <section class="ttm">
+          <!-- Chat message display area -->
           <main class="ttm-chat">
+            <!-- Initial welcome message -->
             <div class="msg left-msg">
               <div class="msg-bubble">
                 <div class="msg-text">
@@ -27,42 +35,69 @@
             </div>
           </main>
 
+          <!-- User input form -->
           <form class="ttm-inputarea">
             <input type="text" class="ttm-input" id="textInput" placeholder="Enter your command! Use the ↑ arrow and ↓ arrow to cycle previous commands.">
-              <button type="submit" class="ttm-send-btn">Send</button>
+            <button type="submit" class="ttm-send-btn">Send</button>
           </form>
-            <span class="genOptions">👇Help me generate a question about...👇</span>
+          
+          <!-- Help section toggle -->
+          <span class="genOptions">👇Help me generate a question about...👇</span>
 
-            <div class="slideDown">
-                <div class="dots-cont", id="generation-loading"> <span class="dot dot-1"></span> <span class="dot dot-2"></span> <span class="dot dot-3"></span> </div>
-                <div class="buttons", id="generation-buttons">
-                    <button id="idea-important" class="idea-button" onclick="sampleImportant()">important features</button>
-                    <button id="idea-why" class="idea-button" onclick="sampleWhy()">explanations</button>
-                    <button id="idea-predict" class="idea-button" onclick="samplePredict()">predictions</button>
-                    <button id="idea-likelihood" class="idea-button" onclick="sampleLikelihood()">prediction likelihood</button>
-                    <button id="idea-show" class="idea-button" onclick="sampleShow()">showing data</button>
-                    <button id="idea-capabilities" class="idea-button" onclick="sampleCapabilities()">system capabilities</button>
-                    <button id="idea-performance" class="idea-button" onclick="samplePerformance()">performance</button>
-                    <button id="idea-whatif" class="idea-button" onclick="sampleWhatIf()">what if scenario</button>
-                    <button id="idea-flip" class="idea-button" onclick="sampleFlip()">how to change a prediction</button>
-                    <button id="idea-description" class="idea-button" onclick="sampleDataDescription()">dataset description</button>
-                    <button id="idea-interaction" class="idea-button" onclick="sampleInteractions()">feature interaction effects</button>
-                    <button id="idea-mistakes" class="idea-button" onclick="sampleMistakes()">mistakes</button>
-                    <button id="idea-labels" class="idea-button" onclick="sampleLabels()">data labels</button>
-                </div>
-            </div>
+          <!-- Collapsible help section with suggestion buttons -->
+          <div class="slideDown">
+              <!-- Loading animation (shown during sample generation) -->
+              <div class="dots-cont" id="generation-loading"> 
+                <span class="dot dot-1"></span> 
+                <span class="dot dot-2"></span> 
+                <span class="dot dot-3"></span> 
+              </div>
+              
+              <!-- Sample question buttons organized by category -->
+              <div class="buttons" id="generation-buttons">
+                  <!-- Feature analysis questions -->
+                  <button id="idea-important" class="idea-button" onclick="sampleImportant()">important features</button>
+                  <button id="idea-interaction" class="idea-button" onclick="sampleInteractions()">feature interaction effects</button>
+                  
+                  <!-- Explanation questions -->
+                  <button id="idea-why" class="idea-button" onclick="sampleWhy()">explanations</button>
+                  <button id="idea-flip" class="idea-button" onclick="sampleFlip()">how to change a prediction</button>
+                  <button id="idea-whatif" class="idea-button" onclick="sampleWhatIf()">what if scenario</button>
+                  
+                  <!-- Prediction questions -->
+                  <button id="idea-predict" class="idea-button" onclick="samplePredict()">predictions</button>
+                  <button id="idea-likelihood" class="idea-button" onclick="sampleLikelihood()">prediction likelihood</button>
+                  
+                  <!-- Data exploration questions -->
+                  <button id="idea-show" class="idea-button" onclick="sampleShow()">showing data</button>
+                  <button id="idea-description" class="idea-button" onclick="sampleDataDescription()">dataset description</button>
+                  <button id="idea-labels" class="idea-button" onclick="sampleLabels()">data labels</button>
+                  
+                  <!-- Model analysis questions -->
+                  <button id="idea-performance" class="idea-button" onclick="samplePerformance()">performance</button>
+                  <button id="idea-mistakes" class="idea-button" onclick="sampleMistakes()">mistakes</button>
+                  <button id="idea-capabilities" class="idea-button" onclick="sampleCapabilities()">system capabilities</button>
+              </div>
+          </div>
         </section>
     </messagebody>
 </body>
 </html>
 
+<!-- Toggle help section visibility -->
 <script>
+    // Show/hide the help section when clicked
     $('.genOptions').click(function(e){
         $('.slideDown').slideToggle();
     });
 </script>
 
+<!-- Sample question generation system -->
 <script>
+    /**
+     * Requests a sample question from the server for a given action type
+     * @param {string} rawAction - The action type to generate a sample for
+     */
     function doSample(rawAction) {
         let username = '{{ currentUserId }}'
         let dataPackage = {action: rawAction, thisUserName: username}
@@ -74,12 +109,15 @@
             contentType: 'application/json',
             cache: false,
             success: function (data) {
-                // Handle different response formats
+                // Handle different response formats from the server
                 if (typeof data === 'string') {
+                    // Simple string response
                     ttmInput.value = data;
                 } else if (data.samples && data.samples.length > 0) {
+                    // Array of samples - pick one randomly
                     ttmInput.value = data.samples[Math.floor(Math.random() * data.samples.length)];
                 } else {
+                    // Fallback if no valid samples returned
                     ttmInput.value = "Ask me about the diabetes dataset!";
                 }
             },
@@ -89,73 +127,57 @@
             }
         });
     }
-    function sampleDataDescription() {
-        doSample("description");
-    }
-    function samplePerformance() {
-        doSample("score");
-    }
-    function sampleWhatIf() {
-        doSample("whatif");
-    }
-    function sampleMistakes() {
-        doSample("mistake");
-    }
-    function sampleFlip() {
-        doSample("cfe");
-    }
-    function sampleImportant() {
-        doSample("important");
-    }
-    function sampleLabels() {
-        doSample("labels");
-    }
-    function sampleWhy() {
-        doSample("explain");
-    }
-    function samplePredict() {
-        doSample("predict");
-    }
-    function sampleLikelihood() {
-        doSample("likelihood");
-    }
-    function sampleShow() {
-        doSample("show");
-    }
-    function sampleCapabilities() {
-        doSample("function");
-    }
-    function sampleInteractions() {
-        doSample("interactions")
-    }
+    
+    // Sample question functions - each maps to a specific action type
+    function sampleDataDescription() { doSample("description"); }
+    function samplePerformance() { doSample("score"); }
+    function sampleWhatIf() { doSample("whatif"); }
+    function sampleMistakes() { doSample("mistake"); }
+    function sampleFlip() { doSample("cfe"); }
+    function sampleImportant() { doSample("important"); }
+    function sampleLabels() { doSample("labels"); }
+    function sampleWhy() { doSample("explain"); }
+    function samplePredict() { doSample("predict"); }
+    function sampleLikelihood() { doSample("likelihood"); }
+    function sampleShow() { doSample("show"); }
+    function sampleCapabilities() { doSample("function"); }
+    function sampleInteractions() { doSample("interactions"); }
 </script>
 
-<script src='https://use.fontawesome.com/releases/v5.0.13/js/all.js'></script>
-    <script>
+<!-- Main chat interface functionality -->
+<script>
+      // DOM element references
       const ttmForm = get(".ttm-inputarea");
       const ttmInput = get(".ttm-input");
       const ttmChat = get(".ttm-chat");
+      
+      // User input history for arrow key navigation
       let userInputs = [];
       let userInputIndex = 0;
 
-      // text box command
+      // Handle form submission (user sends a message)
       ttmForm.addEventListener("submit", event => {
         event.preventDefault();
         const msgText = ttmInput.value;
         if (!msgText) return;
+        
+        // Add user message to chat
         addToChat("right", msgText, "");
+        
+        // Show loading indicator and scroll
         insertLoadingDots();
         ttmChat.scrollTop += 200;
+        
+        // Clear input and send to bot
         ttmInput.value = "";
         botResponse(msgText);
       });
 
+      // Feedback button handlers - hide feedback UI and log response
       function answeredNo(logText) {
-        // Fade out
         $('.all-feedback').fadeOut(250, function() {
             $('.all-feedback').remove();
         });
-
         const feedback = `MessageID: ${logText} || Feedback: Negative || Username: {{ currentUserId }}`;
         logFeedback(feedback);
       }
@@ -164,23 +186,19 @@
         $('.all-feedback').fadeOut(250, function() {
             $('.all-feedback').remove();
         });
-
         const feedback = `MessageID: ${logText} || Feedback: Insightful || Username: {{ currentUserId }}`;
         logFeedback(feedback);
       }
 
       function answeredConfused(logText) {
-        // Fade out
         $('.all-feedback').fadeOut(250, function() {
             $('.all-feedback').remove();
         });
-
         const feedback = `MessageID: ${logText} || Feedback: Confused || Username: {{ currentUserId }}`;
         logFeedback(feedback);
       }
 
       function answeredYes(logText) {
-        // Fade out
         $('.all-feedback').fadeOut(250, function() {
             $('.all-feedback').remove();
         });
@@ -188,9 +206,10 @@
         logFeedback(feedback);
       }
 
+      // Show typing indicator while waiting for bot response
       function insertLoadingDots() {
           let msgHTML = `
-            <div class="loading-dots", id="current-dots">
+            <div class="loading-dots" id="current-dots">
                 <div class="msg left-msg">
                     <div class="msg-bubble">
                         <div class="stage">
@@ -203,16 +222,23 @@
           ttmChat.insertAdjacentHTML("beforeend", msgHTML);
       }
 
+      // Remove typing indicator when bot responds
       function deleteLoadingDots() {
         document.getElementById("current-dots").outerHTML = "";
       }
 
 
+      /**
+       * Add a message to the chat interface
+       * @param {string} side - "left" for bot messages, "right" for user messages
+       * @param {string} text - Message content
+       * @param {string} logText - Message ID for feedback logging
+       */
       function addToChat(side, text, logText) {
-        // Defines adding messages to the conversation
         let msgHTML = "";
 
         if (side == "left") {
+         // Bot message with feedback buttons
          msgHTML = `
             <div class="msg ${side}-msg">
               <div class="msg-bubble">
@@ -234,22 +260,8 @@
             </div>
             `;
             ttmChat.insertAdjacentHTML("beforeend", msgHTML);
-            document.addEventListener("click", doReact);
-            function doReact(event) {
-                let feedback = document.querySelector("div.feedback-opener");
-                let isClickInside = feedback.contains(event.target);
-                if (isClickInside) {
-                    let right = feedback.getBoundingClientRect().right
-                    let bottom = feedback.getBoundingClientRect().bottom
-                    let feedbackFrom = document.querySelector("div.feedback-form");
-                    feedbackFrom.style.display = "block";
-                    ttmChat.scrollTop += 200;
-                } else {
-                    let feedbackFrom = document.querySelector("div.feedback-form");
-                    feedbackFrom.style.display = "none";
-                }
-            }
         } else {
+          // User message - simpler format, add to history
           userInputIndex = userInputs.push(text);
           msgHTML = `
               <div class="msg ${side}-msg">
@@ -260,14 +272,22 @@
               `;
               ttmChat.insertAdjacentHTML("beforeend", msgHTML);
         }
+        // Auto-scroll to bottom
         ttmChat.scrollTop += 500;
       }
 
+      /**
+       * Send user message to backend and handle response
+       * @param {string} rawText - User's input text
+       */
       function botResponse(rawText) {
           let dataPackage = {userInput: rawText, userName: "{{ currentUserId }}"};
+          
+          // Hide any existing feedback forms
           $('.all-feedback').fadeOut(250, function() {
             $('.all-feedback').remove();
           });
+          
           const result = $.ajax({
               type: 'POST',
               url: "{{ url_for('.get_bot_response') }}",
@@ -275,6 +295,7 @@
               contentType: 'application/json',
               cache: false,
               success: function (data) {
+                  // Response format: "message<>logId"
                   const splitData = data.split('<>')
                   const msgText = splitData[0];
                   const logText = splitData[1];
@@ -288,15 +309,22 @@
               }
           });
       }
+      
+      // Simple querySelector wrapper
       function get(selector, root = document) {
         return root.querySelector(selector);
       }
     </script>
 
+    <!-- Feedback logging and keyboard navigation -->
     <script>
+      /**
+       * Send feedback to server for analytics
+       * @param {string} feedback - Formatted feedback string
+       */
       function logFeedback(feedback) {
-      result = $.ajax({
-        type: 'POST',
+        result = $.ajax({
+          type: 'POST',
           url:"{{ url_for('.log_feedback') }}",
           data: feedback,
           processData: false, 
@@ -305,33 +333,29 @@
         });
       }
 
+      // Arrow key navigation through input history
+      document.onkeydown = checkKey;
+      function checkKey(e) {
+          e = e || window.event;
 
-    // Handle key cycling
-    document.onkeydown = checkKey;
-    function checkKey(e) {
-        e = e || window;
-
-
-        if (e.keyCode == '38') {
-            // up arrow
-            if (userInputs.length == 0) {
-                return
-            }
-            userInputIndex = userInputIndex - 1;
-            if (userInputIndex < 0) {
-                userInputIndex = 0;
-            }
-            ttmInput.value = userInputs[userInputIndex];
-        } else if (e.keyCode == '40') {
-            // down arrow
-            if (userInputs.length == 0) {
-                return
-            }
-            userInputIndex = userInputIndex + 1;
-            if (userInputIndex > userInputs.length - 1) {
-                userInputIndex = userInputs.length - 1;
-            }
-            ttmInput.value = userInputs[userInputIndex];
-        }
-    }
+          if (e.keyCode == '38') {
+              // Up arrow - go to previous input
+              if (userInputs.length == 0) return;
+              
+              userInputIndex = userInputIndex - 1;
+              if (userInputIndex < 0) {
+                  userInputIndex = 0;
+              }
+              ttmInput.value = userInputs[userInputIndex];
+          } else if (e.keyCode == '40') {
+              // Down arrow - go to next input
+              if (userInputs.length == 0) return;
+              
+              userInputIndex = userInputIndex + 1;
+              if (userInputIndex > userInputs.length - 1) {
+                  userInputIndex = userInputs.length - 1;
+              }
+              ttmInput.value = userInputs[userInputIndex];
+          }
+      }
     </script>

@@ -9,9 +9,9 @@ import pandas as pd
 import pickle
 import openai
 from flask import Flask, request, jsonify, render_template, Response
-from explain.autogen_decoder import AutoGenDecoder
+from explain.decoders.autogen_decoder import AutoGenDecoder
 from explain.actions.get_action_functions import get_all_action_functions_map
-from explain.explanation import MegaExplainer
+from explain.core.explanation import MegaExplainer
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -51,6 +51,7 @@ class SimpleActionDispatcher:
             if not hasattr(conversation, 'describe'):
                 describe_obj = type('Describe', (), {})()
                 describe_obj.get_dataset_description = lambda: "diabetes prediction based on patient health metrics"
+                describe_obj.get_dataset_objective = lambda: "predict diabetes risk in patients"
                 describe_obj.get_eval_performance = lambda model, metric: ""
                 conversation.describe = describe_obj
             if not hasattr(conversation, 'store_followup_desc'):
@@ -129,15 +130,41 @@ class LLMFormatter:
         except:
             pass
             
-        # Current filtering context
+        # NEW: Enhanced filtering context using filter state
         try:
-            if hasattr(conversation, 'temp_dataset') and conversation.temp_dataset:
-                temp_size = len(conversation.temp_dataset.contents.get('X', []))
-                full_size = context.get('dataset_size', temp_size)
-                if temp_size < full_size:
-                    context['filtered'] = True
-                    context['filtered_size'] = temp_size
-                    context['filter_description'] = getattr(conversation, 'parse_operation', [])
+            if hasattr(conversation, 'get_filter_context_for_response'):
+                filter_context = conversation.get_filter_context_for_response()
+                context['filter_context'] = filter_context
+                
+                if filter_context['type'] == 'query_filter':
+                    context['communication_style'] = 'query_applied_filter'
+                    context['filter_description'] = filter_context['description']
+                    context['original_size'] = filter_context['original_size']
+                    context['current_size'] = filter_context['filtered_size']
+                elif filter_context['type'] == 'inherited_filter':
+                    context['communication_style'] = 'inherited_filter'
+                    context['filter_description'] = filter_context['description']
+                    context['original_size'] = filter_context['original_size']
+                    context['current_size'] = filter_context['filtered_size']
+                else:
+                    context['communication_style'] = 'no_filter'
+                    context['original_size'] = filter_context['original_size']
+                    context['current_size'] = filter_context['filtered_size']
+            else:
+                # Fallback to old logic
+                if hasattr(conversation, 'temp_dataset') and conversation.temp_dataset:
+                    temp_size = len(conversation.temp_dataset.contents.get('X', []))
+                    full_size = context.get('dataset_size', temp_size)
+                    if temp_size < full_size:
+                        context['filtered'] = True
+                        context['filtered_size'] = temp_size
+                        context['filter_description'] = getattr(conversation, 'parse_operation', [])
+                    else:
+                        context['filtered'] = False
+                        context['using_full_dataset'] = True
+                else:
+                    context['filtered'] = False
+                    context['using_full_dataset'] = True
         except:
             pass
             
@@ -153,10 +180,59 @@ class LLMFormatter:
     def _create_intelligent_prompt(self, user_query, action_name, action_result, autogen_intent, context_info, conversation=None):
         """Create an intelligent prompt tailored to the specific action and AutoGen-detected intent"""
         
-        # Build context string
+        # Build context string with clear filtering explanation
         context_str = ""
-        if context_info.get('filtered'):
-            context_str += f"The analysis was performed on {context_info['filtered_size']} filtered instances. "
+        
+        # NEW: Use enhanced filter context for clearer communication
+        communication_style = context_info.get('communication_style', 'unknown')
+        
+        if communication_style == 'query_applied_filter':
+            # This query applied a new filter - communicate as "X out of Y total"
+            original_size = context_info['original_size']
+            current_size = context_info['current_size']
+            filter_desc = context_info['filter_description']
+            context_str += f"QUERY FILTER APPLIED: User asked about {filter_desc}. Found {current_size} instances out of {original_size} total that match this criteria. "
+            context_str += f"COMMUNICATION STYLE: Say 'Of the {original_size} total instances, {current_size} have {filter_desc}' NOT 'In the filtered dataset of {current_size} instances'. "
+            
+        elif communication_style == 'inherited_filter':
+            # Data was already filtered - communicate about the subset
+            original_size = context_info['original_size']
+            current_size = context_info['current_size']
+            filter_desc = context_info['filter_description']
+            context_str += f"INHERITED FILTER: Dataset was already filtered to {current_size} instances (from {original_size} total) where {filter_desc}. "
+            context_str += f"COMMUNICATION STYLE: Say 'In the filtered subset of {current_size} instances' or 'Among the {current_size} instances where {filter_desc}'. "
+            
+        elif communication_style == 'no_filter':
+            # No filtering applied
+            total_size = context_info['current_size']
+            context_str += f"NO FILTER: Using complete dataset ({total_size} instances). "
+            context_str += f"COMMUNICATION STYLE: Say 'Of the {total_size} total instances' or 'In the complete dataset'. "
+            
+        else:
+            # Fallback to old logic
+            if context_info.get('filtered'):
+                filter_size = context_info['filtered_size']
+                total_size = context_info.get('dataset_size', filter_size)
+                
+                # Determine what kind of filtering happened by looking at the user query and results
+                if filter_size == total_size:
+                    # Full dataset was used after reset
+                    context_str += f"Dataset: Complete dataset ({total_size} instances). "
+                else:
+                    # Data was filtered
+                    context_str += f"Dataset: Filtered to {filter_size} instances from {total_size} total. "
+                    
+                    # Add percentage clarification if needed
+                    if hasattr(action_result, '__getitem__') and isinstance(action_result, (dict, tuple)):
+                        result_data = action_result[0] if isinstance(action_result, tuple) else action_result
+                        if isinstance(result_data, dict):
+                            request_type = result_data.get('request_type')
+                            if request_type == 'class_distribution':
+                                context_str += f"Percentages refer to the {filter_size} filtered instances. "
+            elif context_info.get('using_full_dataset'):
+                total_size = context_info['dataset_size']
+                context_str += f"Dataset: Complete dataset ({total_size} instances). "
+                
         if context_info.get('class_names'):
             class_list = ', '.join(context_info['class_names'].values())
             context_str += f"The model predicts: {class_list}. "
@@ -186,11 +262,30 @@ TASK: Transform these raw results into a brief, natural response (2-3 sentences 
 3. States only what is shown in the raw results
 4. Never speculates, assumes, or adds context not in the data
 5. Be conversational but concise
+6. CRITICAL: If data is filtered, be clear about what subset is being analyzed
+7. CRITICAL: For percentages, always specify they are percentages of the filtered subset, not the original dataset
 
 """
         
         # Add intent-specific instructions based on AutoGen intent
-        if autogen_intent == 'explain':
+        if autogen_intent == 'count' or autogen_intent == 'data':
+            base_prompt += """
+COUNT/DATA INTENT: The user wants to know HOW MANY. Be direct and clear:
+- ALWAYS use simple language: "There are X instances with [condition]" or "Of the Y total instances, X have [condition]"
+- NEVER say "In the filtered dataset" - this confuses users
+- Just state the facts: numbers and what they represent
+- Skip technical implementation details about filtering
+- Be concise - one clear sentence with the count
+"""
+        elif autogen_intent == 'casual':
+            base_prompt += """
+CASUAL INTENT: The user is making conversational comments or observations. Respond naturally:
+- Acknowledge their observation appropriately
+- Provide relevant context if helpful
+- Keep responses brief and conversational
+- Don't introduce new statistics unless directly relevant to their comment
+"""
+        elif autogen_intent == 'explain':
             base_prompt += """
 EXPLAIN INTENT: The user wants to understand WHY something happened. Focus on:
 - Clear causal explanations
@@ -381,12 +476,22 @@ class Conversation:
         self.parse_operation = []
         self.last_parse_string = []
         
-        # NEW: Track conversational context
+        # NEW: Enhanced filter state tracking
         self.last_action = None
         self.last_action_args = None
         self.last_filter_applied = None
         self.last_result = None
         self.conversation_turns = []
+        
+        # NEW: Filter state management for clearer communication
+        self.filter_state = {
+            'has_inherited_filter': False,  # Was data filtered from previous operations?
+            'current_filter_description': '',  # Human-readable description of current filter
+            'query_applied_filter': False,  # Did this query apply a new filter?
+            'query_filter_description': '',  # Description of filter applied by current query
+            'original_size': len(dataset),
+            'current_size': len(dataset)
+        }
         
         # Configuration (consolidated from MetadataManager)
         self.rounding_precision = 2
@@ -443,20 +548,20 @@ class Conversation:
         os.makedirs(cache_dir, exist_ok=True)
         cache_path = os.path.join(cache_dir, "mega-explainer-tabular.pkl")
         
-        from explain.explanation import MegaExplainer
+        from explain.core.explanation import MegaExplainer
         mega_explainer = MegaExplainer(
             prediction_fn=prediction_function,
             data=self.X_data,
             cat_features=[],
             cache_location=cache_path,
             class_names=["No Diabetes", "Diabetes"],
-            use_selection=False
+            use_selection=True  # Enable SHAP for better explanations
         )
         
         self.stored_vars['mega_explainer'] = type('Variable', (), {'contents': mega_explainer})()
         
         # Initialize TabularDice for counterfactual explanations
-        from explain.explanation import TabularDice
+        from explain.core.explanation import TabularDice
         dice_cache_path = os.path.join(cache_dir, "dice-tabular.pkl")
         tabular_dice = TabularDice(
             model=model,
@@ -492,7 +597,58 @@ class Conversation:
         self.temp_dataset = type('Variable', (), {'contents': reset_contents})()
         self.parse_operation = []
         
+        # NEW: Reset filter state
+        self.filter_state.update({
+            'has_inherited_filter': False,
+            'current_filter_description': '',
+            'query_applied_filter': False,
+            'query_filter_description': '',
+            'current_size': self.filter_state['original_size']
+        })
+        
         logger.info(f"Reset temp_dataset to full dataset: {len(self.temp_dataset.contents['X'])} instances")
+    
+    def mark_query_filter_applied(self, filter_description, resulting_size):
+        """Mark that this query applied a new filter"""
+        self.filter_state.update({
+            'query_applied_filter': True,
+            'query_filter_description': filter_description,
+            'current_size': resulting_size
+        })
+    
+    def mark_inherited_filter(self, filter_description, current_size):
+        """Mark that data was already filtered from previous operations"""
+        self.filter_state.update({
+            'has_inherited_filter': True,
+            'current_filter_description': filter_description,
+            'query_applied_filter': False,
+            'query_filter_description': '',
+            'current_size': current_size
+        })
+    
+    def get_filter_context_for_response(self):
+        """Get filter context for response formatting"""
+        if self.filter_state['query_applied_filter']:
+            return {
+                'type': 'query_filter',
+                'description': self.filter_state['query_filter_description'],
+                'original_size': self.filter_state['original_size'],
+                'filtered_size': self.filter_state['current_size']
+            }
+        elif self.filter_state['has_inherited_filter']:
+            return {
+                'type': 'inherited_filter',
+                'description': self.filter_state['current_filter_description'],
+                'original_size': self.filter_state['original_size'],
+                'filtered_size': self.filter_state['current_size']
+            }
+        else:
+            return {
+                'type': 'no_filter',
+                'description': '',
+                'original_size': self.filter_state['original_size'],
+                'filtered_size': self.filter_state['current_size']
+            }
     
     # Enhanced interface methods with conversational memory
     def add_turn(self, query, response, action_name=None, action_args=None, action_result=None):
@@ -656,84 +812,35 @@ def process_user_query(user_query):
             conversation.reset_temp_dataset()
             logger.info(f"Auto-reset filter context for new analysis: {intent}")
     
-    # Use the action directly from AutoGen (no more intent mapping needed!)
-    action_name = final_action
+    # Component 2: Action dispatcher executes explainability functions  
+    # Apply filtering if AutoGen detected filtering entities
+    # EXCEPTION: Don't apply filters for performance queries - they need full dataset
+    filter_result = None
+    if (entities.get('filter_type') or entities.get('features') or entities.get('patient_id') is not None) and final_action != 'score':
+        # Auto-apply filtering based on AutoGen entities
+        try:
+            filter_result = action_dispatcher.execute_action('filter', entities, conversation)
+            if filter_result:
+                logger.info(f"Auto-applied {entities.get('filter_type', 'feature')} filter: {filter_result}")
+        except Exception as e:
+            logger.error(f"Auto-filter failed: {e}")
+            # Reset on filter failure
+            conversation.reset_temp_dataset()
     
-    # Handle special reset action
-    if action_name == 'reset':
-        conversation.reset_temp_dataset()
-        conversation.last_action = None
-        conversation.last_action_args = None
-        conversation.last_filter_applied = None
-        conversation.last_result = None
-        conversation.parse_operation = []
-        logger.info("Context reset requested by user")
-        return 'reset', 'Context cleared', "I've cleared the conversation context. You can start fresh with new queries!"
-    
-    # Extract entities and pass them as action arguments (already extracted above)
-    user_tokens = user_query.lower().split()
-    action_args = {
-        'features': entities.get('features', []),
-        'operators': entities.get('operators', []),
-        'values': entities.get('values', []),
-        'patient_id': entities.get('patient_id'),
-        'filter_type': entities.get('filter_type'),
-        'prediction_values': entities.get('prediction_values', []),
-        'label_values': entities.get('label_values', []),
-        'parse_text': user_tokens
-    }
-    
-    # Auto-apply filtering when entities contain filtering criteria
-    if entities.get('patient_id') is not None:
-        patient_id = entities.get('patient_id')
-        filter_args = {
-            'patient_id': patient_id, 'filter_type': 'id'
-        }
-        filter_result = action_dispatcher.execute_action('filter', filter_args, conversation)
-        logger.info(f"Auto-applied ID filter for patient {patient_id}: {filter_result}")
-    
-    # Auto-apply feature filtering when entities contain feature filtering criteria
-    elif entities.get('features') and entities.get('operators') and entities.get('values') and action_name != 'filter':
-        filter_args = {
-            'features': entities.get('features'),
-            'operators': entities.get('operators'),
-            'values': entities.get('values'),
-            'filter_type': 'feature'
-        }
-        filter_result = action_dispatcher.execute_action('filter', filter_args, conversation)
-        logger.info(f"Auto-applied feature filter: {filter_result}")
-    
-    # Auto-apply prediction filtering when entities contain prediction filtering criteria
-    elif entities.get('filter_type') == 'prediction' and entities.get('prediction_values'):
-        filter_args = {
-            'prediction_values': entities.get('prediction_values'),
-            'filter_type': 'prediction'
-        }
-        filter_result = action_dispatcher.execute_action('filter', filter_args, conversation)
-        logger.info(f"Auto-applied prediction filter: {filter_result}")
-    
-    # Auto-apply label filtering when entities contain label filtering criteria  
-    elif entities.get('filter_type') == 'label' and entities.get('label_values'):
-        filter_args = {
-            'label_values': entities.get('label_values'),
-            'filter_type': 'label'
-        }
-        filter_result = action_dispatcher.execute_action('filter', filter_args, conversation)
-        logger.info(f"Auto-applied label filter: {filter_result}")
-    
-    logger.info(f"AutoGen identified action: {action_name} with entities: {entities}")
-    
-    # Component 2: Execute explainability action
-    action_result = action_dispatcher.execute_action(action_name, action_args, conversation)
+    # Execute the main action (but skip filter since it was already applied)
+    if final_action != 'filter':
+        action_result = action_dispatcher.execute_action(final_action, entities, conversation)
+    else:
+        action_result = filter_result
     
     # Component 3: Format with LLM (pass AutoGen intent and conversation for context)
     logger.info(f"Action result before formatting: {action_result}")
-    formatted_response = formatter.format_response(user_query, action_name, action_result, intent, conversation)
+    formatted_response = formatter.format_response(user_query, final_action, action_result, intent, conversation)
     
     # Add to conversation history with full context
-    conversation.add_turn(user_query, formatted_response, action_name, action_args, action_result)
+    conversation.add_turn(user_query, formatted_response, final_action, entities, action_result)
     
-    return action_name, action_result, formatted_response
+    return final_action, action_result, formatted_response
 
 @app.route('/')
 def home():
@@ -918,11 +1025,6 @@ def sample_prompt():
                 "Show actual diabetic patients",
                 "Filter to ground truth = 1",
                 "Actual positive cases only"
-            ],
-            'reset': [
-                "Reset everything",
-                "Start over",
-                "Clear all filters"
             ]
         }
         

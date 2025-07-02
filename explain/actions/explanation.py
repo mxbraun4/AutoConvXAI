@@ -153,5 +153,3 @@ def _analyze_patterns_structured(data, predictions):
     
     return patterns
 
-
-# Remove this function as it's been replaced by _analyze_patterns_structured
