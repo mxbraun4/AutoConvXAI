@@ -183,55 +183,59 @@ class LLMFormatter:
         # Build context string with clear filtering explanation
         context_str = ""
         
-        # NEW: Use enhanced filter context for clearer communication
-        communication_style = context_info.get('communication_style', 'unknown')
-        
-        if communication_style == 'query_applied_filter':
-            # This query applied a new filter - communicate as "X out of Y total"
-            original_size = context_info['original_size']
-            current_size = context_info['current_size']
-            filter_desc = context_info['filter_description']
-            context_str += f"QUERY FILTER APPLIED: User asked about {filter_desc}. Found {current_size} instances out of {original_size} total that match this criteria. "
-            context_str += f"COMMUNICATION STYLE: Say 'Of the {original_size} total instances, {current_size} have {filter_desc}' NOT 'In the filtered dataset of {current_size} instances'. "
-            
-        elif communication_style == 'inherited_filter':
-            # Data was already filtered - communicate about the subset
-            original_size = context_info['original_size']
-            current_size = context_info['current_size']
-            filter_desc = context_info['filter_description']
-            context_str += f"INHERITED FILTER: Dataset was already filtered to {current_size} instances (from {original_size} total) where {filter_desc}. "
-            context_str += f"COMMUNICATION STYLE: Say 'In the filtered subset of {current_size} instances' or 'Among the {current_size} instances where {filter_desc}'. "
-            
-        elif communication_style == 'no_filter':
-            # No filtering applied
-            total_size = context_info['current_size']
-            context_str += f"NO FILTER: Using complete dataset ({total_size} instances). "
-            context_str += f"COMMUNICATION STYLE: Say 'Of the {total_size} total instances' or 'In the complete dataset'. "
-            
+        # SKIP dataset context for prediction and what-if scenarios
+        if autogen_intent in ['predict', 'whatif']:
+            context_str = "PREDICTION/SCENARIO FOCUS: Ignore dataset context. Focus only on the specific instance or hypothetical scenario."
         else:
-            # Fallback to old logic
-            if context_info.get('filtered'):
-                filter_size = context_info['filtered_size']
-                total_size = context_info.get('dataset_size', filter_size)
+            # NEW: Use enhanced filter context for clearer communication
+            communication_style = context_info.get('communication_style', 'unknown')
+            
+            if communication_style == 'query_applied_filter':
+                # This query applied a new filter - communicate as "X out of Y total"
+                original_size = context_info['original_size']
+                current_size = context_info['current_size']
+                filter_desc = context_info['filter_description']
+                context_str += f"QUERY FILTER APPLIED: User asked about {filter_desc}. Found {current_size} instances out of {original_size} total that match this criteria. "
+                context_str += f"COMMUNICATION STYLE: Say 'Of the {original_size} total instances, {current_size} have {filter_desc}' NOT 'In the filtered dataset of {current_size} instances'. "
                 
-                # Determine what kind of filtering happened by looking at the user query and results
-                if filter_size == total_size:
-                    # Full dataset was used after reset
-                    context_str += f"Dataset: Complete dataset ({total_size} instances). "
-                else:
-                    # Data was filtered
-                    context_str += f"Dataset: Filtered to {filter_size} instances from {total_size} total. "
+            elif communication_style == 'inherited_filter':
+                # Data was already filtered - communicate about the subset
+                original_size = context_info['original_size']
+                current_size = context_info['current_size']
+                filter_desc = context_info['filter_description']
+                context_str += f"INHERITED FILTER: Dataset was already filtered to {current_size} instances (from {original_size} total) where {filter_desc}. "
+                context_str += f"COMMUNICATION STYLE: Say 'In the filtered subset of {current_size} instances' or 'Among the {current_size} instances where {filter_desc}'. "
+                
+            elif communication_style == 'no_filter':
+                # No filtering applied
+                total_size = context_info['current_size']
+                context_str += f"NO FILTER: Using complete dataset ({total_size} instances). "
+                context_str += f"COMMUNICATION STYLE: Say 'Of the {total_size} total instances' or 'In the complete dataset'. "
+            
+            else:
+                # Fallback to old logic
+                if context_info.get('filtered'):
+                    filter_size = context_info['filtered_size']
+                    total_size = context_info.get('dataset_size', filter_size)
                     
-                    # Add percentage clarification if needed
-                    if hasattr(action_result, '__getitem__') and isinstance(action_result, (dict, tuple)):
-                        result_data = action_result[0] if isinstance(action_result, tuple) else action_result
-                        if isinstance(result_data, dict):
-                            request_type = result_data.get('request_type')
-                            if request_type == 'class_distribution':
-                                context_str += f"Percentages refer to the {filter_size} filtered instances. "
-            elif context_info.get('using_full_dataset'):
-                total_size = context_info['dataset_size']
-                context_str += f"Dataset: Complete dataset ({total_size} instances). "
+                    # Determine what kind of filtering happened by looking at the user query and results
+                    if filter_size == total_size:
+                        # Full dataset was used after reset
+                        context_str += f"Dataset: Complete dataset ({total_size} instances). "
+                    else:
+                        # Data was filtered
+                        context_str += f"Dataset: Filtered to {filter_size} instances from {total_size} total. "
+                        
+                        # Add percentage clarification if needed
+                        if hasattr(action_result, '__getitem__') and isinstance(action_result, (dict, tuple)):
+                            result_data = action_result[0] if isinstance(action_result, tuple) else action_result
+                            if isinstance(result_data, dict):
+                                request_type = result_data.get('request_type')
+                                if request_type == 'class_distribution':
+                                    context_str += f"Percentages refer to the {filter_size} filtered instances. "
+                elif context_info.get('using_full_dataset'):
+                    total_size = context_info['dataset_size']
+                    context_str += f"Dataset: Complete dataset ({total_size} instances). "
                 
         if context_info.get('class_names'):
             class_list = ', '.join(context_info['class_names'].values())
@@ -242,6 +246,10 @@ class LLMFormatter:
             recent_turn = conversation.conversation_turns[-1]
             if recent_turn.get('action_name') == 'score':
                 context_str += f"Previous result: {recent_turn.get('response', '')} "
+        
+        # Handle followup intent specially - use conversational approach
+        if autogen_intent == 'followup':
+            return self._create_followup_prompt(user_query, action_result, context_info, conversation)
         
         # Create tailored prompt based on action and intent
         base_prompt = f"""
@@ -296,10 +304,12 @@ EXPLAIN INTENT: The user wants to understand WHY something happened. Focus on:
         elif autogen_intent == 'predict':
             base_prompt += """
 PREDICT INTENT: The user wants to know WHAT WOULD HAPPEN. Focus on:
-- Clear prediction outcomes
-- Confidence levels
+- Clear prediction outcomes for the SPECIFIC instance provided
+- Confidence levels if available
 - What factors drive the prediction
 - Use phrases like "would result in", "likely to", "expected outcome"
+- NEVER mention dataset size or total instances - focus only on the specific prediction
+- DO NOT reference the broader dataset context
 """
         elif autogen_intent == 'important':
             base_prompt += """
@@ -319,11 +329,16 @@ PERFORMANCE INTENT: The user wants to know HOW WELL the model works. Focus on:
 """
         elif autogen_intent == 'whatif':
             base_prompt += """
-WHAT-IF INTENT: The user wants to explore scenarios. Focus on:
-- Clear before/after comparisons
-- Impact of changes on predictions
+WHAT-IF INTENT: The user wants to explore hypothetical scenarios. Focus on:
+- CLEAR BEFORE/AFTER COMPARISONS showing the original prediction vs new prediction
+- Whether the prediction CHANGED or STAYED THE SAME
+- Use specific language like "the prediction would CHANGE from X to Y" or "would FLIP from X to Y"
+- If no change: "the prediction would REMAIN the same (X)"
+- Impact of changes on predictions and confidence levels
 - Practical implications of modifications
-- Use phrases like "if you changed", "would result in", "the impact would be"
+- NEVER mention dataset size or existing instances with those values
+- DO NOT reference broader dataset statistics - focus only on the hypothetical change
+- Use phrases like "if we changed X to Y, the prediction would change from A to B"
 """
         elif autogen_intent == 'counterfactual':
             base_prompt += """
@@ -388,6 +403,70 @@ RESPONSE (2-3 sentences max, factual only, no speculation):"""
         
         return base_prompt
     
+    def _create_followup_prompt(self, user_query, action_result, context_info, conversation):
+        """Create a specialized prompt for follow-up questions using conversation context."""
+        
+        # Extract context about recent results for analytical follow-ups
+        context_str = ""
+        
+        # Get model vs ground truth context if available
+        try:
+            if conversation:
+                dataset = conversation.get_var('dataset')
+                model = conversation.get_var('model') 
+                
+                if dataset and model and hasattr(dataset, 'contents'):
+                    y_true = dataset.contents.get('y', [])
+                    X = dataset.contents.get('X', [])
+                    
+                    if y_true and X:
+                        ground_truth_positive = sum(y_true)
+                        total_instances = len(y_true)
+                        
+                        predictions = model.predict(X)
+                        predicted_positive = sum(predictions)
+                        
+                        gt_percentage = (ground_truth_positive / total_instances) * 100
+                        pred_percentage = (predicted_positive / total_instances) * 100
+                        
+                        context_str = f"""
+RECENT CONVERSATION CONTEXT:
+- Ground truth: {ground_truth_positive} positive cases ({gt_percentage:.1f}%)
+- Model predictions: {predicted_positive} positive cases ({pred_percentage:.1f}%)
+- Total instances: {total_instances}
+"""
+                        
+                        # Add prediction bias context
+                        if predicted_positive < ground_truth_positive:
+                            context_str += "- Model underpredicts (conservative)\n"
+                        elif predicted_positive > ground_truth_positive:
+                            context_str += "- Model overpredicts (aggressive)\n"
+                        else:
+                            context_str += "- Model predictions match ground truth\n"
+        except Exception as e:
+            logger.warning(f"Could not extract context for followup: {e}")
+        
+        followup_prompt = f"""
+You are a data scientist having a conversation with a user. They just asked a follow-up question.
+
+USER FOLLOW-UP QUESTION: "{user_query}"
+{context_str}
+
+FOLLOW-UP RESPONSE FROM SYSTEM:
+{action_result}
+
+TASK: The system already provided a good analytical response. Simply return it as-is, or if it's a tuple, extract the meaningful text response. Be conversational and direct.
+
+GUIDELINES:
+- If the response is already a clear answer, return it directly
+- If it's a tuple, extract the text portion
+- Keep it conversational (2-3 sentences max)
+- Use the context numbers if they help explain the answer
+- Don't add unnecessary explanations or summaries
+"""
+        
+        return followup_prompt
+    
     def _create_fallback_response(self, action_result):
         """Create a simple fallback when LLM formatting fails"""
         if isinstance(action_result, tuple) and len(action_result) >= 1:
@@ -423,6 +502,18 @@ RESPONSE (2-3 sentences max, factual only, no speculation):"""
                 return summary
             elif result_type == 'what_if_change':
                 return f"Changed {result_data['feature_name']} by {result_data['operation']} {result_data['value']} for {result_data['instances_affected']} instance(s)"
+            elif result_type == 'what_if_comparison':
+                if 'prediction_changed' in result_data:
+                    # Single instance comparison
+                    original = result_data['original_prediction_class']
+                    new = result_data['new_prediction_class']
+                    if result_data['prediction_changed']:
+                        return f"Changed {result_data['feature_name']} to {result_data['value']}: prediction changed from {original} to {new}"
+                    else:
+                        return f"Changed {result_data['feature_name']} to {result_data['value']}: prediction remains {new}"
+                else:
+                    # Multiple instances comparison
+                    return f"Changed {result_data['feature_name']} to {result_data['value']} for {result_data['instances_affected']} instances"
             elif result_type == 'counterfactual_explanation':
                 summary = f"Generated {result_data['total_counterfactuals']} counterfactual scenarios for instance {result_data['instance_id']}. "
                 summary += f"Original prediction: {result_data['original_prediction_class']}. "
@@ -497,7 +588,17 @@ class Conversation:
         self.rounding_precision = 2
         self.default_metric = "accuracy" 
         self.class_names = {0: "No Diabetes", 1: "Diabetes"}
-        self.feature_definitions = {}
+        self.feature_definitions = {
+            'Pregnancies': 'Number of times pregnant. Higher pregnancy count may increase diabetes risk due to gestational diabetes and hormonal changes.',
+            'Glucose': 'Plasma glucose concentration after a 2-hour oral glucose tolerance test (mg/dL). Normal: <140, Prediabetes: 140-199, Diabetes: ≥200.',
+            'BloodPressure': 'Diastolic blood pressure measured in mmHg. Normal: <80, Elevated: 80-89, High: ≥90. High blood pressure often accompanies diabetes.',
+            'SkinThickness': 'Triceps skinfold thickness measured in millimeters. Used to estimate body fat percentage and insulin resistance.',
+            'Insulin': 'Serum insulin level measured 2 hours after glucose load (μU/mL). Normal: 16-166. Higher levels may indicate insulin resistance.',
+            'BMI': 'Body Mass Index calculated as weight(kg)/height(m)². Normal: 18.5-24.9, Overweight: 25-29.9, Obese: ≥30. Higher BMI increases diabetes risk.',
+            'DiabetesPedigreeFunction': 'Diabetes pedigree function score representing genetic predisposition based on family history. Higher values indicate stronger genetic risk.',
+            'Age': 'Age in years. Diabetes risk increases with age, especially after 45. Type 2 diabetes is more common in older adults.',
+            'y': 'Target variable indicating diabetes diagnosis. 0 = No Diabetes, 1 = Diabetes. Based on WHO criteria and clinical diagnosis.'
+        }
         self.username = "user"
         
         # Variables (consolidated from VariableStore)
@@ -814,9 +915,15 @@ def process_user_query(user_query):
     
     # Component 2: Action dispatcher executes explainability functions  
     # Apply filtering if AutoGen detected filtering entities
-    # EXCEPTION: Don't apply filters for performance queries - they need full dataset
+    # EXCEPTIONS: Don't apply filters for these actions:
+    # - 'score': performance queries need full dataset
+    # - 'predict': prediction queries with '=' operators should create new instances, not filter
+    # - 'change': what-if scenarios should modify current context, not filter to existing data
     filter_result = None
-    if (entities.get('filter_type') or entities.get('features') or entities.get('patient_id') is not None) and final_action != 'score':
+    should_filter = (entities.get('filter_type') or entities.get('features') or entities.get('patient_id') is not None)
+    skip_filtering = final_action in ['score', 'predict', 'change']
+    
+    if should_filter and not skip_filtering:
         # Auto-apply filtering based on AutoGen entities
         try:
             filter_result = action_dispatcher.execute_action('filter', entities, conversation)
@@ -890,6 +997,16 @@ def sample_prompt():
         
         # Simple sample prompts for different categories
         samples = {
+            'data': [
+                "Tell me about this dataset",
+                "How many patients are in the dataset?",
+                "What's the average age of patients?"
+            ],
+            'filter': [
+                "Show me patients with age > 50",
+                "Filter to patients with BMI > 30",
+                "Show instances where glucose > 120"
+            ],
             'important': [
                 "What are the most important features for predicting diabetes?",
                 "Which features have the strongest influence on the model?",
@@ -910,7 +1027,7 @@ def sample_prompt():
                 "What's the prediction probability?",
                 "Show me the likelihood scores"
             ],
-            'whatif': [
+            'change': [
                 "What if the patient's BMI was 25 instead?",
                 "Change glucose to 90 and show the prediction",
                 "What would happen if age was 30?"
@@ -920,7 +1037,7 @@ def sample_prompt():
                 "Show me cases where the model was wrong",
                 "Which predictions were incorrect?"
             ],
-            'interactions': [
+            'interact': [
                 "How do age and BMI interact with each other?",
                 "What are the feature interaction effects?",
                 "Which features work together?"
@@ -940,7 +1057,7 @@ def sample_prompt():
                 "Define glucose levels",
                 "Explain what DiabetesPedigreeFunction is"
             ],
-            'about': [
+            'self': [
                 "Tell me about yourself",
                 "What can you help me with?",
                 "Describe your capabilities"
@@ -960,11 +1077,6 @@ def sample_prompt():
                 "What's the model accuracy?",
                 "Show me performance metrics"
             ],
-            'whatif': [
-                "What if the patient's BMI was 25 instead?",
-                "How would the prediction change if age was 30?",
-                "What happens if glucose level is 90?"
-            ],
             'mistake': [
                 "What are the model's biggest mistakes?",
                 "Show me cases where the model was wrong",
@@ -983,18 +1095,6 @@ def sample_prompt():
                 "Generate counterfactual explanations",
                 "What changes would flip this prediction?",
                 "Show me alternative scenarios"
-            ],
-            'alternatives': [
-                "What are the alternatives to this outcome?",
-                "Show alternative scenarios",
-                "What other possibilities exist?",
-                "Give me alternative explanations"
-            ],
-            'scenarios': [
-                "Show different scenarios",
-                "What scenarios would change the outcome?",
-                "Generate alternative scenarios",
-                "Explore different possibilities"
             ],
             'labels': [
                 "What do these labels mean?",
@@ -1016,16 +1116,6 @@ def sample_prompt():
                 "What model are we using?",
                 "Model information"
             ],
-            'predictionfilter': [
-                "Show cases where model predicted diabetes",
-                "Filter to model predictions = 1",
-                "Where did the model predict positive?"
-            ],
-            'labelfilter': [
-                "Show actual diabetic patients",
-                "Filter to ground truth = 1",
-                "Actual positive cases only"
-            ]
         }
         
         # Return a random sample from the selected category

@@ -153,6 +153,11 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
         patient_id = kwargs.get('patient_id')
         updated_dset, interp_parse_text = _handle_id_filtering(temp_dataset, conversation, patient_id)
     
+    # Handle patient_id filtering when filter_type isn't explicitly set
+    elif kwargs.get('patient_id') is not None:
+        patient_id = kwargs.get('patient_id')
+        updated_dset, interp_parse_text = _handle_id_filtering(temp_dataset, conversation, patient_id)
+    
     else:
         # NO FALLBACK - AutoGen must provide proper entities
         raise ValueError(

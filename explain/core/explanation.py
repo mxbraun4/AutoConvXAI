@@ -389,6 +389,64 @@ class MegaExplainer(Explanation):
                                         feature_names=data.columns,
                                         discrete_features=cat_features,
                                         use_selection=use_selection)
+        
+        # SMART CACHING: Add dataset-level caches for common operations
+        self._feature_importance_cache = {}
+        self._interaction_cache = {}
+        self._cache_metadata = {
+            'dataset_hash': self._compute_dataset_hash(data),
+            'feature_names': list(data.columns),
+            'last_accessed': {}
+        }
+
+    def _compute_dataset_hash(self, data: pd.DataFrame) -> str:
+        """Compute hash of dataset for cache validation."""
+        import hashlib
+        # Hash based on shape and column names for lightweight validation
+        content = f"{data.shape}_{list(data.columns)}"
+        return hashlib.md5(content.encode()).hexdigest()[:8]
+    
+    def get_cached_feature_importance(self, filter_hash: str = None):
+        """Get cached feature importance rankings if available.
+        
+        Args:
+            filter_hash: Hash representing current filter state
+            
+        Returns:
+            Cached feature importance or None if not available
+        """
+        cache_key = filter_hash or "full_dataset"
+        if cache_key in self._feature_importance_cache:
+            # Update last accessed time
+            import time
+            self._cache_metadata['last_accessed'][cache_key] = time.time()
+            return self._feature_importance_cache[cache_key]
+        return None
+    
+    def cache_feature_importance(self, rankings: dict, filter_hash: str = None):
+        """Cache feature importance rankings for reuse.
+        
+        Args:
+            rankings: Feature importance rankings to cache
+            filter_hash: Hash representing current filter state
+        """
+        cache_key = filter_hash or "full_dataset"
+        import time
+        
+        # Simple cache size management - keep max 10 entries
+        if len(self._feature_importance_cache) >= 10:
+            # Remove oldest entry
+            oldest_key = min(self._cache_metadata['last_accessed'].items(), 
+                           key=lambda x: x[1])[0]
+            del self._feature_importance_cache[oldest_key]
+            del self._cache_metadata['last_accessed'][oldest_key]
+        
+        self._feature_importance_cache[cache_key] = rankings
+        self._cache_metadata['last_accessed'][cache_key] = time.time()
+
+    def fast_explain_instance(self, data: Union[np.ndarray, pd.DataFrame]):
+        """Fast explanation for single instances - delegated to mega_explainer."""
+        return self.mega_explainer.fast_explain_instance(data)
 
     @staticmethod
     def get_cat_features(data: pd.DataFrame,

@@ -45,18 +45,33 @@ def measure_interaction_effects(conversation, parse_text, i, **kwargs):
                                                prediction_fn=predict_proba,
                                                cat_features=cat_feature_names)
 
-    # Figure out which features to use by taking top k features
+    # PERFORMANCE OPTIMIZATION: Use sampling for feature selection
     ids = list(data.index)
     regen = conversation.temp_dataset.contents['ids_to_regenerate']
     mega_explainer_exp = conversation.get_var('mega_explainer').contents
-    explanations = mega_explainer_exp.get_explanations(ids,
-                                                       data,
-                                                       ids_to_regenerate=regen,
-                                                       save_to_cache=False)
+    
+    # Sample data for feature importance estimation (much faster)
+    sample_size = min(5, len(data))  # Reduced to only 5 instances for speed
+    sample_indices = np.random.choice(len(data), size=sample_size, replace=False)
+    sample_data = data.iloc[sample_indices]
+    sample_ids = [ids[i] for i in sample_indices]
+    
+    # Use fast explanations for much better performance
+    explanations = {}
+    for sample_id in sample_ids:
+        single_instance = sample_data.loc[[sample_id]]
+        try:
+            # Use fast_explain_instance for much faster processing
+            fast_explanation = mega_explainer_exp.fast_explain_instance(single_instance)
+            explanations[sample_id] = fast_explanation
+        except Exception as e:
+            # Fallback if needed
+            single_explanations = mega_explainer_exp.get_explanations([sample_id], single_instance, ids_to_regenerate=[], save_to_cache=False)
+            explanations[sample_id] = single_explanations[sample_id]
 
-    # Store the feature importance arrays
+    # Store the feature importance arrays from sampled explanations
     feature_importances = []
-    for current_id in ids:
+    for current_id in sample_ids:
         list_exp = explanations[current_id].list_exp
         list_imps = [coef[1] for coef in list_exp]
         feature_importances.append(list_imps)
@@ -89,6 +104,8 @@ def measure_interaction_effects(conversation, parse_text, i, **kwargs):
         'filter_applied': len(parse_op) > 0,
         'filter_description': parse_op,
         'total_instances': len(ids),
+        'sampled_instances': sample_size,
+        'sampling_used': sample_size < len(ids),
         'analyzed_features': topk_names,
         'interactions': []
     }

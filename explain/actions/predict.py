@@ -19,7 +19,7 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
             # Get dataset structure to create a properly formatted instance
             dataset_X = conversation.get_var('dataset').contents['X']
             
-            # Create a new instance with mean values as defaults
+            # Create a new instance with mean values as defaults for unspecified features
             new_instance = dataset_X.mean().copy()
             
             # Set the specified feature values
@@ -27,14 +27,15 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
                 if feat in new_instance.index:
                     new_instance[feat] = val
             
-            # Convert to array and reshape for single prediction
-            data = new_instance.values.reshape(1, -1)
+            # Convert to DataFrame to maintain feature names for sklearn compatibility
+            import pandas as pd
+            data_df = pd.DataFrame([new_instance], columns=dataset_X.columns)
             
             # Make prediction and get probabilities
             from main import _safe_model_predict
-            model_predictions = _safe_model_predict(model, data)
+            model_predictions = _safe_model_predict(model, data_df)
             try:
-                model_probabilities = model.predict_proba(data)
+                model_probabilities = model.predict_proba(data_df)
                 confidence = model_probabilities[0][model_predictions[0]]
             except:
                 confidence = None
@@ -43,6 +44,7 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
             result = {
                 'type': 'single_prediction',
                 'input_features': dict(zip(ent_features, ent_vals)),
+                'all_features': new_instance.to_dict(),  # Show all feature values used
                 'prediction': int(model_predictions[0]),
                 'prediction_class': conversation.class_names[model_predictions[0]] if conversation.class_names else str(model_predictions[0]),
                 'confidence': round(confidence * 100, conversation.rounding_precision) if confidence is not None else None,

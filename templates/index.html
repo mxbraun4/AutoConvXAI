@@ -55,28 +55,36 @@ This is the main chat interface for interacting with ML model explanations.
               
               <!-- Sample question buttons organized by category -->
               <div class="buttons" id="generation-buttons">
-                  <!-- Feature analysis questions -->
-                  <button id="idea-important" class="idea-button" onclick="sampleImportant()">important features</button>
-                  <button id="idea-interaction" class="idea-button" onclick="sampleInteractions()">feature interaction effects</button>
+                  <!-- Data Exploration -->
+                  <button id="idea-data" class="idea-button" onclick="sampleData()">🎲 dataset overview</button>
+                  <button id="idea-statistic" class="idea-button" onclick="sampleStatistic()">🎲 feature statistics</button>
+                  <button id="idea-show" class="idea-button" onclick="sampleShow()">🎲 show data</button>
+                  <button id="idea-define" class="idea-button" onclick="sampleDefine()">🎲 feature definitions</button>
                   
-                  <!-- Explanation questions -->
-                  <button id="idea-why" class="idea-button" onclick="sampleWhy()">explanations</button>
-                  <button id="idea-flip" class="idea-button" onclick="sampleFlip()">how to change a prediction</button>
-                  <button id="idea-whatif" class="idea-button" onclick="sampleWhatIf()">what if scenario</button>
+                  <!-- Filtering -->
+                  <button id="idea-filter" class="idea-button" onclick="sampleFilter()">🎲 filter data</button>
                   
-                  <!-- Prediction questions -->
-                  <button id="idea-predict" class="idea-button" onclick="samplePredict()">predictions</button>
-                  <button id="idea-likelihood" class="idea-button" onclick="sampleLikelihood()">prediction likelihood</button>
+                  <!-- Model Analysis -->
+                  <button id="idea-predict" class="idea-button" onclick="samplePredict()">🎲 predictions</button>
+                  <button id="idea-likelihood" class="idea-button" onclick="sampleLikelihood()">🎲 prediction confidence</button>
+                  <button id="idea-why" class="idea-button" onclick="sampleWhy()">🎲 explanations</button>
+                  <button id="idea-important" class="idea-button" onclick="sampleImportant()">🎲 important features</button>
+                  <button id="idea-performance" class="idea-button" onclick="samplePerformance()">🎲 model performance</button>
+                  <button id="idea-mistakes" class="idea-button" onclick="sampleMistakes()">🎲 model mistakes</button>
+                  <button id="idea-model" class="idea-button" onclick="sampleModel()">🎲 model info</button>
+                  <button id="idea-labels" class="idea-button" onclick="sampleLabels()">🎲 data labels</button>
                   
-                  <!-- Data exploration questions -->
-                  <button id="idea-show" class="idea-button" onclick="sampleShow()">showing data</button>
-                  <button id="idea-description" class="idea-button" onclick="sampleDataDescription()">dataset description</button>
-                  <button id="idea-labels" class="idea-button" onclick="sampleLabels()">data labels</button>
+                  <!-- What-If Analysis -->
+                  <button id="idea-whatif" class="idea-button" onclick="sampleWhatIf()">🎲 what if scenarios</button>
+                  <button id="idea-flip" class="idea-button" onclick="sampleFlip()">🎲 counterfactuals</button>
                   
-                  <!-- Model analysis questions -->
-                  <button id="idea-performance" class="idea-button" onclick="samplePerformance()">performance</button>
-                  <button id="idea-mistakes" class="idea-button" onclick="sampleMistakes()">mistakes</button>
-                  <button id="idea-capabilities" class="idea-button" onclick="sampleCapabilities()">system capabilities</button>
+                  <!-- Feature Analysis -->
+                  <button id="idea-interaction" class="idea-button" onclick="sampleInteractions()">🎲 feature interactions</button>
+                  
+                  <!-- System Help -->
+                  <button id="idea-capabilities" class="idea-button" onclick="sampleCapabilities()">🎲 system capabilities</button>
+                  <button id="idea-self" class="idea-button" onclick="sampleSelf()">🎲 about system</button>
+                  <button id="idea-followup" class="idea-button" onclick="sampleFollowup()">🎲 follow-up questions</button>
               </div>
           </div>
         </section>
@@ -129,19 +137,39 @@ This is the main chat interface for interacting with ML model explanations.
     }
     
     // Sample question functions - each maps to a specific action type
-    function sampleDataDescription() { doSample("description"); }
-    function samplePerformance() { doSample("score"); }
-    function sampleWhatIf() { doSample("whatif"); }
-    function sampleMistakes() { doSample("mistake"); }
-    function sampleFlip() { doSample("cfe"); }
-    function sampleImportant() { doSample("important"); }
-    function sampleLabels() { doSample("labels"); }
-    function sampleWhy() { doSample("explain"); }
+    // Data Exploration
+    function sampleData() { doSample("data"); }
+    function sampleStatistic() { doSample("statistic"); }
+    function sampleShow() { doSample("show"); }
+    function sampleLabels() { doSample("label"); }
+    function sampleDefine() { doSample("define"); }
+    
+    // Filtering
+    function sampleFilter() { doSample("filter"); }
+    
+    // Model Analysis
     function samplePredict() { doSample("predict"); }
     function sampleLikelihood() { doSample("likelihood"); }
-    function sampleShow() { doSample("show"); }
+    function sampleWhy() { doSample("explain"); }
+    function sampleImportant() { doSample("important"); }
+    function samplePerformance() { doSample("score"); }
+    function sampleMistakes() { doSample("mistake"); }
+    function sampleModel() { doSample("model"); }
+    
+    // What-If Analysis
+    function sampleWhatIf() { doSample("change"); }
+    function sampleFlip() { doSample("counterfactual"); }
+    
+    // Feature Analysis
+    function sampleInteractions() { doSample("interact"); }
+    
+    // System Help
     function sampleCapabilities() { doSample("function"); }
-    function sampleInteractions() { doSample("interactions"); }
+    function sampleSelf() { doSample("self"); }
+    function sampleFollowup() { doSample("followup"); }
+    
+    // Legacy functions (kept for backwards compatibility)
+    function sampleDataDescription() { doSample("data"); }
 </script>
 
 <!-- Main chat interface functionality -->

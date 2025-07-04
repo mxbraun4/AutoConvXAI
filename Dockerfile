@@ -38,9 +38,6 @@ COPY static/ static/
 COPY explain/ explain/
 COPY main.py .
 
-# Copy tests last (they change most frequently)
-COPY tests/ tests/
-
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash app && \
     chown -R app:app /app
@@ -55,10 +52,6 @@ CMD ["python3", "main.py"]
 # === FULL VERSION (with torch and heavy dependencies) ===
 FROM base AS full
 
-# Install heavy dependencies - using existing requirements file
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
 # Copy data files (these change less frequently)
 COPY data/ data/
 COPY templates/ templates/
@@ -67,9 +60,6 @@ COPY static/ static/
 # Copy source code (copy most stable parts first for better caching)
 COPY explain/ explain/
 COPY main.py .
-
-# Copy tests last (they change most frequently)
-COPY tests/ tests/
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash app && \

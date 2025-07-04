@@ -30,7 +30,6 @@ def get_all_action_functions_map():
     """Gets a dictionary mapping all the names of the actions in the parse tree to their functions."""
     actions = {
         'interact': measure_interaction_effects,
-        'countdata': count_data_points,
         'filter': filter_operation,
         'explain': explain_operation,
         'predict': predict_operation,
@@ -48,10 +47,6 @@ def get_all_action_functions_map():
         'mistake': show_mistakes_operation,
         'statistic': feature_stats,
         'define': define_operation,
-        'predictionfilter': filter_operation,
-        'labelfilter': filter_operation,
-        'counterfactual': counterfactual_operation,
-        'alternatives': alternatives_operation,
-        'scenarios': scenarios_operation
+        'counterfactual': counterfactual_operation
     }
     return actions

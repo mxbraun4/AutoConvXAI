@@ -146,6 +146,24 @@ class Explainer:
                                                       std=self.perturbation_std,
                                                       flip_percentage=self.perturbation_flip_percentage)
 
+    def configure_performance_mode(self, mode: str = "balanced"):
+        """Configure explainer for different performance/accuracy trade-offs.
+        
+        Args:
+            mode: "fast" (single LIME), "balanced" (2-3 methods), "thorough" (all methods)
+        """
+        if mode == "fast":
+            # Fast mode: Only LIME with standard kernel
+            self.explanation_methods = {"lime_0.75": self.explanation_methods["lime_0.75"]}
+        elif mode == "balanced":
+            # Balanced mode: LIME variants + SHAP (current default)
+            pass
+        elif mode == "thorough":
+            # Thorough mode: All methods with more comprehensive testing
+            pass
+        else:
+            raise ValueError(f"Unknown mode: {mode}. Use 'fast', 'balanced', or 'thorough'")
+
     @staticmethod
     def _arr(x) -> np.ndarray:
         """Converts x to a numpy array, handling both torch tensors and other types.
@@ -507,3 +525,64 @@ class Explainer:
                                      agree=agree)
 
         return return_exp
+
+    def fast_explain_instance(self, data: Union[np.ndarray, pd.DataFrame]) -> MegaExplanation:
+        """Fast explanation for single instances without extensive testing.
+        
+        This method provides much faster explanations by:
+        - Using only LIME with standard kernel width (0.75)
+        - Skipping faithfulness and stability testing
+        - Using fewer perturbations for speed
+        
+        Use this for interactive single-instance explanations where speed is more
+        important than selecting the theoretically optimal explanation method.
+        
+        Args:
+            data: The single instance to explain
+            
+        Returns:
+            MegaExplanation: LIME explanation with good performance/speed tradeoff
+        """
+        if not isinstance(data, np.ndarray):
+            try:
+                data = data.to_numpy()
+            except Exception as exp:
+                message = f"Data not type np.ndarray, failed to convert with error {exp}"
+                raise NameError(message)
+
+        # Validate single instance format
+        formatted_data = self.check_exp_data_shape(data)
+        
+        # Get predicted class
+        label = np.argmax(self.model(formatted_data)[0])
+        
+        # Use standard LIME with 0.75 kernel width for good balance of locality/stability
+        lime_explainer = self.explanation_methods.get("lime_0.75")
+        if lime_explainer is None:
+            # Fallback: create fast LIME explainer if not available
+            from functools import partial
+            lime_template = partial(Lime,
+                                  model=self.model,
+                                  data=self.data,
+                                  discrete_features=self._get_discrete_features(),
+                                  n_samples=1000)  # Reduced samples for speed
+            lime_explainer = lime_template(kernel_width=0.75)
+        
+        # Generate explanation quickly
+        explanation, score = lime_explainer.get_explanation(formatted_data, label=label)
+        
+        # Format and return
+        final_explanation = self._format_explanation(explanation.squeeze(0).numpy(),
+                                                   label,
+                                                   score,
+                                                   "lime_0.75_fast",
+                                                   True)  # agree=True since only one method
+        return final_explanation
+    
+    def _get_discrete_features(self):
+        """Helper to extract discrete feature indices from feature types."""
+        discrete_features = []
+        for i, feature_type in enumerate(self.feature_types):
+            if feature_type == 'd':
+                discrete_features.append(i)
+        return discrete_features

@@ -1,11 +1,10 @@
 """AutoGen-based multi-agent decoder for natural language to action translation.
 
-This module uses a 3-agent pipeline to convert user queries into executable actions:
+This module uses a 2-agent discussion system to convert user queries into executable actions:
 1. Intent Extraction Agent - Identifies user intent and extracts entities
-2. Intent Validation Agent - Validates and refines the extracted intent  
-3. Action Planning Agent - Converts validated intent into action commands
+2. Intent Validation Agent - Validates and refines the extracted intent through critical discussion
 
-The agents collaborate through AutoGen's round-robin communication to reach consensus.
+The agents collaborate through 4 rounds of discussion to reach consensus, with direct action mapping.
 """
 
 import os
@@ -18,51 +17,32 @@ from typing import Dict, Any, Optional, List, Tuple
 logger = logging.getLogger(__name__)
 
 # AutoGen Framework Integration  
-# Using modern AutoGen architecture (v0.4+)
-try:
-    from autogen_agentchat.agents import AssistantAgent
-    from autogen_agentchat.teams import RoundRobinGroupChat
-    from autogen_ext.models.openai import OpenAIChatCompletionClient
-    AUTOGEN_AVAILABLE = True
-    logger.info("Successfully imported AutoGen components (v0.4+)")
-except ImportError:
-    # Graceful degradation when AutoGen is not available
-    AUTOGEN_AVAILABLE = False
-    AssistantAgent = None
-    RoundRobinGroupChat = None
-    OpenAIChatCompletionClient = None
-    logger.error("AutoGen v0.4+ is required but not available - decoder will be disabled")
-    raise ImportError("AutoGen v0.4+ is required. Please install with: pip install autogen-agentchat autogen-ext")
+from autogen_agentchat.agents import AssistantAgent
+from autogen_agentchat.teams import RoundRobinGroupChat
+from autogen_ext.models.openai import OpenAIChatCompletionClient
 
 
 class AutoGenDecoder:
     """Multi-agent decoder that converts natural language queries to executable actions.
     
-    Uses three specialized agents working together:
+    Uses two specialized agents working together:
     - Intent extraction: Understands what the user wants
-    - Intent validation: Critically examines and refines the intent
-    - Action planning: Converts intent to specific action commands
+    - Intent validation: Critically examines and refines the intent through discussion
     
-    The agents collaborate through multiple rounds to reach the best interpretation.
+    The agents collaborate through 4 rounds of discussion to reach consensus, with direct action mapping.
     """
     
     def __init__(self, 
                  api_key: Optional[str] = None,
                  model: str = "gpt-4o-mini",  # Faster model for real-time collaboration
-                 max_rounds: int = 3):
+                 max_rounds: int = 4):
         """Initialize the multi-agent decoder.
         
         Args:
             api_key: OpenAI API key (or uses OPENAI_API_KEY environment variable)
-            model: Language model to use for all agents
-            max_rounds: Maximum conversation rounds between agents
+            model: Language model to use for both agents
+            max_rounds: Maximum conversation rounds between agents (default 4 for proper discussion)
         """
-        # Validate AutoGen availability before proceeding
-        if not AUTOGEN_AVAILABLE:
-            raise ImportError(
-                "AutoGen framework is required for multi-agent functionality. "
-                "Install with: pip install autogen-agentchat>=0.4.0 autogen-core>=0.4.0 autogen-ext>=0.4.0"
-            )
         
         # Configure authentication and model parameters
         self.api_key = api_key or os.getenv('OPENAI_API_KEY')
@@ -85,71 +65,64 @@ class AutoGenDecoder:
         # Initialize the specialized agent network
         self._setup_agent_architecture()
         
+        # Initialize direct action mapping
+        self._setup_action_mapping()
+        
         logger.info(f"Initialized AutoGenDecoder with model={model}, max_rounds={max_rounds}")
     
-    def _validate_and_fix_action_syntax(self, action_syntax: str) -> str:
-        """Apply final validation and fix common action syntax errors.
-        
-        Handles known issues like incorrect filter syntax and invalid action keywords
-        while leaving complex cases to the downstream dispatcher.
-        
-        Args:
-            action_syntax: Raw action string from action planning agent
+    def _setup_action_mapping(self):
+        """Set up direct intent-to-action mapping."""
+        self.intent_to_action = {
+            # Core data operations (data handles both overview and counting)
+            "data": "data",
+            "count": "data",  # Count queries use data action
+            "statistics": "statistic",
             
-        Returns:
-            Validated and corrected action syntax
-        """
-        # Handle null or invalid input gracefully
-        if not action_syntax or not isinstance(action_syntax, str):
-            logger.warning("Received invalid action syntax input, defaulting to 'explain'")
-            return "explain"
+            # Model operations
+            "predict": "predict",
+            "explain": "explain",
+            "important": "important",
+            "performance": "score",
+            "confidence": "likelihood",
+            "mistakes": "mistake",
+            
+            # Data manipulation (filter handles all filter types)
+            "filter": "filter",
+            "show": "show",
+            "labels": "label",
+            "predictionfilter": "filter",  # All filtering uses filter action
+            "labelfilter": "filter",       # All filtering uses filter action
+            
+            # What-if analysis (counterfactual handles all variants)
+            "whatif": "change",
+            "counterfactual": "counterfactual",
+            "alternatives": "counterfactual",  # Alternatives use counterfactual action
+            "scenarios": "counterfactual",     # Scenarios use counterfactual action
+            
+            # Feature analysis
+            "interactions": "interact",
+            "define": "define",
+            "function": "function",
+            
+            # Conversational (all map to self)
+            "about": "self",
+            "casual": "self",
+            "followup": "followup",
+            "model": "model",
+            "self": "self"
+        }
         
-        # Normalize input for consistent processing
-        action_syntax = action_syntax.strip().lower()
-        parts = action_syntax.split()
-        
-        if not parts:
-            logger.warning("Empty action syntax after normalization, defaulting to 'explain'")
-            return "explain"
-        
-        # Handle specific known issues based on empirical observations
-        
-        # Issue: Incorrect ID filtering syntax - "filter id equal 2" should be "filter id 2"
-        if (len(parts) >= 4 and parts[0] == "filter" and parts[1] == "id" and parts[2] == "equal"):
-            # Fix: Remove the "equal" operator for ID filtering
-            corrected_parts = [parts[0], parts[1]] + parts[3:]  # Skip the "equal" part
-            corrected_syntax = " ".join(corrected_parts)
-            logger.info(f"Correcting ID filter syntax: '{action_syntax}' → '{corrected_syntax}'")
-            return corrected_syntax
-        
-        # Issue: Incomplete 'important' commands are common due to ambiguous user intent
-        if parts[0] == "important" and len(parts) == 1:
-            logger.info("Correcting incomplete 'important' command to 'important all'")
-            return "important all"
-        
-        # Issue: Invalid action keywords cause downstream failures
-        # We maintain a whitelist of valid actions based on the system's capabilities
-        valid_actions = [
-            "filter", "predict", "explain", "important", "score", 
-            "show", "change", "mistake", "data", "followup",
-            "model", "predictionfilter", "labelfilter"
-        ]
-        
-        if parts[0] not in valid_actions:
-            logger.warning(f"Invalid action keyword '{parts[0]}', defaulting to 'explain'")
-            return "explain"  # Safe fallback that always succeeds
-        
-        # For all other cases, trust the downstream smart dispatcher to handle complexity
-        # This design choice prevents over-validation while maintaining system robustness
-        return action_syntax
+    def _map_intent_to_action(self, intent: str) -> str:
+        """Direct mapping from intent to action without agent overhead."""
+        return self.intent_to_action.get(intent, "explain")  # Default to explain
+    
 
     def _setup_agent_architecture(self):
-        """Initialize the three specialized agents for the processing pipeline.
+        """Initialize the two specialized agents for the processing pipeline.
         
         Creates:
         - Intent extraction agent: Understands user intent and extracts entities
-        - Intent validation agent: Critically examines and refines intent
-        - Action planning agent: Converts validated intent to action commands
+        - Intent validation agent: Critically examines and refines intent through discussion
         """
         
         # Agent 1: Intent Extraction and Entity Recognition
@@ -168,21 +141,20 @@ class AutoGenDecoder:
             system_message=self._create_intent_validation_prompt()
         )
         
-        # Agent 3: Action Planning and Syntax Generation  
-        # This agent translates validated intent into executable actions
-        self.action_planning_agent = AssistantAgent(
-            name="ActionPlanner", 
-            model_client=self.model_client,
-            system_message=self._create_action_planning_prompt()
-        )
-        
-        logger.info("Successfully initialized three-agent architecture")
+        logger.info("Successfully initialized two-agent architecture")
 
     def _create_intent_extraction_prompt(self) -> str:
-        """Generate concise, focused intent extraction prompt for speed and accuracy."""
-        return """You are an intent extraction agent for ML model queries. Be FAST and ACCURATE.
+        """Generate discussion-focused intent extraction prompt for collaborative analysis."""
+        return """You are an intent extraction agent for ML model queries. ENGAGE IN DISCUSSION with the validation agent.
 
-TASK: Extract intent and entities from user queries about machine learning models.
+TASK: Extract intent and entities from user queries about machine learning models, then DISCUSS your interpretation with the validation agent.
+
+DISCUSSION GUIDELINES:
+- Present your initial interpretation
+- Listen to validation agent's questions and concerns
+- Revise your interpretation based on discussion
+- Consider context and dataset implications together
+- Focus on reaching consensus on intent and entities
 
 INTENT TYPES:
 - data: Dataset statistics, averages, summaries ("average age", "dataset info")  
@@ -205,7 +177,8 @@ INTENT TYPES:
 - casual: Greetings, chat ("hello", "hi")
 
 CONVERSATIONAL CONTEXT INTENTS:
-- followup: Follow-up questions ("tell me more", "explain that better", "what about")
+- followup: Follow-up questions ("tell me more", "explain that better", "what about") 
+  AND analytical follow-ups ("so the model underpredicts", "this means the model", "the model seems to", "does this mean", "so it appears", "therefore the model")
 - model: Model information ("about the model", "model details", "training info")
 - predictionfilter: Filter by predictions ("where model predicted diabetes", "prediction = 1")
 - labelfilter: Filter by actual labels ("actual diabetic patients", "ground truth = 1")
@@ -240,6 +213,12 @@ EXAMPLES:
 
 CONVERSATIONAL CONTEXT EXAMPLES:
 "tell me more about that" → intent: "followup"
+"so the model underpredicts the amount of people with diabetes?" → intent: "followup"
+"this means the model is conservative" → intent: "followup"
+"the model seems to underestimate cases" → intent: "followup"
+"does this mean the model is biased?" → intent: "followup"
+"so it appears the predictions are lower" → intent: "followup"
+"therefore the model misses some cases" → intent: "followup"
 "what about the model itself" → intent: "model"
 "show me where the model predicted diabetes" → intent: "predictionfilter", entities: {prediction_values: [1]}
 "filter to actual diabetic patients" → intent: "labelfilter", entities: {label_values: [1]}
@@ -263,79 +242,28 @@ CRITICAL: Never use the same JSON key twice. Use prediction_values for predictio
 
 Be fast, accurate, and concise. No explanations needed."""
 
-    def _create_action_planning_prompt(self) -> str:
-        """Generate concise action planning prompt for speed."""
-        return """You are an action planning agent. Convert intents to simple actions QUICKLY.
-
-INTENT → ACTION MAPPING:
-- data → "data" 
-- predict → "predict"
-- explain → "explain"
-- important → "important"
-- performance → "score"
-- filter → "filter"
-- whatif → "change"
-- counterfactual → "counterfactual"
-- mistakes → "mistake"
-- confidence → "likelihood"
-- interactions → "interact"
-- show → "show"
-- statistics → "statistic"
-- labels → "label"
-- count → "data"
-- define → "define"
-- about → "self"
-- casual → "self"
-- followup → "self"
-- model → "self"
-- predictionfilter → "filter"
-- labelfilter → "filter"
-
-CRITICAL: If the intent is "count", you MUST return "data" as the action. NEVER return "count" as an action.
-
-IMPORTANT: Return ONLY the single action name. DO NOT generate compound actions like "filter age greater 50 score accuracy". The main system handles filtering automatically based on entities.
-
-EXAMPLES:
-Intent: data → Action: "data"
-Intent: count → Action: "data" (NEVER "count")
-Intent: predict, entities: {patient_id: 5} → Action: "predict" 
-Intent: performance, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "score"
-Intent: explain, entities: {patient_id: 2} → Action: "explain"
-Intent: filter, entities: {features: ["age"], operators: [">"], values: [50]} → Action: "filter"
-Intent: counterfactual, entities: {patient_id: 5} → Action: "counterfactual"
-
-OUTPUT FORMAT (JSON ONLY):
-{
-  "action": "single_action_name_only",
-  "entities": {
-    "features": ["feature_names_if_any"],
-    "operators": ["operators_if_any"],
-    "values": [values_if_any],
-    "filter_type": "prediction|feature|label|null",
-    "patient_id": patient_id_if_any
-  },
-  "confidence": 0.95
-}
-
-CRITICAL: Always pass through ALL entities from intent extraction. The main system uses these entities to handle filtering automatically.
-
-IMPORTANT: The 'requires_full_dataset' field from validation is just metadata - it does NOT mean you should change the action to 'reset'. 
-Always use the validated_intent to determine the action, not any metadata fields.
-
-Be fast and direct."""
-
     def _create_intent_validation_prompt(self) -> str:
-        """Generate critical thinking validation prompt for intent analysis."""
-        return """You are an intent validation agent. CRITICALLY EXAMINE if the intent was correctly interpreted.
+        """Generate discussion-focused validation prompt for intent analysis."""
+        return """You are an intent validation agent. ENGAGE IN CRITICAL DISCUSSION about the intent interpretation.
 
-Your job: Look at the user's original query and the extracted intent, then ask "Did we really understand what they meant?"
+Your job: Look at the user's original query and the extracted intent, then DISCUSS with the intent extraction agent to reach consensus.
 
-CRITICAL ANALYSIS QUESTIONS:
+DISCUSSION GUIDELINES:
+- Ask probing questions about ambiguous cases
+- Challenge assumptions about user intent
+- Discuss context implications (filtered vs full dataset)
+- Consider alternative interpretations
+- Reach consensus through reasoned discussion
+- Focus particularly on dataset context and size implications
+
+CRITICAL ANALYSIS QUESTIONS FOR DISCUSSION:
 1. Could this query have multiple interpretations?
 2. Did we capture the user's real goal?
 3. Is there a better way to understand this request?
 4. Are we missing important context or nuance?
 5. CONTEXT-SENSITIVE: If dataset is currently filtered, does this query need full dataset or filtered dataset?
+6. DATASET SIZE IMPLICATIONS: Does this query need all data or just the current filtered subset?
+7. FOLLOW-UP DETECTION: Does this query reference previous results or make analytical conclusions? If so, it should be "followup".
 
 INTENT TYPES TO CONSIDER:
 - data: General dataset info, summaries (when no specific feature mentioned)
@@ -389,6 +317,11 @@ Critical Analysis: "This is ambiguous! Could mean:
 - Age interaction effects (interactions)
 - Model accuracy on age-filtered data (performance)
 Recommend: Ask for clarification or choose 'important' as most likely."
+
+User: "so the model underpredicts the amount of people with diabetes?"
+Initial Intent: "explain"
+Critical Analysis: "This is a follow-up analytical question that should be 'followup' not 'explain'. The user is drawing a conclusion from previous results (comparing predictions vs ground truth). This doesn't need a new explanation - it needs a conversational response using existing context."
+Validated Intent: "followup"
 
 User: "Show me patients over 40"
 Initial Intent: "filter"
@@ -483,7 +416,7 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
             context_components.append("DATASET CONTEXT: Context extraction failed - proceeding with limited information")
             logger.warning(f"Context extraction error: {e}")
         
-        # ADD PREVIOUS QUERY CONTEXT
+        # ADD PREVIOUS QUERY CONTEXT AND DATASET SIZE ANALYSIS
         # Track what was filtered in the previous query to help agents understand context switches
         try:
             if hasattr(conversation, 'temp_dataset') and conversation.temp_dataset:
@@ -491,8 +424,9 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
                 full_size = len(conversation.get_var('dataset').contents.get('X', []))
                 
                 if temp_size < full_size:
-                    # Dataset is filtered - inform agents
-                    context_components.append(f"PREVIOUS FILTERING: Dataset is currently filtered to {temp_size} out of {full_size} records")
+                    # Dataset is filtered - inform agents with detailed context
+                    filter_percentage = (temp_size / full_size) * 100
+                    context_components.append(f"DATASET STATUS: Currently filtered to {temp_size} out of {full_size} records ({filter_percentage:.1f}%)")
                     
                     # Add details about the filtering if available
                     if hasattr(conversation, 'parse_operation') and conversation.parse_operation:
@@ -504,8 +438,58 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
                         last_parse = conversation.last_parse_string[-1] if conversation.last_parse_string else ""
                         if last_parse:
                             context_components.append(f"PREVIOUS QUERY ACTION: {last_parse}")
+                            
+                    # Add guidance for agents
+                    context_components.append("DISCUSSION FOCUS: Consider whether this new query needs:")
+                    context_components.append("- Full dataset analysis (reset filter)")
+                    context_components.append("- Filtered dataset analysis (keep current filter)")
+                    context_components.append("- New filtering criteria (apply new filter)")
+                else:
+                    context_components.append(f"DATASET STATUS: Using full dataset ({full_size} records)")
+            else:
+                # No filtering context available
+                context_components.append("DATASET STATUS: Full dataset (no filtering applied)")
         except Exception as e:
             logger.warning(f"Could not extract filtering context: {e}")
+        
+        # ADD RECENT RESULTS CONTEXT FOR FOLLOW-UP DETECTION
+        # Help agents identify when user is referencing previous results
+        try:
+            # Add model vs ground truth comparison context if available
+            dataset = conversation.get_var('dataset')
+            model = conversation.get_var('model')
+            
+            if dataset and model and hasattr(dataset, 'contents'):
+                y_true = dataset.contents.get('y', [])
+                X = dataset.contents.get('X', [])
+                
+                if y_true and X:
+                    ground_truth_positive = sum(y_true)
+                    total_instances = len(y_true)
+                    
+                    # Get model predictions for context
+                    predictions = model.predict(X)
+                    predicted_positive = sum(predictions)
+                    
+                    gt_percentage = (ground_truth_positive / total_instances) * 100
+                    pred_percentage = (predicted_positive / total_instances) * 100
+                    
+                    context_components.append(f"RECENT RESULTS CONTEXT:")
+                    context_components.append(f"- Ground truth: {ground_truth_positive} positive cases ({gt_percentage:.1f}%)")
+                    context_components.append(f"- Model predictions: {predicted_positive} positive cases ({pred_percentage:.1f}%)")
+                    
+                    # Add follow-up detection hints
+                    if predicted_positive < ground_truth_positive:
+                        context_components.append("- Model underpredicts (conservative)")
+                    elif predicted_positive > ground_truth_positive:
+                        context_components.append("- Model overpredicts (aggressive)")
+                    else:
+                        context_components.append("- Model predictions match ground truth")
+                    
+                    context_components.append("NOTE: If user references these results or asks analytical questions about them, consider 'followup' intent")
+                    
+        except Exception as e:
+            logger.warning(f"Could not extract recent results context: {e}")
         
         return "\n".join(context_components)
     
@@ -542,9 +526,13 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         # Stage 3: Execute Collaborative Processing Pipeline
         processing_prompt = (
             f"{contextual_prompt}\n\n"
-            f"Execute the complete natural language understanding pipeline:\n"
-            f"1. Intent Extraction → 2. Action Planning → 3. Validation → 4. Final Output\n"
-            f"Collaborate and iterate until you reach a high-quality solution."
+            f"Execute the collaborative natural language understanding pipeline:\n"
+            f"1. Intent Extraction Agent: Analyze the query and extract intent/entities\n"
+            f"2. Intent Validation Agent: Critically examine the interpretation\n"
+            f"3. DISCUSS: Engage in back-and-forth discussion about ambiguities\n"
+            f"4. FOCUS: Pay special attention to dataset context (filtered vs full dataset)\n"
+            f"5. CONSENSUS: Reach agreement on final intent and entities\n"
+            f"Collaborate through 4 rounds of discussion until you reach consensus."
         )
         
         logger.info("Stage 3: Starting agent collaboration...")
@@ -588,7 +576,6 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
             "participants": [
                 self.intent_extraction_agent,
                 self.intent_validation_agent,
-                self.action_planning_agent,
             ]
         }
         
@@ -605,10 +592,10 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         return RoundRobinGroupChat(**team_parameters)
 
     def _process_agent_responses(self, collaboration_result) -> Optional[Dict[str, Any]]:
-        """Extract and integrate JSON responses from the three agents.
+        """Extract and integrate JSON responses from the two agents.
         
         Parses each agent's JSON output and combines them into a final response.
-        Handles cases where some agents fail to provide valid responses.
+        Uses direct action mapping.
         
         Args:
             collaboration_result: Raw output from agent collaboration
@@ -619,7 +606,6 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         # Initialize response containers
         intent_response = None
         intent_validation_response = None
-        action_response = None  
         
         logger.info(f"Processing {len(collaboration_result.messages)} agent messages")
         
@@ -639,18 +625,12 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
                         
                 elif response_type == "intent_validation" and not intent_validation_response:
                     intent_validation_response = extracted_response
-                        
-                elif response_type == "action" and not action_response:
-                    action_response = extracted_response
-                    # Handle null action cases (conversational queries)
-                    if action_response.get('action') is None:
-                        return self._create_casual_response()
         
         # Log what we found from agents for debugging
-        logger.info(f"Agent responses found: Intent={bool(intent_response)}, IntentValidation={bool(intent_validation_response)}, Action={bool(action_response)}")
+        logger.info(f"Agent responses found: Intent={bool(intent_response)}, IntentValidation={bool(intent_validation_response)}")
         
         # Integrate responses based on available information
-        return self._integrate_agent_outputs(intent_response, intent_validation_response, action_response)
+        return self._integrate_agent_outputs(intent_response, intent_validation_response)
 
     def _extract_json_response(self, message, message_index: int) -> Optional[Dict]:
         """Extract JSON from agent message - clean and direct."""
@@ -734,67 +714,64 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
             "validation_passed": True
         }
 
-    def _integrate_agent_outputs(self, intent_response, intent_validation_response, action_response) -> Optional[Dict[str, Any]]:
+    def _integrate_agent_outputs(self, intent_response, intent_validation_response) -> Optional[Dict[str, Any]]:
         """
         Integrate Multi-Agent Outputs into Unified Response
         
         This method implements the core integration logic that combines outputs
-        from multiple agents into a coherent, actionable response. The integration
-        process handles various scenarios including complete responses, partial
-        responses, and error conditions.
+        from the two agents into a coherent, actionable response. Uses direct
+        action mapping instead of a third agent.
         
         Integration Strategy:
-            1. Complete Integration: All three agents provided valid responses
-            2. Partial Integration: Subset of agents provided responses  
-            3. Quality Assurance: Apply final validation and correction
+            1. Complete Integration: Both agents provided valid responses
+            2. Partial Integration: Only intent extraction provided response
+            3. Direct Action Mapping: Map validated intent to action
             4. Confidence Scoring: Aggregate confidence measures
         
         Args:
             intent_response: Output from intent extraction agent
             intent_validation_response: Output from intent validation agent
-            action_response: Output from action planning agent
             
         Returns:
             Integrated response ready for action execution
         """
         # Scenario 1: Complete agent collaboration (ideal case)
-        if intent_response and intent_validation_response and action_response:
-            return self._create_complete_response(intent_response, intent_validation_response, action_response)
+        if intent_response and intent_validation_response:
+            return self._create_complete_response(intent_response, intent_validation_response)
             
         # Scenario 2: Partial collaboration (fallback case)
-        elif intent_response and action_response:
-            return self._create_partial_response(intent_response, action_response)
+        elif intent_response:
+            return self._create_partial_response(intent_response)
             
         # Scenario 3: Insufficient information for integration
         else:
             logger.warning("Insufficient agent responses for integration")
             return None
 
-    def _create_complete_response(self, intent_response, intent_validation_response, action_response) -> Dict[str, Any]:
+    def _create_complete_response(self, intent_response, intent_validation_response) -> Dict[str, Any]:
         """
         Create Response from Complete Agent Collaboration
         
-        Constructs the final response when all three agents have successfully
+        Constructs the final response when both agents have successfully
         contributed to the processing pipeline. Uses the validated intent from
-        the intent validation agent and actions from the action planning agent.
+        the intent validation agent and direct action mapping.
         
         Args:
             intent_response: Original intent extraction results
             intent_validation_response: Critical thinking validation results
-            action_response: Generated action commands  
             
         Returns:
-            Complete integrated response from 3-agent collaboration
+            Complete integrated response from 2-agent collaboration
         """
         # Use validated intent from the critical thinking agent
         validated_intent = intent_validation_response.get('validated_intent', intent_response.get('intent', 'data'))
         
-        # Extract action directly from action planning agent response
-        final_action = action_response.get('action', 'explain')
+        # Map intent to action using direct mapping
+        final_action = self._map_intent_to_action(validated_intent)
         
         # Use validated entities from intent validation, falling back to original entities
         validated_entities = intent_validation_response.get('entities', {})
-        original_entities = action_response.get('entities', {})
+        original_entities = intent_response.get('entities', {})
         
         # Normalize entity keys (handle both singular and plural forms)
         if 'feature' in validated_entities and 'features' not in validated_entities:
@@ -808,14 +785,13 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         # Calculate aggregate confidence score
         confidence_score = min(
             intent_response.get('confidence', 0.8),
-            intent_validation_response.get('confidence', 0.8),
-            action_response.get('confidence', 0.8)
+            intent_validation_response.get('confidence', 0.8)
         )
         
         return {
             "generation": f"parsed: {final_action}[e]",
             "confidence": confidence_score,
-            "method": "autogen_critical_thinking_pipeline",
+            "method": "autogen_2agent_discussion",
             "intent_response": {
                 "intent": validated_intent,  # Use validated intent for filter reset logic
                 "entities": command_structure,
@@ -831,7 +807,7 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
                 "validated_intent": validated_intent,
                 "critical_analysis": intent_validation_response.get('critical_analysis', ''),
                 "alternative_interpretations": intent_validation_response.get('alternative_interpretations', []),
-                "action_planning": action_response.get('reasoning', '')
+                "action_mapping": f"Intent '{validated_intent}' → Action '{final_action}'"
             },
             "command_structure": command_structure,
             "action_list": action_list,
@@ -840,35 +816,25 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
             "identified_issues": intent_validation_response.get('alternative_interpretations', [])
         }
 
-    def _create_partial_response(self, intent_response, action_response) -> Dict[str, Any]:
+    def _create_partial_response(self, intent_response) -> Dict[str, Any]:
         """
         Create Response from Partial Agent Collaboration
         
         Handles scenarios where the validation agent failed to provide output
-        but intent extraction and action planning succeeded. This fallback
-        maintains system functionality while noting the validation limitation.
+        but intent extraction succeeded. Uses direct action mapping.
         
         Args:
             intent_response: Intent extraction results  
-            action_response: Action planning results
             
         Returns:
             Partial response with available information
         """
-        final_action = action_response.get('action', 'explain')
-        
-        # Apply safety validation without validation agent input
-        original_action = final_action
-        final_action = self._validate_and_fix_action_syntax(final_action)
-        
-        if original_action != final_action:
-            logger.info(f"Applied safety correction: '{original_action}' → '{final_action}'")
+        # Get intent and map to action
+        intent = intent_response.get('intent', 'explain')
+        final_action = self._map_intent_to_action(intent)
         
         # Calculate confidence with penalty for missing validation
-        confidence_score = min(
-            intent_response.get('confidence', 0.8),
-            action_response.get('confidence', 0.8)
-        ) * 0.9  # Penalty for missing validation
+        confidence_score = intent_response.get('confidence', 0.8) * 0.9  # Penalty for missing validation
         
         return {
             "generation": f"parsed: {final_action}[e]",
@@ -877,7 +843,7 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
             "intent_response": intent_response,  # Include full intent response for context reset detection
             "agent_reasoning": {
                 "intent_analysis": intent_response.get('reasoning', ''),
-                "action_planning": action_response.get('reasoning', ''),
+                "action_mapping": f"Intent '{intent}' → Action '{final_action}'",
                 "validation_results": "Validation agent response unavailable"
             },
             "final_action": final_action,

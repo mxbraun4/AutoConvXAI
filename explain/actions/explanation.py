@@ -4,8 +4,48 @@ This action controls the explanation generation operations.
 """
 
 
+def _is_followup_question(parse_text, conversation):
+    """Check if the parse_text is actually a follow-up question that should be handled differently."""
+    
+    if not isinstance(parse_text, str):
+        return False
+    
+    text_lower = parse_text.lower()
+    
+    # Patterns that indicate this is a follow-up analytical question, not a request for new explanations
+    followup_patterns = [
+        # Prediction bias questions
+        "underpredicts", "overpredicts", "underestimates", "overestimates",
+        "model predicts less", "model predicts more", "conservative", "aggressive",
+        
+        # Analytical conclusions
+        "this means the model", "so the model", "the model seems",
+        "does this mean", "therefore the model", "so it appears",
+        
+        # Performance questions that can be answered from context
+        "how accurate", "is this good", "is this bad", "what does this mean",
+        
+        # Direct follow-ups
+        "tell me more", "explain that better", "what about that"
+    ]
+    
+    # Check if any followup pattern matches
+    for pattern in followup_patterns:
+        if pattern in text_lower:
+            return True
+    
+    return False
+
+
 def explain_operation(conversation, parse_text, i, **kwargs):
     """The explanation operation."""
+    
+    # EARLY EXIT: Check if this is a follow-up question that doesn't need new explanations
+    if parse_text and _is_followup_question(parse_text, conversation):
+        # Delegate to followup action instead of running expensive explanations
+        from explain.actions.followup import followup_operation
+        return followup_operation(conversation, parse_text, i, **kwargs)
+    
     data = conversation.temp_dataset.contents['X']
 
     if len(conversation.temp_dataset.contents['X']) == 0:
@@ -22,20 +62,79 @@ def explain_operation(conversation, parse_text, i, **kwargs):
     except:
         probabilities = None
 
-    # Get LIME explanations
     mega_explainer_exp = conversation.get_var('mega_explainer').contents
-    full_summary, short_summary = mega_explainer_exp.summarize_explanations(data,
-                                                                            filtering_text="",
-                                                                            ids_to_regenerate=regen)
     
-    # Store full summary for follow-up
-    conversation.store_followup_desc(full_summary)
-    
-    # Extract structured data from LIME results
-    structured_explanation = _extract_structured_explanation(data, predictions, probabilities, 
-                                                            mega_explainer_exp, conversation)
+    # PERFORMANCE OPTIMIZATION: Use fast path for single instances
+    if len(data) == 1:
+        # Skip expensive summarize_explanations for single instances
+        # Use fast explanation method instead
+        structured_explanation = _extract_structured_explanation_fast(data, predictions, probabilities, 
+                                                                     mega_explainer_exp, conversation)
+    else:
+        # Use full explanation pipeline for multiple instances
+        full_summary, short_summary = mega_explainer_exp.summarize_explanations(data,
+                                                                                filtering_text="",
+                                                                                ids_to_regenerate=regen)
+        # Store full summary for follow-up
+        conversation.store_followup_desc(full_summary)
+        
+        structured_explanation = _extract_structured_explanation(data, predictions, probabilities, 
+                                                                mega_explainer_exp, conversation)
     
     return structured_explanation, 1
+
+
+def _extract_structured_explanation_fast(data, predictions, probabilities, mega_explainer, conversation):
+    """Fast extraction for single instance using optimized explanation method."""
+    # Single instance explanation using fast path
+    patient_data = data.iloc[0]
+    patient_features = dict(patient_data)
+    
+    # Get prediction info
+    prediction = int(predictions[0])
+    prediction_class = conversation.class_names.get(prediction, str(prediction))
+    
+    # Get confidence if available
+    confidence = None
+    if probabilities is not None and len(probabilities) > 0:
+        confidence = round(max(probabilities[0]) * 100, 2)
+        prob_scores = {
+            'No Diabetes': round(probabilities[0][0] * 100, 1),
+            'Diabetes': round(probabilities[0][1] * 100, 1)
+        }
+    else:
+        prob_scores = None
+    
+    # Get LIME feature importance using FAST method
+    feature_importance = []
+    try:
+        # Use fast_explain_instance for single instances - much faster!
+        explanation = mega_explainer.fast_explain_instance(data.iloc[0:1])
+        
+        # Sort features by absolute importance
+        feature_scores = explanation.list_exp
+        feature_scores_sorted = sorted(feature_scores, key=lambda x: abs(x[1]), reverse=True)
+        
+        for feature_name, influence_score in feature_scores_sorted:
+            feature_importance.append({
+                'feature': feature_name,
+                'influence': round(influence_score, 3),
+                'direction': 'positive' if influence_score >= 0 else 'negative'
+            })
+    except Exception as e:
+        feature_importance = [{'error': f'Could not retrieve LIME scores: {str(e)}'}]
+    
+    return {
+        'type': 'single_explanation',
+        'instance_id': data.index[0],
+        'prediction': prediction,
+        'prediction_class': prediction_class,
+        'confidence': confidence,
+        'probability_scores': prob_scores,
+        'patient_features': patient_features,
+        'feature_importance': feature_importance,
+        'explanation_method': 'LIME (Fast)'
+    }
 
 
 def _extract_structured_explanation(data, predictions, probabilities, mega_explainer, conversation):
