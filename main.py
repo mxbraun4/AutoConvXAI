@@ -48,6 +48,8 @@ class SimpleActionDispatcher:
                 conversation.rounding_precision = 2
             if not hasattr(conversation, 'default_metric'):
                 conversation.default_metric = "accuracy"
+            if not hasattr(conversation, 'class_names'):
+                conversation.class_names = {0: "No Diabetes", 1: "Diabetes"}
             if not hasattr(conversation, 'describe'):
                 describe_obj = type('Describe', (), {})()
                 describe_obj.get_dataset_description = lambda: "diabetes prediction based on patient health metrics"
@@ -183,9 +185,9 @@ class LLMFormatter:
         # Build context string with clear filtering explanation
         context_str = ""
         
-        # SKIP dataset context for prediction and what-if scenarios
-        if autogen_intent in ['predict', 'whatif']:
-            context_str = "PREDICTION/SCENARIO FOCUS: Ignore dataset context. Focus only on the specific instance or hypothetical scenario."
+        # SKIP dataset context for conceptual queries and specific instance scenarios
+        if autogen_intent in ['predict', 'whatif', 'define', 'model', 'about']:
+            context_str = "CONCEPTUAL/SCENARIO FOCUS: Ignore dataset context and filtering information. Focus only on the specific concept, instance, or hypothetical scenario without mentioning dataset size or filters."
         else:
             # NEW: Use enhanced filter context for clearer communication
             communication_style = context_info.get('communication_style', 'unknown')
@@ -237,9 +239,10 @@ class LLMFormatter:
                     total_size = context_info['dataset_size']
                     context_str += f"Dataset: Complete dataset ({total_size} instances). "
                 
-        if context_info.get('class_names'):
+        # Only show class context for dataset-level queries, not single patient queries or filter operations
+        if context_info.get('class_names') and autogen_intent not in ['show', 'explain', 'predict', 'filter']:
             class_list = ', '.join(context_info['class_names'].values())
-            context_str += f"The model predicts: {class_list}. "
+            context_str += f"Possible classes: {class_list}. "
         
         # Add recent conversation context for comparative questions
         if conversation and hasattr(conversation, 'conversation_turns') and len(conversation.conversation_turns) > 0:
@@ -514,6 +517,21 @@ GUIDELINES:
                 else:
                     # Multiple instances comparison
                     return f"Changed {result_data['feature_name']} to {result_data['value']} for {result_data['instances_affected']} instances"
+            elif result_type == 'single_instance':
+                # Handle single instance display from show_data.py
+                instance_id = result_data['instance_id']
+                features = result_data['features']
+                label_info = result_data.get('label_info')
+                
+                # Build feature display
+                feature_text = ', '.join([f"{name}: {val}" for name, val in features.items()])
+                
+                # Include label if available
+                if label_info:
+                    label_text = label_info['label_text']
+                    return f"Patient {instance_id}: {feature_text}. Ground truth label: {label_text}."
+                else:
+                    return f"Patient {instance_id}: {feature_text}."
             elif result_type == 'counterfactual_explanation':
                 summary = f"Generated {result_data['total_counterfactuals']} counterfactual scenarios for instance {result_data['instance_id']}. "
                 summary += f"Original prediction: {result_data['original_prediction_class']}. "
@@ -613,6 +631,8 @@ class Conversation:
         # Create describe object for backward compatibility
         describe_obj = type('Describe', (), {})()
         describe_obj.get_dataset_description = lambda: "diabetes prediction based on patient health metrics"
+        describe_obj.get_dataset_objective = lambda: "predict diabetes risk in patients based on health measurements"
+        describe_obj.get_model_description = lambda: "Logistic Regression classifier"
         describe_obj.get_eval_performance = lambda model, metric: ""
         describe_obj.get_score_text = lambda y_true, y_pred, metric, precision, data_name: f"Model accuracy: {(y_true == y_pred).mean():.3f} on {data_name}"
         self.describe = describe_obj
@@ -679,7 +699,16 @@ class Conversation:
     
     def _create_temp_dataset(self):
         """Create temp dataset object"""
-        return type('Variable', (), {'contents': self.stored_vars['dataset'].contents.copy()})()
+        original_contents = self.stored_vars['dataset'].contents
+        temp_contents = {
+            'X': original_contents['X'].copy(),
+            'y': original_contents['y'].copy() if original_contents['y'] is not None else None,
+            'full_data': original_contents['full_data'].copy(),
+            'cat': original_contents['cat'].copy(),
+            'numeric': original_contents['numeric'].copy(),
+            'ids_to_regenerate': original_contents['ids_to_regenerate'].copy()
+        }
+        return type('Variable', (), {'contents': temp_contents})()
     
     def reset_temp_dataset(self):
         """Reset temp dataset to full dataset"""
@@ -919,9 +948,11 @@ def process_user_query(user_query):
     # - 'score': performance queries need full dataset
     # - 'predict': prediction queries with '=' operators should create new instances, not filter
     # - 'change': what-if scenarios should modify current context, not filter to existing data
+    # - 'define': definition queries explain general concepts, not specific instances
+    # - 'model': model information queries are independent of patient data
     filter_result = None
     should_filter = (entities.get('filter_type') or entities.get('features') or entities.get('patient_id') is not None)
-    skip_filtering = final_action in ['score', 'predict', 'change']
+    skip_filtering = final_action in ['score', 'predict', 'change', 'define', 'model']
     
     if should_filter and not skip_filtering:
         # Auto-apply filtering based on AutoGen entities
@@ -1019,7 +1050,7 @@ def sample_prompt():
             ],
             'predict': [
                 "Predict diabetes for age=50, BMI=30, glucose=120",
-                "What would happen if age was 40?",
+                "What's the prediction for BMI=35, glucose=150?",
                 "Make a prediction for these values"
             ],
             'likelihood': [
@@ -1046,6 +1077,11 @@ def sample_prompt():
                 "What are the glucose statistics?",
                 "Show me BMI distribution",
                 "Give me detailed stats for age"
+            ],
+            'statistic': [
+                "Show me glucose statistics",
+                "What's the mean and standard deviation for BMI?",
+                "Give me statistical summary for age"
             ],
             'count': [
                 "How many patients are in this dataset?",
@@ -1100,6 +1136,11 @@ def sample_prompt():
                 "What do these labels mean?",
                 "Explain the target variable",
                 "What is the dataset trying to predict?"
+            ],
+            'label': [
+                "Show me the actual labels for this data",
+                "What are the ground truth outcomes?",
+                "Display the target values for these patients"
             ],
             'description': [
                 "Tell me about this dataset",

@@ -36,6 +36,19 @@ def show_operation(conversation, parse_text, i, n_features_to_show=float("+inf")
             truncated_text = "\n".join([f"{name}: {val}" for name, val in truncated_features.items()])
             conversation.store_followup_desc(truncated_text)
         
+        # Include label information if available
+        label_info = None
+        y_data = conversation.temp_dataset.contents.get('y')
+        if y_data is not None and len(y_data) > 0:
+            instance_id = data.index[0]
+            if instance_id in y_data.index:
+                label_value = y_data.loc[instance_id]
+                label_text = conversation.get_class_name_from_label(label_value)
+                label_info = {
+                    'label_value': label_value,
+                    'label_text': label_text
+                }
+        
         result = {
             'type': 'single_instance',
             'instance_id': data.index[0],
@@ -43,7 +56,8 @@ def show_operation(conversation, parse_text, i, n_features_to_show=float("+inf")
             'has_more_features': len(truncated_features) > 0,
             'total_features': len(data.columns),
             'shown_features': len(features),
-            'filter_applied': parse_op
+            'filter_applied': parse_op,
+            'label_info': label_info
         }
         return result, 1
     else:

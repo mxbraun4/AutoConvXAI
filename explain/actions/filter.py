@@ -103,45 +103,59 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
         
     # Handle feature-based filtering using AutoGen entities
     elif ent_features and ent_ops and ent_vals:
-        # Use AutoGen entities for clean filtering
-        feature_name = ent_features[0]  # Take first feature
-        operation = ent_ops[0]  # Take first operator  
-        feature_value = ent_vals[0]  # Take first value
+        # Handle multiple conditions (e.g., BMI > 30 AND age > 50)
+        if len(ent_features) != len(ent_ops) or len(ent_features) != len(ent_vals):
+            raise ValueError(f"Mismatched filter conditions: {len(ent_features)} features, {len(ent_ops)} operators, {len(ent_vals)} values")
         
-        # Special case: ID filtering
-        if feature_name.lower() == 'id':
-            updated_dset, interp_parse_text = _handle_id_filtering(temp_dataset, conversation, feature_value)
+        # Special case: Single ID filtering
+        if len(ent_features) == 1 and ent_features[0].lower() == 'id':
+            updated_dset, interp_parse_text = _handle_id_filtering(temp_dataset, conversation, ent_vals[0])
         else:
-            # Regular feature filtering - handle case-insensitive matching
-            actual_feature_name = None
-            for col in temp_dataset['X'].columns:
-                if col.lower() == feature_name.lower():
-                    actual_feature_name = col
-                    break
+            # Apply multiple feature filters with AND logic
+            combined_bools = None
+            interp_parts = []
             
-            if actual_feature_name is None:
-                raise ValueError(f"Unknown feature name: {feature_name}. Available features: {list(temp_dataset['X'].columns)}")
+            for feature_name, operation, feature_value in zip(ent_features, ent_ops, ent_vals):
+                # Regular feature filtering - handle case-insensitive matching
+                actual_feature_name = None
+                for col in temp_dataset['X'].columns:
+                    if col.lower() == feature_name.lower():
+                        actual_feature_name = col
+                        break
+                
+                if actual_feature_name is None:
+                    raise ValueError(f"Unknown feature name: {feature_name}. Available features: {list(temp_dataset['X'].columns)}")
+                
+                feature_name = actual_feature_name  # use the actual column name
+                    
+                # Apply the filtering based on operator
+                if operation == '>' or operation == 'greater':
+                    condition_bools = temp_dataset['X'][feature_name] > feature_value
+                elif operation == '<' or operation == 'less':
+                    condition_bools = temp_dataset['X'][feature_name] < feature_value
+                elif operation == '=' or operation == '==' or operation == 'equal':
+                    condition_bools = temp_dataset['X'][feature_name] == feature_value
+                elif operation == '>=' or operation == 'greater_equal':
+                    condition_bools = temp_dataset['X'][feature_name] >= feature_value
+                elif operation == '<=' or operation == 'less_equal':
+                    condition_bools = temp_dataset['X'][feature_name] <= feature_value
+                elif operation == '!=' or operation == 'not_equal':
+                    condition_bools = temp_dataset['X'][feature_name] != feature_value
+                else:
+                    raise ValueError(f"Unknown operator: {operation}")
+                
+                # Combine conditions with AND logic
+                if combined_bools is None:
+                    combined_bools = condition_bools
+                else:
+                    combined_bools = combined_bools & condition_bools
+                
+                # Build interpretable text
+                interp_parts.append(format_parse_string(feature_name, feature_value, operation))
             
-            feature_name = actual_feature_name  # use the actual column name
-                
-            # Apply the filtering based on operator
-            if operation == '>' or operation == 'greater':
-                bools = temp_dataset['X'][feature_name] > feature_value
-            elif operation == '<' or operation == 'less':
-                bools = temp_dataset['X'][feature_name] < feature_value
-            elif operation == '=' or operation == '==' or operation == 'equal':
-                bools = temp_dataset['X'][feature_name] == feature_value
-            elif operation == '>=' or operation == 'greater_equal':
-                bools = temp_dataset['X'][feature_name] >= feature_value
-            elif operation == '<=' or operation == 'less_equal':
-                bools = temp_dataset['X'][feature_name] <= feature_value
-            elif operation == '!=' or operation == 'not_equal':
-                bools = temp_dataset['X'][feature_name] != feature_value
-            else:
-                raise ValueError(f"Unknown operator: {operation}")
-                
-            updated_dset = filter_dataset(temp_dataset, bools)
-            interp_parse_text = format_parse_string(feature_name, feature_value, operation)
+            # Apply the combined filter
+            updated_dset = filter_dataset(temp_dataset, combined_bools)
+            interp_parse_text = " and ".join(interp_parts)
     
     # Handle label-based filtering (ground truth filtering)
     elif kwargs.get('filter_type') == 'label' and ent_label_vals:
@@ -215,7 +229,14 @@ def _handle_id_filtering(temp_dataset, conversation, feature_value):
     # Use full dataset for ID filtering, not current filtered dataset
     # This ensures we can find any valid instance ID
     full_dataset = conversation.get_var('dataset').contents
-    updated_dset = full_dataset.copy()
+    updated_dset = {
+        'X': full_dataset['X'].copy(),
+        'y': full_dataset['y'].copy() if full_dataset['y'] is not None else None,
+        'full_data': full_dataset['full_data'].copy() if 'full_data' in full_dataset else None,
+        'cat': full_dataset.get('cat', []).copy(),
+        'numeric': full_dataset.get('numeric', []).copy(),
+        'ids_to_regenerate': full_dataset.get('ids_to_regenerate', []).copy()
+    }
     
     # If id never appears in index, set the data to empty
     if id_value not in list(updated_dset['X'].index):
