@@ -136,7 +136,7 @@
     "question": "How often do you predict people aged more than 30 and have diabetes?",
     "old_command": "filter age greater than 30 and likelihood",
     "expected_json": {
-      "intent": "predict",
+      "intent": "count",
       "entities": {
         "features": [
           "age"
@@ -283,7 +283,7 @@
     "question": "What changes would occur in the predictions if people with a bmi of 30 were reduced in age by 5 years.",
     "old_command": "filter bmi equal to 30 and change age decrease 5 and predict",
     "expected_json": {
-      "intent": "filter",
+      "intent": "whatif",
       "entities": {}
     },
     "line_number": 21
@@ -292,7 +292,7 @@
     "question": "If we lowered the age by 5 years for people with a bmi of 30, what changes would occur in the predictions?",
     "old_command": "filter bmi equal to 30 and change age decrease 5 and predict",
     "expected_json": {
-      "intent": "filter",
+      "intent": "whatif",
       "entities": {}
     },
     "line_number": 22
@@ -301,7 +301,7 @@
     "question": "How exactly would the predictions change if age were decreased by 5 years for people with a bmi of 30?",
     "old_command": "filter bmi equal to 30 and change age decrease 5 and predict",
     "expected_json": {
-      "intent": "filter",
+      "intent": "whatif",
       "entities": {}
     },
     "line_number": 23
@@ -310,7 +310,7 @@
     "question": "How exactly would the predictions change if age were decreased by 5 years for people with a bmi of 30?",
     "old_command": "filter bmi equal to 30 and change age decrease 5 and predict",
     "expected_json": {
-      "intent": "filter",
+      "intent": "whatif",
       "entities": {}
     },
     "line_number": 24
@@ -319,7 +319,7 @@
     "question": "What amount of people have less than three pregnancies?",
     "old_command": "filter pregnancies less than 3 and countdata",
     "expected_json": {
-      "intent": "filter",
+      "intent": "count",
       "entities": {
         "features": [
           "pregnancies"
@@ -338,7 +338,7 @@
     "question": "What's the number of people that have been pregnant less than three times?",
     "old_command": "filter pregnancies less than 3 and countdata",
     "expected_json": {
-      "intent": "filter",
+      "intent": "count",
       "entities": {
         "features": [
           "pregnancies"
@@ -357,7 +357,7 @@
     "question": "Can you tell me how many people have less than three pregnancies?",
     "old_command": "filter pregnancies less than 3 and countdata",
     "expected_json": {
-      "intent": "filter",
+      "intent": "count",
       "entities": {
         "features": [
           "pregnancies"
@@ -376,7 +376,7 @@
     "question": "What is the number of mothers with less than three pregnancies?",
     "old_command": "filter pregnancies less than 3 and countdata",
     "expected_json": {
-      "intent": "filter",
+      "intent": "count",
       "entities": {
         "features": [
           "pregnancies"
@@ -395,10 +395,10 @@
     "question": "According to the data provided, how many instance of greater than 100 blood pressure can be counted?",
     "old_command": "filter bloodpressure greater than 100 and countdata",
     "expected_json": {
-      "intent": "filter",
+      "intent": "count",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           ">"
@@ -414,10 +414,10 @@
     "question": "How many times was the blood pressure from the data greater than 100?",
     "old_command": "filter bloodpressure greater than 100 and countdata",
     "expected_json": {
-      "intent": "filter",
+      "intent": "count",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           ">"
@@ -433,10 +433,10 @@
     "question": "What is the number of occurrences in the data of blood pressure over 100?",
     "old_command": "filter bloodpressure greater than 100 and countdata",
     "expected_json": {
-      "intent": "filter",
+      "intent": "count",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           ">"
@@ -452,10 +452,10 @@
     "question": "How many instances are in the model for blood pressure over 100?",
     "old_command": "filter bloodpressure greater than 100 and countdata",
     "expected_json": {
-      "intent": "filter",
+      "intent": "count",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           ">"
@@ -471,10 +471,10 @@
     "question": "What's the number of points in the data where blood pressure is greater than 100?",
     "old_command": "filter bloodpressure greater than 100 and countdata",
     "expected_json": {
-      "intent": "filter",
+      "intent": "count",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           ">"
@@ -626,7 +626,7 @@
     "question": "If we increased glucose by 100 for the data point with id 33, what would happen to the likelihood of having diabetes",
     "old_command": "filter id 33 and change glucose increase 100 and likelihood",
     "expected_json": {
-      "intent": "predict",
+      "intent": "whatif",
       "entities": {
         "patient_id": 33
       }
@@ -637,7 +637,7 @@
     "question": "If we increased glucose by 100 for the data point with id 33, would the likelihood of having diabetes go up or down",
     "old_command": "filter id 33 and change glucose increase 100 and likelihood",
     "expected_json": {
-      "intent": "predict",
+      "intent": "whatif",
       "entities": {
         "patient_id": 33
       }
@@ -648,7 +648,7 @@
     "question": "If we increase glucose by 100, what would happen to the likelihood of having diabetes for the data point with id 33?",
     "old_command": "filter id 33 and change glucose increase 100 and likelihood",
     "expected_json": {
-      "intent": "predict",
+      "intent": "whatif",
       "entities": {
         "patient_id": 33
       }
@@ -659,7 +659,7 @@
     "question": "For the data point with id 33, predict the change in the likelihood of having diabetes if we increase glucose by 100.",
     "old_command": "filter id 33 and change glucose increase 100 and likelihood",
     "expected_json": {
-      "intent": "predict",
+      "intent": "whatif",
       "entities": {
         "patient_id": 33
       }
@@ -670,7 +670,7 @@
     "question": "What changes in the likelihood of having diabetes would be made if we were to increase glucose by 100 in data point 33?",
     "old_command": "filter id 33 and change glucose increase 100 and likelihood",
     "expected_json": {
-      "intent": "predict",
+      "intent": "whatif",
       "entities": {
         "patient_id": 33
       }
@@ -681,7 +681,7 @@
     "question": "likelihood of having diabetes if we were to increase glucose by 100 for the data point with id 33",
     "old_command": "filter id 33 and change glucose increase 100 and likelihood",
     "expected_json": {
-      "intent": "predict",
+      "intent": "whatif",
       "entities": {
         "patient_id": 33
       }
@@ -1004,7 +1004,7 @@
       "intent": "filter",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           "<"
@@ -1023,7 +1023,7 @@
       "intent": "filter",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           "<"
@@ -1042,7 +1042,7 @@
       "intent": "filter",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           "<"
@@ -1061,7 +1061,7 @@
       "intent": "filter",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           "<"
@@ -1080,7 +1080,7 @@
       "intent": "filter",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           "<"
@@ -1099,7 +1099,7 @@
       "intent": "filter",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           "<"
@@ -1118,7 +1118,7 @@
       "intent": "filter",
       "entities": {
         "features": [
-          "bloodpressure"
+          "BloodPressure"
         ],
         "operators": [
           "<"

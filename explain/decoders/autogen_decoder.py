@@ -11,6 +11,7 @@ import os
 import json
 import asyncio
 import logging
+import re
 from typing import Dict, Any, Optional, List, Tuple
 
 # Configure logging for research and debugging purposes
@@ -157,42 +158,73 @@ DISCUSSION GUIDELINES:
 - Focus on reaching consensus on intent and entities
 
 INTENT TYPES:
-- data: Dataset statistics, averages, summaries ("average age", "dataset info")  
-- predict: Model predictions ("predict for patient 2", "what would happen")
-- explain: Model explanations ("why", "how did", "explain prediction")
-- important: Feature importance ("important features", "which features matter")
-- performance: Model accuracy ("how accurate", "model performance")
-- filter: Subset data ("patients with age > 50", "show instances where model predicted 1")
-- whatif: What-if analysis ("what if BMI was 25", "change glucose to 90")
-- counterfactual: Counterfactual explanations ("show counterfactuals", "what are the alternatives", "scenarios to flip prediction")
-- mistakes: Model error analysis ("show mistakes", "where is the model wrong")
-- confidence: Prediction confidence ("how confident", "prediction probability")
-- interactions: Feature interactions ("how do features interact", "age and BMI together")
-- show: Display data instances ("show patient 10", "display this data")
-- statistics: Feature statistics ("glucose statistics", "BMI distribution")
-- labels: Ground truth information ("actual labels", "true values")
-- count: Count data points (analyze if user wants filtered count or total dataset count) ("how many patients", "number of instances")
-- define: Feature definitions ("what is BMI", "define glucose")
-- about: System information ("tell me about yourself", "what can you do")
-- casual: Greetings, chat ("hello", "hi")
+INTENT GOALS AND PURPOSES:
+- data: Get general dataset statistics, averages, summaries (overall dataset information)
+- predict: Generate actual model predictions/probabilities for specific instances or conditions
+- explain: Understand WHY the model made predictions (reasoning process, methodology, decision logic)
+- important: Discover which features matter most for model predictions (feature importance rankings)
+- performance: Evaluate how accurate/good the model is (accuracy metrics, evaluation results)
+- filter: Display/show subset of data meeting specific criteria (data viewing/browsing)
+- whatif: Explore hypothetical scenarios by changing feature values (what-if analysis)
+- counterfactual: Find alternative scenarios that would flip/change model predictions
+- mistakes: Analyze where and how the model makes errors (error analysis)
+- confidence: Get prediction confidence scores/probabilities for model outputs
+- interactions: Understand how features work together (feature interactions and dependencies)
+- show: Display specific data instances/records (data viewing for individual cases)
+- statistics: Get detailed statistics about specific features (distributions, means, etc.)
+- labels: Access ground truth/actual labels (true outcomes vs predictions)
+- count: Count number of data points (total counts or counts meeting criteria)
+- define: Get definitions/explanations of features or concepts
+- about: Get system information (capabilities, model details)
+- casual: Handle greetings and casual conversation
 
 CONVERSATIONAL CONTEXT INTENTS:
-- followup: Follow-up questions ("tell me more", "explain that better", "what about") 
-  AND analytical follow-ups ("so the model underpredicts", "this means the model", "the model seems to", "does this mean", "so it appears", "therefore the model")
+- followup: Handle greetings, chat, and analytical conclusions based on previous results
 - model: Model information ("about the model", "model details", "training info")
 - predictionfilter: Filter by predictions ("where model predicted diabetes", "prediction = 1")
 - labelfilter: Filter by actual labels ("actual diabetic patients", "ground truth = 1")
+
+CRITICAL RULES: 
+- Questions asking WHY/HOW about specific predictions → EXPLAIN (even with "believe", "think")
+- Questions with "process", "method", "approach", "determine" → EXPLAIN (asking about methodology)
+- Questions with "predict" + "how much/often/many" → PREDICT (asking for prediction quantities)
+- Questions comparing feature importance → IMPORTANT (e.g., "is X more important than Y")
+- Statements drawing conclusions from previous results → FOLLOWUP
 
 SPECIAL FILTERING TYPES:
 - Prediction filtering: "show instances where model predicted 1", "cases where model predicts diabetes"
 - Feature filtering: "patients with age > 50", "glucose less than 100"
 - Label filtering: "instances where ground truth is 1", "actual diabetic patients"
 
+CRITICAL INTENT DISAMBIGUATION EXAMPLES:
+
+EXPLAIN vs PREDICT (Focus on user's goal):
+"what method would you use to figure out if people with glucose > 120 have diabetes?" → intent: "explain" (wants to understand reasoning/methodology)
+"how do you determine if people with glucose > 120 have diabetes?" → intent: "explain" (wants to understand decision process)
+"what's your process for determining whether people with glucose > 120 have diabetes?" → intent: "explain" (wants to understand approach/methodology)
+"predict diabetes for people with glucose > 120" → intent: "predict" (wants actual prediction results)
+"how much do you predict people aged over 30 have diabetes?" → intent: "predict" (wants prediction probabilities)
+"how often do you predict people aged more than 30 have diabetes?" → intent: "predict" (wants prediction rates/percentages)
+
+EXPLAIN vs FILTER (Focus on user's goal):
+"explain why the model predicted data point 100" → intent: "explain" (wants reasoning)
+"show me data point 100" → intent: "show" (wants to see the data)
+"patients with glucose > 120" → intent: "filter" (wants to see/display subset)
+
+EXPLAIN vs COUNTERFACTUAL (For dual-intent questions, prioritize the primary goal):
+"why did the model predict data point 100 and what can you do to change it?" → intent: "explain" (primary focus on understanding why)
+"what can you do to change the prediction for data point 100?" → intent: "counterfactual" (primary focus on changing outcome)
+
 EXAMPLES:
 "whats the average age in the dataset" → intent: "data"
 "how accurate is the model" → intent: "performance" 
 "explain patient 5" → intent: "explain", entities: {patient_id: 5}
 "predict for glucose > 120" → intent: "predict", entities: {features: ["glucose"], operators: [">"], values: [120]}
+"glucose levels over 120" → intent: "filter", entities: {features: ["glucose"], operators: [">"], values: [120]}
+"people aged over 30" → intent: "filter", entities: {features: ["age"], operators: [">"], values: [30]}
+"BMI above 25" → intent: "filter", entities: {features: ["BMI"], operators: [">"], values: [25]}
+"glucose under 100" → intent: "filter", entities: {features: ["glucose"], operators: ["<"], values: [100]}
+"age below 40" → intent: "filter", entities: {features: ["age"], operators: ["<"], values: [40]}
 "show instances where model predicted 1" → intent: "filter", entities: {filter_type: "prediction", prediction_values: [1]}
 "patients with age > 50" → intent: "filter", entities: {features: ["age"], operators: [">"], values: [50]}
 "show cases where ground truth is 1" → intent: "filter", entities: {filter_type: "label", label_values: [1]}
@@ -273,29 +305,29 @@ CRITICAL ANALYSIS QUESTIONS FOR DISCUSSION:
 6. DATASET SIZE IMPLICATIONS: Does this query need all data or just the current filtered subset?
 7. FOLLOW-UP DETECTION: Does this query reference previous results or make analytical conclusions? If so, it should be "followup".
 
-INTENT TYPES TO CONSIDER:
-- data: General dataset info, summaries (when no specific feature mentioned)
-- statistics: Detailed stats about specific features (mean, std, distribution)
-- predict: Model predictions for specific cases
-- explain: Why did the model make this prediction
-- important: Which features matter most
-- performance: How accurate/good is the model
-- filter: Show subset of data based on criteria
-- show: Display specific data instances (individual patients or records)
-- counterfactual: Generate counterfactual explanations for predictions
-- interactions: How features work together
-- mistakes: Where does the model fail (CRITICAL: Always needs full dataset for meaningful analysis)
-- whatif: What-if analysis scenarios
-- confidence: Prediction confidence scores
-- labels: Ground truth information
-- count: Count data points (analyze if user wants filtered count or total dataset count)
-- define: Feature definitions
-- about: System information
-- casual: Greetings, chat
-- followup: Follow-up questions
-- model: Model information
-- predictionfilter: Filter by predictions
-- labelfilter: Filter by actual labels
+INTENT GOALS TO VALIDATE:
+- data: Get general dataset statistics, averages, summaries (overall dataset information)
+- statistics: Get detailed statistics about specific features (distributions, means, etc.)
+- predict: Generate actual model predictions/probabilities for specific instances or conditions
+- explain: Understand WHY the model made predictions (reasoning process, methodology, decision logic)
+- important: Discover which features matter most for model predictions (feature importance rankings)
+- performance: Evaluate how accurate/good the model is (accuracy metrics, evaluation results)
+- filter: Display/show subset of data meeting specific criteria (data viewing/browsing)
+- show: Display specific data instances/records (data viewing for individual cases)
+- counterfactual: Find alternative scenarios that would flip/change model predictions
+- interactions: Understand how features work together (feature interactions and dependencies)
+- mistakes: Analyze where and how the model makes errors (error analysis)
+- whatif: Explore hypothetical scenarios by changing feature values (what-if analysis)
+- confidence: Get prediction confidence scores/probabilities for model outputs
+- labels: Access ground truth/actual labels (true outcomes vs predictions)
+- count: Count number of data points (total counts or counts meeting criteria)
+- define: Get definitions/explanations of features or concepts
+- about: Get system information (capabilities, model details)
+- casual: Handle greetings and casual conversation
+- followup: Follow-up questions and analytical conclusions
+- model: Get model information (architecture, training details)
+- predictionfilter: Filter by model predictions (show instances where model predicted X)
+- labelfilter: Filter by actual labels (show instances where ground truth is Y)
 
 CONTEXT-SENSITIVE VALIDATION:
 When the dataset is currently filtered, critically analyze:
@@ -316,7 +348,9 @@ CRITICAL DECISION:
 - If user asks about "average", "mean", "std", "distribution" of a SPECIFIC FEATURE → use "statistics"
 - If user asks about general dataset info without specific features → use "data"
 
-EXAMPLES OF CRITICAL VALIDATION:
+VALIDATION RULE:
+- Questions asking WHY/HOW about specific predictions → "explain" (not followup)
+- Method/process questions → "explain" (not predict)
 
 User: "How does age affect the model?"
 Initial Intent: "performance" 
@@ -796,7 +830,17 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         if 'feature' in validated_entities and 'features' not in validated_entities:
             validated_entities['features'] = [validated_entities.pop('feature')]
         
-        command_structure = {**original_entities, **validated_entities}  # Validation takes precedence
+        # Smart entity merging - preserve non-null values from both sources
+        command_structure = {}
+        for key in set(original_entities.keys()) | set(validated_entities.keys()):
+            validated_val = validated_entities.get(key)
+            original_val = original_entities.get(key)
+            
+            # Use validated value if it's not null, otherwise use original
+            if validated_val is not None:
+                command_structure[key] = validated_val
+            else:
+                command_structure[key] = original_val
         
         # Create action list for backward compatibility
         action_list = [final_action] if final_action else ["explain"]

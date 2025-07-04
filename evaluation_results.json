@@ -1,0 +1,1496 @@
+{
+  "report": {
+    "total_cases": 20,
+    "intent_accuracy": 0.85,
+    "entity_accuracy": 0.75,
+    "overall_accuracy": 0.7,
+    "error_rate": 0.0,
+    "intent_breakdown": {
+      "explain": {
+        "total": 12,
+        "correct": 10,
+        "accuracy": 0.8333333333333334
+      },
+      "predict": {
+        "total": 2,
+        "correct": 2,
+        "accuracy": 1.0
+      },
+      "count": {
+        "total": 1,
+        "correct": 0,
+        "accuracy": 0.0
+      },
+      "important": {
+        "total": 5,
+        "correct": 5,
+        "accuracy": 1.0
+      }
+    },
+    "intent_mismatches": [
+      {
+        "question": "What reasoning do you typically use to determine if people have diabetes when glucose levels are over 120?",
+        "expected_intent": "explain",
+        "actual_intent": "followup",
+        "expected_entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        },
+        "actual_entities": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        }
+      },
+      {
+        "question": "How often do you predict people aged more than 30 and have diabetes?",
+        "expected_intent": "count",
+        "actual_intent": "predict",
+        "expected_entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ]
+        },
+        "actual_entities": {}
+      },
+      {
+        "question": "Why did the model predict data point 100 and what can you do to change it?",
+        "expected_intent": "explain",
+        "actual_intent": null,
+        "expected_entities": {
+          "patient_id": 100
+        },
+        "actual_entities": {}
+      }
+    ],
+    "entity_mismatches": [
+      {
+        "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
+        "expected_intent": "explain",
+        "actual_intent": "explain",
+        "expected_entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        },
+        "actual_entities": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        }
+      },
+      {
+        "question": "If a person has a glucose level of higher than 120, why would you think that they will get diabetes?",
+        "expected_intent": "explain",
+        "actual_intent": "explain",
+        "expected_entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        },
+        "actual_entities": {}
+      },
+      {
+        "question": "What's your process for determining whether people with glucose levels over 120 have diabetes?",
+        "expected_intent": "explain",
+        "actual_intent": "explain",
+        "expected_entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        },
+        "actual_entities": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        }
+      }
+    ]
+  },
+  "detailed_results": [
+    {
+      "question": "What reasoning do you typically use to determine if people have diabetes when glucose levels are over 120?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: followup[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "followup",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user is seeking to understand the reasoning behind the model's predictions regarding diabetes given a specific glucose level. This implies they are referring to previously established results about how glucose levels affect predictions for diabetes. Therefore, it should be classified as a 'followup' rather than an 'explain' since the user is not requesting a general methodology or reasoning process, but rather a clarification based on existing data.",
+          "alternative_interpretations": [
+            "explain the rationale of diabetes prediction",
+            "inquire about reasoning specific to glucose levels",
+            "ask for model criteria for diagnosing diabetes"
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "explain",
+          "validated_intent": "followup",
+          "critical_analysis": "The user is seeking to understand the reasoning behind the model's predictions regarding diabetes given a specific glucose level. This implies they are referring to previously established results about how glucose levels affect predictions for diabetes. Therefore, it should be classified as a 'followup' rather than an 'explain' since the user is not requesting a general methodology or reasoning process, but rather a clarification based on existing data.",
+          "alternative_interpretations": [
+            "explain the rationale of diabetes prediction",
+            "inquire about reasoning specific to glucose levels",
+            "ask for model criteria for diagnosing diabetes"
+          ],
+          "action_mapping": "Intent 'followup' → Action 'followup'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        },
+        "action_list": [
+          "followup"
+        ],
+        "final_action": "followup",
+        "validation_passed": true,
+        "identified_issues": [
+          "explain the rationale of diabetes prediction",
+          "inquire about reasoning specific to glucose levels",
+          "ask for model criteria for diagnosing diabetes"
+        ]
+      },
+      "intent_match": false,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user's query is ambiguous. They are asking about methods to determine a relationship between glucose levels and diabetes, which could imply statistical analysis, prediction modeling, or even exploratory data analysis. Simply categorizing this as 'explain' does not capture the intent of obtaining a method or process description. Moreover, the request doesn't seek clarification on existing results or reasoning behind predictions but rather looks for an appropriate method to investigate an association.",
+          "alternative_interpretations": [
+            "inquiry about the statistical method to analyze the relationship",
+            "request for a model that predicts diabetes based on glucose levels",
+            "question about how to conduct hypothesis testing for glucose levels and diabetes"
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "explain",
+          "validated_intent": "explain",
+          "critical_analysis": "The user's query is ambiguous. They are asking about methods to determine a relationship between glucose levels and diabetes, which could imply statistical analysis, prediction modeling, or even exploratory data analysis. Simply categorizing this as 'explain' does not capture the intent of obtaining a method or process description. Moreover, the request doesn't seek clarification on existing results or reasoning behind predictions but rather looks for an appropriate method to investigate an association.",
+          "alternative_interpretations": [
+            "inquiry about the statistical method to analyze the relationship",
+            "request for a model that predicts diabetes based on glucose levels",
+            "question about how to conduct hypothesis testing for glucose levels and diabetes"
+          ],
+          "action_mapping": "Intent 'explain' → Action 'explain'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": [
+          "inquiry about the statistical method to analyze the relationship",
+          "request for a model that predicts diabetes based on glucose levels",
+          "question about how to conduct hypothesis testing for glucose levels and diabetes"
+        ]
+      },
+      "intent_match": true,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "If a person has a glucose level of higher than 120, why would you think that they will get diabetes?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "patient_id": null,
+            "features": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'explain' → Action 'explain'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "How do you determine if people with glucose levels above 120 have diabetes?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "prediction_values": null,
+            "operators": [
+              ">"
+            ],
+            "values": [
+              120
+            ],
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "glucose"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user is asking how to determine whether individuals with glucose levels above 120 have diabetes, which suggests an explanation related to the methodology or criteria used in prediction. The intent of 'explain' aligns with this request. However, it might also imply a need for a discussion around criteria and thresholds for diabetes diagnosis, which is somewhat broader than just an explanation.",
+          "alternative_interpretations": [
+            "The user may implicitly be asking for the diagnostic criteria for diabetes.",
+            "This could also be seen as an inquiry into how the model specifically classifies diabetes based on glucose levels."
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "explain",
+          "validated_intent": "explain",
+          "critical_analysis": "The user is asking how to determine whether individuals with glucose levels above 120 have diabetes, which suggests an explanation related to the methodology or criteria used in prediction. The intent of 'explain' aligns with this request. However, it might also imply a need for a discussion around criteria and thresholds for diabetes diagnosis, which is somewhat broader than just an explanation.",
+          "alternative_interpretations": [
+            "The user may implicitly be asking for the diagnostic criteria for diabetes.",
+            "This could also be seen as an inquiry into how the model specifically classifies diabetes based on glucose levels."
+          ],
+          "action_mapping": "Intent 'explain' → Action 'explain'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ],
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "glucose"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": [
+          "The user may implicitly be asking for the diagnostic criteria for diabetes.",
+          "This could also be seen as an inquiry into how the model specifically classifies diabetes based on glucose levels."
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What's your process for determining whether people with glucose levels over 120 have diabetes?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "While the initial intent of 'explain' seems reasonable for a question about understanding the process, it might not accurately capture the user's goal. The user is asking about a specific analytical approach (using glucose levels to determine diabetes diagnosis), which suggests they may actually be interested in how the model predicts diabetes based on glucose levels, leading us to consider a potential 'predict' intent instead. Additionally, if they seek a specific process, it could also indicate an interest in 'interactions', as they are inquiring about how the feature (glucose levels) relates to the target variable (diabetes) more generally.",
+          "alternative_interpretations": [
+            "predict",
+            "interactions",
+            "important"
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "explain",
+          "validated_intent": "explain",
+          "critical_analysis": "While the initial intent of 'explain' seems reasonable for a question about understanding the process, it might not accurately capture the user's goal. The user is asking about a specific analytical approach (using glucose levels to determine diabetes diagnosis), which suggests they may actually be interested in how the model predicts diabetes based on glucose levels, leading us to consider a potential 'predict' intent instead. Additionally, if they seek a specific process, it could also indicate an interest in 'interactions', as they are inquiring about how the feature (glucose levels) relates to the target variable (diabetes) more generally.",
+          "alternative_interpretations": [
+            "predict",
+            "interactions",
+            "important"
+          ],
+          "action_mapping": "Intent 'explain' → Action 'explain'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": [
+          "predict",
+          "interactions",
+          "important"
+        ]
+      },
+      "intent_match": true,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "How much do you predict people aged over 30 have diabetes?",
+      "expected": {
+        "intent": "predict",
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: predict[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "predict",
+          "entities": {
+            "prediction_values": null,
+            "operators": [
+              ">"
+            ],
+            "values": [
+              30
+            ],
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "age"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user's query is clear and directly asks for predictions regarding diabetes in people aged over 30. The intent of 'predict' is appropriate as it relates to generating predictions based on the provided age criterion. There are no apparent ambiguities, and the full dataset allows for accurate predictions.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "predict",
+          "validated_intent": "predict",
+          "critical_analysis": "The user's query is clear and directly asks for predictions regarding diabetes in people aged over 30. The intent of 'predict' is appropriate as it relates to generating predictions based on the provided age criterion. There are no apparent ambiguities, and the full dataset allows for accurate predictions.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'predict' → Action 'predict'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ],
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "age"
+          ]
+        },
+        "action_list": [
+          "predict"
+        ],
+        "final_action": "predict",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "How often do you project people older than 30 to have diabetes?",
+      "expected": {
+        "intent": "predict",
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: predict[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "predict",
+          "entities": {
+            "features": [
+              "age"
+            ],
+            "operators": [
+              ">"
+            ],
+            "values": [
+              30
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'predict' → Action 'predict'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "predict",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "How often do you predict people aged more than 30 and have diabetes?",
+      "expected": {
+        "intent": "count",
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: predict[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "predict",
+          "entities": {
+            "features": [
+              "age"
+            ],
+            "operators": [
+              ">"
+            ],
+            "values": [
+              30
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'predict' → Action 'predict'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "predict",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What are the top three features for the model's predictions in the data?",
+      "expected": {
+        "intent": "important",
+        "entities": {
+          "topk": 3
+        }
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "important",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": 3,
+            "label_values": null,
+            "filter_type": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The intent of discovering the top three features that influence the model's predictions is clear. Since the dataset is in full context, we should correctly classify this as an 'important' query focused on identifying influential features. However, I wonder if we should require explicit entities for the features that are being analyzed or if the general intent is sufficient without detailing those features.",
+          "alternative_interpretations": [
+            "The user may be asking for detailed statistics on the top features",
+            "The user may have meant to filter this by a specific prediction task",
+            "The user may be interested in feature interactions as well."
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "important",
+          "validated_intent": "important",
+          "critical_analysis": "The intent of discovering the top three features that influence the model's predictions is clear. Since the dataset is in full context, we should correctly classify this as an 'important' query focused on identifying influential features. However, I wonder if we should require explicit entities for the features that are being analyzed or if the general intent is sufficient without detailing those features.",
+          "alternative_interpretations": [
+            "The user may be asking for detailed statistics on the top features",
+            "The user may have meant to filter this by a specific prediction task",
+            "The user may be interested in feature interactions as well."
+          ],
+          "action_mapping": "Intent 'important' → Action 'important'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": 3,
+          "label_values": null,
+          "filter_type": null,
+          "features": null
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": [
+          "The user may be asking for detailed statistics on the top features",
+          "The user may have meant to filter this by a specific prediction task",
+          "The user may be interested in feature interactions as well."
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What are the three most important parts of the model's predictions?",
+      "expected": {
+        "intent": "important",
+        "entities": {
+          "topk": 3
+        }
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "important",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": 3,
+            "label_values": null,
+            "filter_type": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The user's inquiry asks explicitly about the most important parts of the model's predictions, which aligns effectively with the 'important' intent. Since no filtering is applied, it indicates a desire for a general overview of feature importance globally across the dataset.",
+          "alternative_interpretations": [
+            "identify key features influencing predictions",
+            "understand the most significant variables in model performance"
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "important",
+          "validated_intent": "important",
+          "critical_analysis": "The user's inquiry asks explicitly about the most important parts of the model's predictions, which aligns effectively with the 'important' intent. Since no filtering is applied, it indicates a desire for a general overview of feature importance globally across the dataset.",
+          "alternative_interpretations": [
+            "identify key features influencing predictions",
+            "understand the most significant variables in model performance"
+          ],
+          "action_mapping": "Intent 'important' → Action 'important'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": 3,
+          "label_values": null,
+          "filter_type": null,
+          "features": null
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": [
+          "identify key features influencing predictions",
+          "understand the most significant variables in model performance"
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "When the model makes predictions in the data what are the three features that are most important?",
+      "expected": {
+        "intent": "important",
+        "entities": {
+          "topk": 3
+        }
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.93,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "important",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": 3,
+            "label_values": null,
+            "filter_type": null,
+            "features": null
+          },
+          "confidence": 0.93
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The user's query is clear about wanting the top three features contributing to model predictions. The intent of 'important' is accurately captured, but we also need to ensure we understand if the user is referring to overall importance without restrictions on specific features. As the dataset is full, we can provide global feature importance metrics.",
+          "alternative_interpretations": [
+            "User might want specific features",
+            "User might be asking about importance for specific predictions"
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "important",
+          "validated_intent": "important",
+          "critical_analysis": "The user's query is clear about wanting the top three features contributing to model predictions. The intent of 'important' is accurately captured, but we also need to ensure we understand if the user is referring to overall importance without restrictions on specific features. As the dataset is full, we can provide global feature importance metrics.",
+          "alternative_interpretations": [
+            "User might want specific features",
+            "User might be asking about importance for specific predictions"
+          ],
+          "action_mapping": "Intent 'important' → Action 'important'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": 3,
+          "label_values": null,
+          "filter_type": null,
+          "features": null
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": [
+          "User might want specific features",
+          "User might be asking about importance for specific predictions"
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "For what reason did the model predict data point 100 and what can you do to change it?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "patient_id": 100
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.92,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": 100,
+            "features": null
+          },
+          "confidence": 0.92
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user is asking for an explanation of the prediction made for a specific data point (patient 100), hence 'explain' is the correct interpretation. However, the second part of the query, 'what can you do to change it,' suggests there might be an aspect of counterfactual analysis, indicating potential manipulation of features to alter the prediction. This could be considered an alternative interpretation of 'what if' scenarios. We should clarify if the user is inquiring about changing any specific features or discussing general modification strategies.",
+          "alternative_interpretations": [
+            "what-if analysis regarding feature changes",
+            "potential counterfactual analysis to influence predictions"
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "explain",
+          "validated_intent": "explain",
+          "critical_analysis": "The user is asking for an explanation of the prediction made for a specific data point (patient 100), hence 'explain' is the correct interpretation. However, the second part of the query, 'what can you do to change it,' suggests there might be an aspect of counterfactual analysis, indicating potential manipulation of features to alter the prediction. This could be considered an alternative interpretation of 'what if' scenarios. We should clarify if the user is inquiring about changing any specific features or discussing general modification strategies.",
+          "alternative_interpretations": [
+            "what-if analysis regarding feature changes",
+            "potential counterfactual analysis to influence predictions"
+          ],
+          "action_mapping": "Intent 'explain' → Action 'explain'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": 100,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": [
+          "what-if analysis regarding feature changes",
+          "potential counterfactual analysis to influence predictions"
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "Why did the model predict data point 100 and what can you do to change it?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "patient_id": 100
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "error": "AutoGen processing error: '<' not supported between instances of 'NoneType' and 'float'",
+        "confidence": 0.1,
+        "method": "autogen_error_recovery",
+        "timestamp": "unknown"
+      },
+      "intent_match": false,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What can you do to change why the model predicted data point 100, and why was it predicted?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "patient_id": 100
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": 100,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user is asking about the reasoning behind the prediction for data point 100, which clearly indicates an interest in understanding the model's decision-making process. The entities are appropriately aligned since they capture the necessary details without excess complexity. However, their asking 'why' indicates a need for deeper understanding rather than purely explanatory information.",
+          "alternative_interpretations": [
+            "The user might also be interested in how to modify the input features or model settings to affect the prediction for data point 100.",
+            "The query could imply a request to troubleshoot or improve the prediction results based on current model settings"
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "explain",
+          "validated_intent": "explain",
+          "critical_analysis": "The user is asking about the reasoning behind the prediction for data point 100, which clearly indicates an interest in understanding the model's decision-making process. The entities are appropriately aligned since they capture the necessary details without excess complexity. However, their asking 'why' indicates a need for deeper understanding rather than purely explanatory information.",
+          "alternative_interpretations": [
+            "The user might also be interested in how to modify the input features or model settings to affect the prediction for data point 100.",
+            "The query could imply a request to troubleshoot or improve the prediction results based on current model settings"
+          ],
+          "action_mapping": "Intent 'explain' → Action 'explain'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": 100,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": [
+          "The user might also be interested in how to modify the input features or model settings to affect the prediction for data point 100.",
+          "The query could imply a request to troubleshoot or improve the prediction results based on current model settings"
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What is the methodology on why the model guessed data point number 100 and what could you do to change it?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "patient_id": 100
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": 100,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user is asking for the methodology behind the model's prediction for a specific data point (patient ID 100). This implies a desire to understand the reasoning process and decision logic of the model. The query is clear in its intent and specific to one instance without introducing ambiguities or new filters. There is no indication that features or other filters are needed here, aligning well with the 'explain' intent.",
+          "alternative_interpretations": [
+            "Could be interpreted as needing 'what-if' changes to the input data, but the focus is on explanation."
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "explain",
+          "validated_intent": "explain",
+          "critical_analysis": "The user is asking for the methodology behind the model's prediction for a specific data point (patient ID 100). This implies a desire to understand the reasoning process and decision logic of the model. The query is clear in its intent and specific to one instance without introducing ambiguities or new filters. There is no indication that features or other filters are needed here, aligning well with the 'explain' intent.",
+          "alternative_interpretations": [
+            "Could be interpreted as needing 'what-if' changes to the input data, but the focus is on explanation."
+          ],
+          "action_mapping": "Intent 'explain' → Action 'explain'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": 100,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": [
+          "Could be interpreted as needing 'what-if' changes to the input data, but the focus is on explanation."
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What is the precise methodology on why the model predicted data point number 100 and what could you do to change it?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "patient_id": 100
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": 100,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user's request involves understanding the reasoning behind a specific prediction for data point 100 and considering changes to that prediction. The intent of 'explain' seems appropriate here since the user seeks the methodology behind the model's prediction. However, there could be ambiguity in the phrase 'what could you do to change it,' which may suggest additional exploration beyond a straightforward explanation.",
+          "alternative_interpretations": [
+            "User might want to know about model tweaking techniques",
+            "User may be interested in feature importance related to this specific instance",
+            "User could be asking about potential counterfactual scenarios"
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "explain",
+          "validated_intent": "explain",
+          "critical_analysis": "The user's request involves understanding the reasoning behind a specific prediction for data point 100 and considering changes to that prediction. The intent of 'explain' seems appropriate here since the user seeks the methodology behind the model's prediction. However, there could be ambiguity in the phrase 'what could you do to change it,' which may suggest additional exploration beyond a straightforward explanation.",
+          "alternative_interpretations": [
+            "User might want to know about model tweaking techniques",
+            "User may be interested in feature importance related to this specific instance",
+            "User could be asking about potential counterfactual scenarios"
+          ],
+          "action_mapping": "Intent 'explain' → Action 'explain'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": 100,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": [
+          "User might want to know about model tweaking techniques",
+          "User may be interested in feature importance related to this specific instance",
+          "User could be asking about potential counterfactual scenarios"
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "Why do you believe the model predicted data point number 100 and how could you shift that?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "patient_id": 100
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.9,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": 100,
+            "features": null
+          },
+          "confidence": 0.9
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The intent 'explain' captures the user's desire to understand the reasoning behind the prediction for data point number 100. The shift aspect suggests an inquiry into how the prediction could be altered, which aligns with wanting to understand the decision-making process. However, the request is clear in its focus on a specific instance, indicating that nothing is missing from the entities.",
+          "alternative_interpretations": [
+            "questioning the reason for the specific prediction",
+            "seeking methods to alter the prediction outcome"
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "explain",
+          "validated_intent": "explain",
+          "critical_analysis": "The intent 'explain' captures the user's desire to understand the reasoning behind the prediction for data point number 100. The shift aspect suggests an inquiry into how the prediction could be altered, which aligns with wanting to understand the decision-making process. However, the request is clear in its focus on a specific instance, indicating that nothing is missing from the entities.",
+          "alternative_interpretations": [
+            "questioning the reason for the specific prediction",
+            "seeking methods to alter the prediction outcome"
+          ],
+          "action_mapping": "Intent 'explain' → Action 'explain'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": 100,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": [
+          "questioning the reason for the specific prediction",
+          "seeking methods to alter the prediction outcome"
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "If possible please list the reasons why the model predicted data point number 100 and what would you do to change it?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "patient_id": 100
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": 100,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user's query is asking for an explanation of the reasons behind the model's prediction for a specific data point (patient 100). This intent correctly aligns with an 'explain' request, as it reflects an interest in understanding the prediction process. However, the request also includes a secondary aspect: 'what would you do to change it?' which may imply a need to discuss potential adjustments. While this doesn't require a different intent flag, it indicates a desire for actionable insights. Thus, the main intent remains 'explain'.",
+          "alternative_interpretations": [
+            "The user could also be asking for a detailed breakdown of the prediction attributes (feature importance) instead of a general explanation."
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "explain",
+          "validated_intent": "explain",
+          "critical_analysis": "The user's query is asking for an explanation of the reasons behind the model's prediction for a specific data point (patient 100). This intent correctly aligns with an 'explain' request, as it reflects an interest in understanding the prediction process. However, the request also includes a secondary aspect: 'what would you do to change it?' which may imply a need to discuss potential adjustments. While this doesn't require a different intent flag, it indicates a desire for actionable insights. Thus, the main intent remains 'explain'.",
+          "alternative_interpretations": [
+            "The user could also be asking for a detailed breakdown of the prediction attributes (feature importance) instead of a general explanation."
+          ],
+          "action_mapping": "Intent 'explain' → Action 'explain'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": 100,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": [
+          "The user could also be asking for a detailed breakdown of the prediction attributes (feature importance) instead of a general explanation."
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "Is age a more big part than BMI enduring people in the data were three years more prepared?",
+      "expected": {
+        "intent": "important",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.9,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "important",
+          "entities": {
+            "prediction_values": null,
+            "topk": 1,
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.9
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user's query seeks a comparison of the importance of age relative to BMI. However, the phrase 'three years more prepared' is unclear—it could refer to an average age difference or preparation duration, which may influence how we interpret 'importance'. We need to clarify what 'more prepared' relates to and if it impacts the feature importance analysis.",
+          "alternative_interpretations": [
+            "User could be asking for a general comparison of feature importance.",
+            "User might be indicating some form of age-group analysis related to readiness.",
+            "Possibility exists that 'prepared' relates to some metric or model performance that should be defined."
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "important",
+          "validated_intent": "important",
+          "critical_analysis": "The user's query seeks a comparison of the importance of age relative to BMI. However, the phrase 'three years more prepared' is unclear—it could refer to an average age difference or preparation duration, which may influence how we interpret 'importance'. We need to clarify what 'more prepared' relates to and if it impacts the feature importance analysis.",
+          "alternative_interpretations": [
+            "User could be asking for a general comparison of feature importance.",
+            "User might be indicating some form of age-group analysis related to readiness.",
+            "Possibility exists that 'prepared' relates to some metric or model performance that should be defined."
+          ],
+          "action_mapping": "Intent 'important' → Action 'important'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "topk": 1,
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": [
+          "User could be asking for a general comparison of feature importance.",
+          "User might be indicating some form of age-group analysis related to readiness.",
+          "Possibility exists that 'prepared' relates to some metric or model performance that should be defined."
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "How is the age a more feature than BMI if the people were three years older.",
+      "expected": {
+        "intent": "important",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.85,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "important",
+          "entities": {
+            "prediction_values": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "label_values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.85
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "The user query implies a comparison of importance between age and BMI, especially under the condition that the individuals are three years older. However, the phrase 'more feature' is ambiguous—does it suggest a request for feature importance analysis, or is it about how age might impact a certain outcome relative to BMI? Additionally, it is unclear if they want the comparison to be drawn across all data or just a specific subset. The context of ages and the age change may require clarifying assumptions.",
+          "alternative_interpretations": [
+            "The user might want to know if age becomes a more significant predictor than BMI with an increase in age, or a general comparison of their influences on a certain outcome."
+          ]
+        },
+        "agent_reasoning": {
+          "original_intent": "important",
+          "validated_intent": "important",
+          "critical_analysis": "The user query implies a comparison of importance between age and BMI, especially under the condition that the individuals are three years older. However, the phrase 'more feature' is ambiguous—does it suggest a request for feature importance analysis, or is it about how age might impact a certain outcome relative to BMI? Additionally, it is unclear if they want the comparison to be drawn across all data or just a specific subset. The context of ages and the age change may require clarifying assumptions.",
+          "alternative_interpretations": [
+            "The user might want to know if age becomes a more significant predictor than BMI with an increase in age, or a general comparison of their influences on a certain outcome."
+          ],
+          "action_mapping": "Intent 'important' → Action 'important'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "label_values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": [
+          "The user might want to know if age becomes a more significant predictor than BMI with an increase in age, or a general comparison of their influences on a certain outcome."
+        ]
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    }
+  ]
+}

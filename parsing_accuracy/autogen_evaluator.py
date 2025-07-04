@@ -9,11 +9,15 @@ import json
 import logging
 import os
 import sys
-from typing import Dict, List, Any, Tuple
+import time
+import asyncio
+from typing import Dict, List, Any, Tuple, Optional
 from dataclasses import dataclass
+from concurrent.futures import ThreadPoolExecutor
+import threading
 
 # Add the parent directory to sys.path to import the AutoGenDecoder
-sys.path.append('/mnt/e/Talktomodel_adjusted')
+sys.path.append('/app')
 
 try:
     from explain.decoders.autogen_decoder import AutoGenDecoder
@@ -51,11 +55,9 @@ class MockConversation:
         self.class_names = ['No Diabetes', 'Diabetes']
     
     def get_var(self, var_name: str):
-        """Mock get_var method."""
-        if var_name == 'dataset':
-            return MockDataset()
-        elif var_name == 'model':
-            return MockModel()
+        """Mock get_var method - returns None to prevent context injection during testing."""
+        # Return None for dataset and model to prevent "RECENT RESULTS CONTEXT" 
+        # injection that contaminates test cases and makes everything appear as 'followup'
         return None
 
 
@@ -83,10 +85,13 @@ class MockModel:
 class AutoGenEvaluator:
     """Evaluator for AutoGen decoder performance."""
     
-    def __init__(self, test_cases_file: str, api_key: str = None):
+    def __init__(self, test_cases_file: str, api_key: str = None, delay_between_calls: float = 0.5):
         """Initialize evaluator with test cases and API key."""
         self.test_cases_file = test_cases_file
         self.api_key = api_key or os.getenv('OPENAI_API_KEY')
+        self.delay_between_calls = delay_between_calls
+        self.rate_limit_lock = threading.Lock()
+        self.last_api_call_time = 0
         
         if not self.api_key:
             raise ValueError("OpenAI API key is required. Set OPENAI_API_KEY environment variable.")
@@ -102,7 +107,7 @@ class AutoGenEvaluator:
         self.conversation = MockConversation()
         
         # Set up logging
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
         self.logger = logging.getLogger(__name__)
     
     def evaluate_intent_match(self, expected: Dict[str, Any], actual: Dict[str, Any]) -> bool:
@@ -155,13 +160,31 @@ class AutoGenEvaluator:
         return True
     
     def evaluate_single_case(self, test_case: Dict[str, Any]) -> EvaluationResult:
-        """Evaluate a single test case."""
+        """Evaluate a single test case with fresh AutoGen decoder to prevent context accumulation."""
         question = test_case['question']
         expected_json = test_case['expected_json']
         
         try:
-            # Get AutoGen output
-            autogen_output = self.decoder.complete_sync(question, self.conversation)
+            # Apply rate limiting BEFORE creating decoder
+            with self.rate_limit_lock:
+                current_time = time.time()
+                time_since_last_call = current_time - self.last_api_call_time
+                if time_since_last_call < self.delay_between_calls:
+                    time.sleep(self.delay_between_calls - time_since_last_call)
+                self.last_api_call_time = time.time()
+            
+            # Create fresh AutoGen decoder for each test case to prevent context accumulation
+            # Use unique API key instance to ensure no connection pooling
+            import uuid
+            unique_key = self.api_key  # Can't modify key but ensure fresh instance
+            fresh_decoder = AutoGenDecoder(api_key=unique_key, model="gpt-4o-mini")
+            fresh_conversation = MockConversation()
+            
+            # Get AutoGen output with fresh instances
+            autogen_output = fresh_decoder.complete_sync(question, fresh_conversation)
+            
+            # Explicitly delete decoder to ensure cleanup
+            del fresh_decoder
             
             # Check matches
             intent_match = self.evaluate_intent_match(expected_json, autogen_output)
@@ -189,6 +212,8 @@ class AutoGenEvaluator:
                 error_message=str(e)
             )
     
+
+    
     def evaluate_subset(self, max_cases: int = 50) -> List[EvaluationResult]:
         """Evaluate a subset of test cases."""
         self.logger.info(f"Evaluating {min(max_cases, len(self.test_cases))} test cases...")
@@ -204,6 +229,43 @@ class AutoGenEvaluator:
                 self.logger.info("✓ Match")
             else:
                 self.logger.info(f"✗ No match - Intent: {result.intent_match}, Entities: {result.entities_match}")
+        
+        return results
+    
+    def evaluate_parallel(self, test_cases: List[Dict[str, Any]], max_workers: int = 1) -> List[EvaluationResult]:
+        """Evaluate test cases in parallel with controlled concurrency."""
+        # CHANGED: Set max_workers to 1 to force sequential execution
+        # This ensures no parallel state contamination
+        results = [None] * len(test_cases)
+        completed = 0
+        total = len(test_cases)
+        start_time = time.time()
+        
+        def evaluate_with_index(index_and_case):
+            index, test_case = index_and_case
+            result = self.evaluate_single_case(test_case)
+            return index, result
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all tasks
+            futures = []
+            for i, test_case in enumerate(test_cases):
+                future = executor.submit(evaluate_with_index, (i, test_case))
+                futures.append(future)
+            
+            # Process results as they complete
+            for future in futures:
+                index, result = future.result()
+                results[index] = result
+                completed += 1
+                
+                # Calculate and display progress
+                elapsed = time.time() - start_time
+                rate = completed / elapsed if elapsed > 0 else 0
+                eta = (total - completed) / rate if rate > 0 else 0
+                
+                status = "✓" if result.overall_match else "✗"
+                self.logger.info(f"{status} Case {completed}/{total} - ETA: {eta:.0f}s")
         
         return results
     
@@ -273,7 +335,7 @@ class AutoGenEvaluator:
                     output_file: str = None) -> None:
         """Save evaluation results to file."""
         if output_file is None:
-            output_file = '/mnt/e/Talktomodel_adjusted/parsing_accuracy/evaluation_results.json'
+            output_file = 'evaluation_results.json'  # Write to current directory instead
         
         output_data = {
             'report': report,
@@ -297,8 +359,93 @@ class AutoGenEvaluator:
         print(f"Results saved to {output_file}")
 
 
+
+def evaluate_all_cases():
+    """Run evaluation on all test cases with batch processing and parallel execution."""
+    # Check for API key
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        print("Error: OPENAI_API_KEY environment variable not set.")
+        print("Please set your OpenAI API key to run the evaluation.")
+        return
+    
+    # Initialize evaluator with smart rate limiting
+    test_cases_file = '/app/parsing_accuracy/converted_test_cases.json'
+    evaluator = AutoGenEvaluator(test_cases_file, api_key, delay_between_calls=0.5)
+    
+    total_cases = len(evaluator.test_cases)
+    batch_size = 50
+    num_batches = (total_cases + batch_size - 1) // batch_size
+    
+    print(f"Starting AutoGen evaluation on all {total_cases} test cases...")
+    print(f"Processing in {num_batches} batches of {batch_size} cases each")
+    print("Using sequential processing with 0.5s rate limiting to prevent context contamination")
+    
+    # Estimate time
+    estimated_time = total_cases * 0.5  # 0.5s per call, sequential
+    print(f"Estimated time: {estimated_time:.0f} seconds ({estimated_time/60:.1f} minutes)\n")
+    
+    start_time = time.time()
+    all_results = []
+    
+    # Process in batches
+    for batch_num in range(num_batches):
+        batch_start = batch_num * batch_size
+        batch_end = min(batch_start + batch_size, total_cases)
+        batch_cases = evaluator.test_cases[batch_start:batch_end]
+        
+        print(f"\nBatch {batch_num + 1}/{num_batches}: Tests {batch_start + 1}-{batch_end}")
+        print("-" * 50)
+        
+        # Evaluate batch in parallel (now sequential with max_workers=1)
+        batch_results = evaluator.evaluate_parallel(batch_cases, max_workers=1)
+        all_results.extend(batch_results)
+        
+        # Save intermediate results
+        intermediate_file = f'evaluation_results_batch_{batch_num + 1}.json'
+        temp_report = evaluator.generate_report(all_results)
+        evaluator.save_results(all_results, temp_report, intermediate_file)
+        
+        # Show batch summary
+        batch_matches = sum(1 for r in batch_results if r.overall_match)
+        print(f"Batch {batch_num + 1} complete: {batch_matches}/{len(batch_results)} matches")
+    
+    # Generate final report
+    report = evaluator.generate_report(all_results)
+    
+    # Calculate actual time taken
+    total_time = time.time() - start_time
+    
+    # Print summary
+    print("\n" + "="*50)
+    print("AUTOGEN EVALUATION RESULTS")
+    print("="*50)
+    print(f"Total Cases Evaluated: {report['total_cases']}")
+    print(f"Intent Accuracy: {report['intent_accuracy']:.2%}")
+    print(f"Entity Accuracy: {report['entity_accuracy']:.2%}")
+    print(f"Overall Accuracy: {report['overall_accuracy']:.2%}")
+    print(f"Error Rate: {report['error_rate']:.2%}")
+    print(f"Total Time: {total_time:.0f} seconds ({total_time/60:.1f} minutes)")
+    print(f"Average Time per Test: {total_time/total_cases:.2f} seconds")
+    
+    print("\nIntent Breakdown:")
+    for intent, data in report['intent_breakdown'].items():
+        print(f"  {intent}: {data['correct']}/{data['total']} ({data['accuracy']:.2%})")
+    
+    if report['intent_mismatches']:
+        print("\nTop 10 Intent Mismatches:")
+        for i, mismatch in enumerate(report['intent_mismatches'][:10], 1):
+            print(f"{i}. Expected: {mismatch['expected_intent']} | Actual: {mismatch['actual_intent']}")
+            print(f"   Question: {mismatch['question'][:60]}...")
+    
+    # Save final results
+    evaluator.save_results(all_results, report, 'evaluation_results_final.json')
+    
+    print(f"\nDetailed results saved to evaluation_results_final.json")
+    print(f"Intermediate batch results saved as evaluation_results_batch_*.json")
+
 def main():
-    """Main evaluation function."""
+    """Main evaluation function - backward compatibility."""
     # Check for API key
     api_key = os.getenv('OPENAI_API_KEY')
     if not api_key:
@@ -307,7 +454,7 @@ def main():
         return
     
     # Initialize evaluator
-    test_cases_file = '/mnt/e/Talktomodel_adjusted/parsing_accuracy/converted_test_cases.json'
+    test_cases_file = '/app/parsing_accuracy/converted_test_cases.json'
     evaluator = AutoGenEvaluator(test_cases_file, api_key)
     
     # Run evaluation on subset (for speed)
@@ -331,9 +478,9 @@ def main():
     for intent, data in report['intent_breakdown'].items():
         print(f"  {intent}: {data['correct']}/{data['total']} ({data['accuracy']:.2%})")
     
-    if report['sample_mismatches']:
-        print("\nSample Mismatches:")
-        for i, mismatch in enumerate(report['sample_mismatches'], 1):
+    if report['intent_mismatches']:
+        print("\nIntent Mismatches:")
+        for i, mismatch in enumerate(report['intent_mismatches'], 1):
             print(f"{i}. Expected: {mismatch['expected_intent']} | Actual: {mismatch['actual_intent']}")
             print(f"   Question: {mismatch['question'][:60]}...")
     
@@ -344,4 +491,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main()  # Test with 20 cases to see improvement from corrected labels
