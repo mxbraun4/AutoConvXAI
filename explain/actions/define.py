@@ -25,19 +25,35 @@ def define_operation(conversation, parse_text, i, **kwargs):
     feature_name_original = feature_name
     feature_name = feature_name.lower()
     
-    # Find matching feature (case-insensitive)
-    matching_feature = None
-    for feat_name in conversation.feature_definitions.keys():
-        if feat_name.lower() == feature_name:
-            matching_feature = feat_name
-            break
+    # Handle common synonyms and aliases
+    synonyms = {
+        'target variable': 'y',
+        'target': 'y',
+        'outcome': 'y',
+        'label': 'y',
+        'class': 'y',
+        'prediction target': 'y',
+        'dependent variable': 'y',
+        'response variable': 'y'
+    }
     
-    if matching_feature is None:
-        # Try partial matching
+    # Check synonyms first
+    if feature_name in synonyms:
+        matching_feature = synonyms[feature_name]
+    else:
+        # Find matching feature (case-insensitive)
+        matching_feature = None
         for feat_name in conversation.feature_definitions.keys():
-            if feature_name in feat_name.lower() or feat_name.lower() in feature_name:
+            if feat_name.lower() == feature_name:
                 matching_feature = feat_name
                 break
+        
+        if matching_feature is None:
+            # Try partial matching
+            for feat_name in conversation.feature_definitions.keys():
+                if feature_name in feat_name.lower() or feat_name.lower() in feature_name:
+                    matching_feature = feat_name
+                    break
     
     if matching_feature is None:
         return {

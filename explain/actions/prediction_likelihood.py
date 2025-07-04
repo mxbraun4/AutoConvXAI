@@ -6,6 +6,44 @@ def predict_likelihood(conversation, parse_text, i, **kwargs):
     """The prediction likelihood operation."""
     predict_proba = conversation.get_var('model_prob_predict').contents
     model = conversation.get_var('model').contents
+    
+    # Check if we should use stored prediction context (follow-up to a specific prediction)
+    if hasattr(conversation, 'last_prediction_instance') and conversation.last_prediction_instance:
+        # Use the stored prediction context for follow-up queries
+        prediction_context = conversation.last_prediction_instance
+        
+        # Use the stored data and confidence information
+        data = prediction_context['data']
+        confidence = prediction_context.get('confidence')
+        prediction = prediction_context.get('prediction')
+        
+        # Get all probabilities for the instance
+        try:
+            model_prediction_probabilities = predict_proba(data.values)
+        except:
+            # Fallback for compatibility
+            model_prediction_probabilities = model.predict_proba(data.values)
+        
+        # Create structured response similar to predict.py
+        result = {
+            'type': 'prediction_likelihood',
+            'prediction': int(prediction),
+            'prediction_class': conversation.class_names.get(prediction, str(prediction)),
+            'confidence': round(confidence * 100, conversation.rounding_precision) if confidence is not None else None,
+            'context': 'follow_up_to_prediction',
+            'input_features': prediction_context.get('features', {}),
+            'all_probabilities': {}
+        }
+        
+        # Add probability breakdown for all classes
+        for c in range(model_prediction_probabilities.shape[1]):
+            proba = round(model_prediction_probabilities[0, c] * 100, conversation.rounding_precision)
+            class_name = conversation.class_names.get(c, f"class {c}")
+            result['all_probabilities'][class_name] = proba
+        
+        return result, 1
+    
+    # Original behavior for general dataset queries
     data = conversation.temp_dataset.contents['X'].values
 
     if len(conversation.temp_dataset.contents['X']) == 0:

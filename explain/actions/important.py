@@ -132,10 +132,14 @@ def important_operation(conversation, parse_text, i, **kwargs):
 
     # Use AutoGen entities instead of legacy text parsing
     ent_features = kwargs.get('features', []) if kwargs else []
+    ent_topk = kwargs.get('topk') if kwargs else None
     
     if ent_features and len(ent_features) > 0:
         # Specific feature requested via AutoGen entities
         parsed_feature_name = ent_features[0]
+    elif ent_topk:
+        # Top-k features requested via AutoGen entities
+        parsed_feature_name = "topk"
     else:
         # No specific feature specified, default to showing all features
         parsed_feature_name = "all"
@@ -203,14 +207,8 @@ def important_operation(conversation, parse_text, i, **kwargs):
             })
             
     elif parsed_feature_name == "topk":
-        # Return top k features
-        if i+2 >= len(parse_text):
-            topk = 5
-        else:
-            try:
-                topk = int(parse_text[i+2])
-            except (ValueError, IndexError):
-                topk = 5
+        # Return top k features using AutoGen entities
+        topk = ent_topk if ent_topk else 5
         
         result['top_k'] = topk
         ranked_features = sorted(avg_ranks.items(), key=lambda x: x[1])[:topk]

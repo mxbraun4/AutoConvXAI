@@ -1,0 +1,2590 @@
+[
+  {
+    "question": "What reasoning do you typically use to determine if people have diabetes when glucose levels are over 120?",
+    "old_command": "filter glucose greater than 120 and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "features": [
+          "glucose"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          120
+        ]
+      }
+    },
+    "line_number": 1
+  },
+  {
+    "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
+    "old_command": "filter glucose greater than 120 and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "features": [
+          "glucose"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          120
+        ]
+      }
+    },
+    "line_number": 2
+  },
+  {
+    "question": "If a person has a glucose level of higher than 120, why would you think that they will get diabetes?",
+    "old_command": "filter glucose greater than 120 and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "features": [
+          "glucose"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          120
+        ]
+      }
+    },
+    "line_number": 3
+  },
+  {
+    "question": "How do you determine if people with glucose levels above 120 have diabetes?",
+    "old_command": "filter glucose greater than 120 and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "features": [
+          "glucose"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          120
+        ]
+      }
+    },
+    "line_number": 4
+  },
+  {
+    "question": "What's your process for determining whether people with glucose levels over 120 have diabetes?",
+    "old_command": "filter glucose greater than 120 and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "features": [
+          "glucose"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          120
+        ]
+      }
+    },
+    "line_number": 5
+  },
+  {
+    "question": "How much do you predict people aged over 30 have diabetes?",
+    "old_command": "filter age greater than 30 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 6
+  },
+  {
+    "question": "How often do you project people older than 30 to have diabetes?",
+    "old_command": "filter age greater than 30 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 7
+  },
+  {
+    "question": "How often do you predict people aged more than 30 and have diabetes?",
+    "old_command": "filter age greater than 30 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 8
+  },
+  {
+    "question": "What are the top three features for the model's predictions in the data?",
+    "old_command": "important topk 3",
+    "expected_json": {
+      "intent": "important",
+      "entities": {
+        "topk": 3
+      }
+    },
+    "line_number": 9
+  },
+  {
+    "question": "What are the three most important parts of the model's predictions?",
+    "old_command": "important topk 3",
+    "expected_json": {
+      "intent": "important",
+      "entities": {
+        "topk": 3
+      }
+    },
+    "line_number": 10
+  },
+  {
+    "question": "When the model makes predictions in the data what are the three features that are most important?",
+    "old_command": "important topk 3",
+    "expected_json": {
+      "intent": "important",
+      "entities": {
+        "topk": 3
+      }
+    },
+    "line_number": 11
+  },
+  {
+    "question": "For what reason did the model predict data point 100 and what can you do to change it?",
+    "old_command": "filter id 100 and explain features and explain cfe",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "patient_id": 100
+      }
+    },
+    "line_number": 12
+  },
+  {
+    "question": "Why did the model predict data point 100 and what can you do to change it?",
+    "old_command": "filter id 100 and explain features and explain cfe",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "patient_id": 100
+      }
+    },
+    "line_number": 13
+  },
+  {
+    "question": "What can you do to change why the model predicted data point 100, and why was it predicted?",
+    "old_command": "filter id 100 and explain features and explain cfe",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "patient_id": 100
+      }
+    },
+    "line_number": 14
+  },
+  {
+    "question": "What is the methodology on why the model guessed data point number 100 and what could you do to change it?",
+    "old_command": "filter id 100 and explain features and explain cfe",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "patient_id": 100
+      }
+    },
+    "line_number": 15
+  },
+  {
+    "question": "What is the precise methodology on why the model predicted data point number 100 and what could you do to change it?",
+    "old_command": "filter id 100 and explain features and explain cfe",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "patient_id": 100
+      }
+    },
+    "line_number": 16
+  },
+  {
+    "question": "Why do you believe the model predicted data point number 100 and how could you shift that?",
+    "old_command": "filter id 100 and explain features and explain cfe",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "patient_id": 100
+      }
+    },
+    "line_number": 17
+  },
+  {
+    "question": "If possible please list the reasons why the model predicted data point number 100 and what would you do to change it?",
+    "old_command": "filter id 100 and explain features and explain cfe",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "patient_id": 100
+      }
+    },
+    "line_number": 18
+  },
+  {
+    "question": "Is age a more big part than BMI enduring people in the data were three years more prepared?",
+    "old_command": "change age increase 3 and important age and important bmi",
+    "expected_json": {
+      "intent": "important",
+      "entities": {}
+    },
+    "line_number": 19
+  },
+  {
+    "question": "How is the age a more feature than BMI if the people were three years older.",
+    "old_command": "change age increase 3 and important age and important bmi",
+    "expected_json": {
+      "intent": "important",
+      "entities": {}
+    },
+    "line_number": 20
+  },
+  {
+    "question": "What changes would occur in the predictions if people with a bmi of 30 were reduced in age by 5 years.",
+    "old_command": "filter bmi equal to 30 and change age decrease 5 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 21
+  },
+  {
+    "question": "If we lowered the age by 5 years for people with a bmi of 30, what changes would occur in the predictions?",
+    "old_command": "filter bmi equal to 30 and change age decrease 5 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 22
+  },
+  {
+    "question": "How exactly would the predictions change if age were decreased by 5 years for people with a bmi of 30?",
+    "old_command": "filter bmi equal to 30 and change age decrease 5 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 23
+  },
+  {
+    "question": "How exactly would the predictions change if age were decreased by 5 years for people with a bmi of 30?",
+    "old_command": "filter bmi equal to 30 and change age decrease 5 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 24
+  },
+  {
+    "question": "What amount of people have less than three pregnancies?",
+    "old_command": "filter pregnancies less than 3 and countdata",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "pregnancies"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          3
+        ]
+      }
+    },
+    "line_number": 25
+  },
+  {
+    "question": "What's the number of people that have been pregnant less than three times?",
+    "old_command": "filter pregnancies less than 3 and countdata",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "pregnancies"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          3
+        ]
+      }
+    },
+    "line_number": 26
+  },
+  {
+    "question": "Can you tell me how many people have less than three pregnancies?",
+    "old_command": "filter pregnancies less than 3 and countdata",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "pregnancies"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          3
+        ]
+      }
+    },
+    "line_number": 27
+  },
+  {
+    "question": "What is the number of mothers with less than three pregnancies?",
+    "old_command": "filter pregnancies less than 3 and countdata",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "pregnancies"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          3
+        ]
+      }
+    },
+    "line_number": 28
+  },
+  {
+    "question": "According to the data provided, how many instance of greater than 100 blood pressure can be counted?",
+    "old_command": "filter bloodpressure greater than 100 and countdata",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 29
+  },
+  {
+    "question": "How many times was the blood pressure from the data greater than 100?",
+    "old_command": "filter bloodpressure greater than 100 and countdata",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 30
+  },
+  {
+    "question": "What is the number of occurrences in the data of blood pressure over 100?",
+    "old_command": "filter bloodpressure greater than 100 and countdata",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 31
+  },
+  {
+    "question": "How many instances are in the model for blood pressure over 100?",
+    "old_command": "filter bloodpressure greater than 100 and countdata",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 32
+  },
+  {
+    "question": "What's the number of points in the data where blood pressure is greater than 100?",
+    "old_command": "filter bloodpressure greater than 100 and countdata",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 33
+  },
+  {
+    "question": "Will you show me how likely it is that people older than 30 have diabetes?",
+    "old_command": "filter age greater than 30 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 34
+  },
+  {
+    "question": "What is the likelihood of diabetes being had by people older than 30?",
+    "old_command": "filter age greater than 30 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 35
+  },
+  {
+    "question": "How likely is it for someone to have diabetes if they are between 20 and 30 or have had 2 pregnancies?",
+    "old_command": "filter age greater than 20 and filter age less than 30 or filter pregnancies equal to two and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          "30 or filter pregnancies equal to two"
+        ]
+      }
+    },
+    "line_number": 36
+  },
+  {
+    "question": "What chances are for people that either (1) have had two pregnancies or (2) are older than 20 and younger than 30 to have diabetes?",
+    "old_command": "filter age greater than 20 and filter age less than 30 or filter pregnancies equal to two and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          "30 or filter pregnancies equal to two"
+        ]
+      }
+    },
+    "line_number": 37
+  },
+  {
+    "question": "People with a 40+ bmi have what top five most important features based on the model's predictions?",
+    "old_command": "filter bmi greater than 40 and important topk 5",
+    "expected_json": {
+      "intent": "important",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ],
+        "topk": 5
+      }
+    },
+    "line_number": 38
+  },
+  {
+    "question": "If your bmi is over 40 than what are the five most important aspects of the model's prediction?",
+    "old_command": "filter bmi greater than 40 and important topk 5",
+    "expected_json": {
+      "intent": "important",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ],
+        "topk": 5
+      }
+    },
+    "line_number": 39
+  },
+  {
+    "question": "When your BMI is over 40, what are the five most important things for the model's prediction?",
+    "old_command": "filter bmi greater than 40 and important topk 5",
+    "expected_json": {
+      "intent": "important",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ],
+        "topk": 5
+      }
+    },
+    "line_number": 40
+  },
+  {
+    "question": "If we increased glucose by 100 for the data point with id 33, what would happen to the likelihood of having diabetes",
+    "old_command": "filter id 33 and change glucose increase 100 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 33
+      }
+    },
+    "line_number": 41
+  },
+  {
+    "question": "If we increased glucose by 100 for the data point with id 33, would the likelihood of having diabetes go up or down",
+    "old_command": "filter id 33 and change glucose increase 100 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 33
+      }
+    },
+    "line_number": 42
+  },
+  {
+    "question": "If we increase glucose by 100, what would happen to the likelihood of having diabetes for the data point with id 33?",
+    "old_command": "filter id 33 and change glucose increase 100 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 33
+      }
+    },
+    "line_number": 43
+  },
+  {
+    "question": "For the data point with id 33, predict the change in the likelihood of having diabetes if we increase glucose by 100.",
+    "old_command": "filter id 33 and change glucose increase 100 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 33
+      }
+    },
+    "line_number": 44
+  },
+  {
+    "question": "What changes in the likelihood of having diabetes would be made if we were to increase glucose by 100 in data point 33?",
+    "old_command": "filter id 33 and change glucose increase 100 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 33
+      }
+    },
+    "line_number": 45
+  },
+  {
+    "question": "likelihood of having diabetes if we were to increase glucose by 100 for the data point with id 33",
+    "old_command": "filter id 33 and change glucose increase 100 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 33
+      }
+    },
+    "line_number": 46
+  },
+  {
+    "question": "What are the top three features used to make predictions for people that have dropped their bmi's by 10 points?",
+    "old_command": "change bmi decrease 10 and important topk 3",
+    "expected_json": {
+      "intent": "important",
+      "entities": {
+        "topk": 3
+      }
+    },
+    "line_number": 47
+  },
+  {
+    "question": "What is the typical rationale the model uses to predict people with glucose levels below 80?",
+    "old_command": "filter glucose less than 80 and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "features": [
+          "glucose"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          80
+        ]
+      }
+    },
+    "line_number": 48
+  },
+  {
+    "question": "what do you think the reason is for the model predicting people with glucose levels less than 80?",
+    "old_command": "filter glucose less than 80 and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "features": [
+          "glucose"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          80
+        ]
+      }
+    },
+    "line_number": 49
+  },
+  {
+    "question": "model's rationale for predicting people with glucose levels below a value of 80?",
+    "old_command": "filter glucose less than 80 and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {
+        "features": [
+          "glucose"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          80
+        ]
+      }
+    },
+    "line_number": 50
+  },
+  {
+    "question": "What effect do the features have those predictions made by the model on the training information?",
+    "old_command": "interact",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 51
+  },
+  {
+    "question": "Still imagine they were 20 years more aged?",
+    "old_command": "change age set 20 and previousoperation",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 52
+  },
+  {
+    "question": "But what happens if they happen to be twenty years older?",
+    "old_command": "change age set 20 and previousoperation",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 53
+  },
+  {
+    "question": "What are the chances they have diabetes?",
+    "old_command": "previousfilter and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {}
+    },
+    "line_number": 54
+  },
+  {
+    "question": "What are the odds they have diabetes?",
+    "old_command": "previousfilter and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {}
+    },
+    "line_number": 55
+  },
+  {
+    "question": "Can you let me know the odds that they have diabetes?",
+    "old_command": "previousfilter and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {}
+    },
+    "line_number": 56
+  },
+  {
+    "question": "What are the actual chances that they have diabetes?",
+    "old_command": "previousfilter and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {}
+    },
+    "line_number": 57
+  },
+  {
+    "question": "How high is the likelihood of them having diabetes?",
+    "old_command": "previousfilter and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {}
+    },
+    "line_number": 58
+  },
+  {
+    "question": "Could you indicate, the specifics, for people above age 45?",
+    "old_command": "filter age greater than 45 and show",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          45
+        ]
+      }
+    },
+    "line_number": 59
+  },
+  {
+    "question": "Can you please show me data for people older than 45?",
+    "old_command": "filter age greater than 45 and show",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          45
+        ]
+      }
+    },
+    "line_number": 60
+  },
+  {
+    "question": "Do you have data for people over 45 you can show me?",
+    "old_command": "filter age greater than 45 and show",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          45
+        ]
+      }
+    },
+    "line_number": 61
+  },
+  {
+    "question": "For people over 45, do you have data you could show me?",
+    "old_command": "filter age greater than 45 and show",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          45
+        ]
+      }
+    },
+    "line_number": 62
+  },
+  {
+    "question": "Can you show me the data you have for people older than 45?",
+    "old_command": "filter age greater than 45 and show",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          45
+        ]
+      }
+    },
+    "line_number": 63
+  },
+  {
+    "question": "On average what age are the individuals in these data?",
+    "old_command": "statistic age",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 64
+  },
+  {
+    "question": "According to the data, what is the mean age?",
+    "old_command": "statistic age",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 65
+  },
+  {
+    "question": "What's the mean age in the data?",
+    "old_command": "statistic age",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 66
+  },
+  {
+    "question": "What's the average age in the data?",
+    "old_command": "statistic age",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 67
+  },
+  {
+    "question": "How old are average people who have bmi value greater than 35 and have more than 1 pregnancy",
+    "old_command": "filter bmi greater than 35 and filter pregnancies greater than 1 and statistic age",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "pregnancies"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          1
+        ]
+      }
+    },
+    "line_number": 68
+  },
+  {
+    "question": "Can you tell me the average age of folks whose bmi is over 35 and have had more than one pregnancy?",
+    "old_command": "filter bmi greater than 35 and filter pregnancies greater than 1 and statistic age",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "pregnancies"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          1
+        ]
+      }
+    },
+    "line_number": 69
+  },
+  {
+    "question": "What labels are used for people with blood pressure under 100?",
+    "old_command": "filter bloodpressure less than 100 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 70
+  },
+  {
+    "question": "If a person's blood pressure is lower than 100, what labels are used?",
+    "old_command": "filter bloodpressure less than 100 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 71
+  },
+  {
+    "question": "What labels apply to individuals with blood pressure under 100?",
+    "old_command": "filter bloodpressure less than 100 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 72
+  },
+  {
+    "question": "What labels get used for people with less than 100 for their blood pressure?",
+    "old_command": "filter bloodpressure less than 100 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 73
+  },
+  {
+    "question": "People with a blood pressure lower than 100 can have what labels?",
+    "old_command": "filter bloodpressure less than 100 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 74
+  },
+  {
+    "question": "What are the labels if a person has a blood pressure lower than 100?",
+    "old_command": "filter bloodpressure less than 100 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 75
+  },
+  {
+    "question": "IF a person's blood pressure is lower than 100, what are they labelled as?",
+    "old_command": "filter bloodpressure less than 100 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bloodpressure"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          100
+        ]
+      }
+    },
+    "line_number": 76
+  },
+  {
+    "question": "What are the labels for the data points on insulin levels that equal 20?",
+    "old_command": "filter insulin equal to 20 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 77
+  },
+  {
+    "question": "What are the labels for the data points where the insulin levels are equivalent to 20?",
+    "old_command": "filter insulin equal to 20 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 78
+  },
+  {
+    "question": "Will you show me the labels on the data points where insulin levels equal 20?",
+    "old_command": "filter insulin equal to 20 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 79
+  },
+  {
+    "question": "Can you show me the labels for the data points where insulin levels are equal to 20",
+    "old_command": "filter insulin equal to 20 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 80
+  },
+  {
+    "question": "Can you show what the labels are for the data points where insulin levels are that of 20?",
+    "old_command": "filter insulin equal to 20 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 81
+  },
+  {
+    "question": "What are the labels for the data points where insulin levels are equal to 20?",
+    "old_command": "filter insulin equal to 20 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 82
+  },
+  {
+    "question": "Can you describe the data?",
+    "old_command": "data",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 83
+  },
+  {
+    "question": "Can you provide a description of the data?",
+    "old_command": "data",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 84
+  },
+  {
+    "question": "Can you describe how the data features interact with the model's predictions?",
+    "old_command": "previousfilter and interact",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 85
+  },
+  {
+    "question": "How exactly do the various features of the data interact in the model's predictions on this particular data set?",
+    "old_command": "previousfilter and interact",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 86
+  },
+  {
+    "question": "Can you tell me how the various features of the data interact in the model's predictions on this particular data set?",
+    "old_command": "previousfilter and interact",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 87
+  },
+  {
+    "question": "How do the elements of the information cooperate in the model's predictions on this specific information?",
+    "old_command": "previousfilter and interact",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 88
+  },
+  {
+    "question": "For data point number 32, how likely is diabetes?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 32
+      }
+    },
+    "line_number": 89
+  },
+  {
+    "question": "How likely is diabetes in data point number 32?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 32
+      }
+    },
+    "line_number": 90
+  },
+  {
+    "question": "What are the chances of diabetes for data point 32?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 32
+      }
+    },
+    "line_number": 91
+  },
+  {
+    "question": "What is the possibility that the thirty-second data point has diabetes?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 32
+      }
+    },
+    "line_number": 92
+  },
+  {
+    "question": "what is the chance that number 32 has diabetes?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 32
+      }
+    },
+    "line_number": 93
+  },
+  {
+    "question": "What is the likely chance that data point 32 has diabetes?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 32
+      }
+    },
+    "line_number": 94
+  },
+  {
+    "question": "What is the likelihood that data point number 32 has diabetes?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {
+        "patient_id": 32
+      }
+    },
+    "line_number": 95
+  },
+  {
+    "question": "Which slip-ups are you prone to making?",
+    "old_command": "mistake typical",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 96
+  },
+  {
+    "question": "What mistakes do you commonly make?",
+    "old_command": "mistake typical",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 97
+  },
+  {
+    "question": "What are the frequent mistakes you make?",
+    "old_command": "mistake typical",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 98
+  },
+  {
+    "question": "What are examples of your mistakes when predicting whether people have diabetes?",
+    "old_command": "mistake sample",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 99
+  },
+  {
+    "question": "Will you show me examples of inaccurate predictions on whether people have diabetes?",
+    "old_command": "mistake sample",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 100
+  },
+  {
+    "question": "Can you please explain the mistakes you've made predicting if people are diabetic?",
+    "old_command": "mistake sample",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 101
+  },
+  {
+    "question": "Can you show me instances of the mistakes you've made when predicting whether people have diabetes?",
+    "old_command": "mistake sample",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 102
+  },
+  {
+    "question": "How often are you right at predicting whether people have diabetes or not?",
+    "old_command": "score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 103
+  },
+  {
+    "question": "How accurate are your predictions regarding whether or not people have diabetes?",
+    "old_command": "score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 104
+  },
+  {
+    "question": "What are common mistakes that are often made when making predictions about people under 25 and their diabetes risk?",
+    "old_command": "filter age less than 25 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          25
+        ]
+      }
+    },
+    "line_number": 105
+  },
+  {
+    "question": "What are common mistakes you make when predicting if people younger than 25 have diabetes?",
+    "old_command": "filter age less than 25 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          25
+        ]
+      }
+    },
+    "line_number": 106
+  },
+  {
+    "question": "What common mistakes can you make when predicting if individuals under the age of 25 have diabetes?",
+    "old_command": "filter age less than 25 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          25
+        ]
+      }
+    },
+    "line_number": 107
+  },
+  {
+    "question": "Can you tell me common mistakes you made predicting whether or not folks under 25 have diabetes?",
+    "old_command": "filter age less than 25 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          25
+        ]
+      }
+    },
+    "line_number": 108
+  },
+  {
+    "question": "Could you describe some mistakes you have made predicting whether folks under 25 have diabetes?",
+    "old_command": "filter age less than 25 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          25
+        ]
+      }
+    },
+    "line_number": 109
+  },
+  {
+    "question": "How correctly can you predict diabetes for people with BMI's over 40?",
+    "old_command": "filter bmi greater than 40 and score accuracy",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 110
+  },
+  {
+    "question": "What is the precision of your projection that those with BMI's over forty have diabetes?",
+    "old_command": "filter bmi greater than 40 and score accuracy",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 111
+  },
+  {
+    "question": "How on target, can you gauge, whether humans, with 40 plus, BMIs, have the condition of diabetes?",
+    "old_command": "filter bmi greater than 40 and score accuracy",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 112
+  },
+  {
+    "question": "What are some of the mistakes most people make on individuals over 40?",
+    "old_command": "filter age greater than 40 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 113
+  },
+  {
+    "question": "What are some of the common mistakes we make regarding people over 40?",
+    "old_command": "filter age greater than 40 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 114
+  },
+  {
+    "question": "Considering the mistakes you make on people whose ages are greater than 40, can you provide some examples?",
+    "old_command": "filter age greater than 40 and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 115
+  },
+  {
+    "question": "Can you tell me some mistakes you have made about people over 40?",
+    "old_command": "filter age greater than 40 and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 116
+  },
+  {
+    "question": "What kinds of mistakes have you made about people above 40?",
+    "old_command": "filter age greater than 40 and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 117
+  },
+  {
+    "question": "On people over 40, what are some common mistakes that you make?",
+    "old_command": "filter age greater than 40 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 118
+  },
+  {
+    "question": "What mistakes are you inclined to make on people over the age of 40?",
+    "old_command": "filter age greater than 40 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 119
+  },
+  {
+    "question": "If the bmi in the data set were increased by 5 points, what would the predictions for the data be?",
+    "old_command": "change bmi increase 5 and predict",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 120
+  },
+  {
+    "question": "What would the predictions for the data be if the bmi in the data set were to be increased by 5 points?",
+    "old_command": "change bmi increase 5 and predict",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 121
+  },
+  {
+    "question": "If the bmi is increased by 5 points in the data set, what would the prediction for the data be?",
+    "old_command": "change bmi increase 5 and predict",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 122
+  },
+  {
+    "question": "What would be the predictions if BMI was increased by 5 points?",
+    "old_command": "change bmi increase 5 and predict",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 123
+  },
+  {
+    "question": "If BMI was increased by 5 points, what would be the predictions?",
+    "old_command": "change bmi increase 5 and predict",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 124
+  },
+  {
+    "question": "What are the chances someone will develop diabetes with bmi 10 points lower?",
+    "old_command": "change bmi decrease 10 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {}
+    },
+    "line_number": 125
+  },
+  {
+    "question": "If people eliminate 10 points from their bmi's, would they cut down their risk of diabetes?",
+    "old_command": "change bmi decrease 10 and likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {}
+    },
+    "line_number": 126
+  },
+  {
+    "question": "When predicting whether people older than 50 with bmi's over 30 have diabates, what are typical mistakes the model makes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 127
+  },
+  {
+    "question": "What mistakes can typically be expected when the model predicts whether people older than 50 with bmi over 30 have diabetes",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 128
+  },
+  {
+    "question": "For people older than 50 with bmi over 30, what mistakes are typically made by the model?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 129
+  },
+  {
+    "question": "What are some frequent errors caused by the model when predicting if individuals over 50 with a BMI of higher than 30 have diabetes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 130
+  },
+  {
+    "question": "What are typical errors the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 131
+  },
+  {
+    "question": "What are the mistakes the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 132
+  },
+  {
+    "question": "What are errors that the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 133
+  },
+  {
+    "question": "What are normal mistakes the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      }
+    },
+    "line_number": 134
+  },
+  {
+    "question": "I'd like to see mistakes made on people with insulin over 50.",
+    "old_command": "filter insulin greater than 50 and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "insulin"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          50
+        ]
+      }
+    },
+    "line_number": 135
+  },
+  {
+    "question": "For this data subset, how accurate is the model?",
+    "old_command": "previousfilter and score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 136
+  },
+  {
+    "question": "How accurate is the model given this subset of data?",
+    "old_command": "previousfilter and score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 137
+  },
+  {
+    "question": "How accurate is the model for this subset in the data?",
+    "old_command": "previousfilter and score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 138
+  },
+  {
+    "question": "What is the accuracy of the model for this subset in the data?",
+    "old_command": "previousfilter and score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 139
+  },
+  {
+    "question": "For this subset in the data, what is the models accuracy?",
+    "old_command": "previousfilter and score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 140
+  },
+  {
+    "question": "Can you please show a few examples the model predicts incorrectly and how accurate the model is on the data?",
+    "old_command": "mistake sample and score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 141
+  },
+  {
+    "question": "Could you demonstrate a few instances where the model predicts incorrectly and how accurate the model is on the data?",
+    "old_command": "mistake sample and score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 142
+  },
+  {
+    "question": "Could you give us a few situations where the model predicts incorrectly and how accurate the model is on the data?",
+    "old_command": "mistake sample and score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 143
+  },
+  {
+    "question": "Can you describe some incorrect predictions the model has made and tell me how reliable the model is on the data?",
+    "old_command": "mistake sample and score accuracy",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 144
+  },
+  {
+    "question": "What did the models predict for people over 50? What mistakes did the model have?",
+    "old_command": "filter age greater than 50 and predict and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          50
+        ]
+      }
+    },
+    "line_number": 145
+  },
+  {
+    "question": "what are the exact predictions for people older than 50 and what are some mistakes the model makes on this data?",
+    "old_command": "filter age greater than 50 and predict and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          50
+        ]
+      }
+    },
+    "line_number": 146
+  },
+  {
+    "question": "Could you display data point number 21 and let me know if the model correctly predicted it?",
+    "old_command": "filter id 21 and show and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "patient_id": 21
+      }
+    },
+    "line_number": 147
+  },
+  {
+    "question": "could you show me data point number 21 and tell me whether the model predicts it accurately?",
+    "old_command": "filter id 21 and show and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "patient_id": 21
+      }
+    },
+    "line_number": 148
+  },
+  {
+    "question": "Let me see data point 21. Did the model predict it correctly?",
+    "old_command": "filter id 21 and show and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "patient_id": 21
+      }
+    },
+    "line_number": 149
+  },
+  {
+    "question": "Show data point 21. Did the model predict data point 21 accurately?",
+    "old_command": "filter id 21 and show and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "patient_id": 21
+      }
+    },
+    "line_number": 150
+  },
+  {
+    "question": "show me data point number 21 and tell me whether the model predicts it correctly?",
+    "old_command": "filter id 21 and show and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "patient_id": 21
+      }
+    },
+    "line_number": 151
+  },
+  {
+    "question": "For those with glucose values of 80 and age over 40, what are the true labels?",
+    "old_command": "filter glucose equal to 80 or filter age greater than 40 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "glucose equal to 80 or filter age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 152
+  },
+  {
+    "question": "What are the true labels for people over 40 with glucose of 80?",
+    "old_command": "filter glucose equal to 80 or filter age greater than 40 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "glucose equal to 80 or filter age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 153
+  },
+  {
+    "question": "For people older than 40 and with glucose values of 80, what are the true labels?",
+    "old_command": "filter glucose equal to 80 or filter age greater than 40 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "glucose equal to 80 or filter age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 154
+  },
+  {
+    "question": "What are the true labels for people aged older than 40 or has glucose values of 80?",
+    "old_command": "filter glucose equal to 80 or filter age greater than 40 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "glucose equal to 80 or filter age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 155
+  },
+  {
+    "question": "What are the true labels for people with glucose values 80 or aged older than 40?",
+    "old_command": "filter glucose equal to 80 or filter age greater than 40 and label",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "glucose equal to 80 or filter age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 156
+  },
+  {
+    "question": "What predictions do you make for people with insulin levels of 23?",
+    "old_command": "filter insulin equal to 23 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 157
+  },
+  {
+    "question": "What are your predictions for people with insulin levels of 23?",
+    "old_command": "filter insulin equal to 23 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 158
+  },
+  {
+    "question": "What do you foresee for people with insulin levels of 23?",
+    "old_command": "filter insulin equal to 23 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 159
+  },
+  {
+    "question": "What's your prediction for people with insulin levels at 23?",
+    "old_command": "filter insulin equal to 23 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 160
+  },
+  {
+    "question": "What are errors that the model makes on people with a diabetes pedigree function greater or equal to 0.8?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 161
+  },
+  {
+    "question": "What are some of the mistakes the model makes on people with a diabetes pedigree function greater or equal to 0.8?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 162
+  },
+  {
+    "question": "What common errors does the the model make on people with a diabetes pedigree function greater or equal to 0.8?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 163
+  },
+  {
+    "question": "Where did the model make a mistake on people with a diabetes pedigree function 0.8 or higher?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 164
+  },
+  {
+    "question": "What was the exact mistakes that took place with the model on people with diabetes pedigree function at or higher than 0.8?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 165
+  },
+  {
+    "question": "What types of errors does the model make when dealing with diabetes individuals with a pedigree function of 0.8 or higher?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {}
+    },
+    "line_number": 166
+  },
+  {
+    "question": "For the data points for people older than 76, what would the predictions be if their glucose levels went down 20?",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      }
+    },
+    "line_number": 167
+  },
+  {
+    "question": "Considering data points on people older than 76, how would the predictions change if their glucose levels were reduced by 20?",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      }
+    },
+    "line_number": 168
+  },
+  {
+    "question": "Reduce glucose levels by 20 for all data points older than 76 and show me the predictions.",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      }
+    },
+    "line_number": 169
+  },
+  {
+    "question": "Reduce glucose levels by 20 for data points with age greater than 76, and show me the predictions",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      }
+    },
+    "line_number": 170
+  },
+  {
+    "question": "Show me the predictions for data points with age over 76 after reducing glucose levels by 20.",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      }
+    },
+    "line_number": 171
+  },
+  {
+    "question": "Reduce the glucose levels of data points over age 76 by 20, then show me the predictions.",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      }
+    },
+    "line_number": 172
+  },
+  {
+    "question": "What are the odds people in this data have diabetes?",
+    "old_command": "likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {}
+    },
+    "line_number": 173
+  },
+  {
+    "question": "What percentage of people in this data have diabetes?",
+    "old_command": "likelihood",
+    "expected_json": {
+      "intent": "predict",
+      "entities": {}
+    },
+    "line_number": 174
+  },
+  {
+    "question": "What prediction can you make on the instances in this data? What do you think the mistakes will be in the predictions?",
+    "old_command": "predict and mistake sample",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 175
+  },
+  {
+    "question": "In the case of the instances in the data, what do you predict. On another note, what errors do you think these predictions will have?",
+    "old_command": "predict and mistake sample",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 176
+  },
+  {
+    "question": "What mistakes are considered common when diagnosing people with BMIs over 40 for diabetes?",
+    "old_command": "filter bmi greater than 40 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 177
+  },
+  {
+    "question": "What are common errors that you find when diagnosing patients with bmi over 40 with diabetes?",
+    "old_command": "filter bmi greater than 40 and mistake typical",
+    "expected_json": {
+      "intent": "filter",
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      }
+    },
+    "line_number": 178
+  },
+  {
+    "question": "What was your reasoning for giving these people a diabetes diagnosis?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 179
+  },
+  {
+    "question": "Why were all these people diagnosed with diabetes?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 180
+  },
+  {
+    "question": "What lead to all these people being diagnosed with diabetes?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 181
+  },
+  {
+    "question": "Is there a reason why all these people were diagnosed with diabetes by you?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 182
+  },
+  {
+    "question": "You diagnosed these people with diabetes, why?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 183
+  },
+  {
+    "question": "Why did you diagnose diabetes in these people?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 184
+  },
+  {
+    "question": "For what reason did you diagnose these people with diabetes?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 185
+  },
+  {
+    "question": "Are people who don't reduce their bmi's by 10 have more of a threat to attain diabetes? How?",
+    "old_command": "previousfilter and change bmi decrease 10 and likelihood and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 186
+  },
+  {
+    "question": "Would people who lower their BMI's by 10 have diabetes? Why?",
+    "old_command": "previousfilter and change bmi decrease 10 and likelihood and explain features",
+    "expected_json": {
+      "intent": "explain",
+      "entities": {}
+    },
+    "line_number": 187
+  },
+  {
+    "question": "To be diagnosed as unlikely to have diabetes, what does patient 34 have to do?",
+    "old_command": "filter id 34 and explain cfe",
+    "expected_json": {
+      "intent": "counterfactual",
+      "entities": {
+        "patient_id": 34
+      }
+    },
+    "line_number": 188
+  },
+  {
+    "question": "For patient number 34 to be unlikely to have diabetes, what do they need to do?",
+    "old_command": "filter id 34 and explain cfe",
+    "expected_json": {
+      "intent": "counterfactual",
+      "entities": {
+        "patient_id": 34
+      }
+    },
+    "line_number": 189
+  },
+  {
+    "question": "To unlikely have diabetes, and be diagnosed as so, what does patient number 34 need to do?",
+    "old_command": "filter id 34 and explain cfe",
+    "expected_json": {
+      "intent": "counterfactual",
+      "entities": {
+        "patient_id": 34
+      }
+    },
+    "line_number": 190
+  },
+  {
+    "question": "In the case of patient 34, what would they need to do to not be diagnosed with diabetes?",
+    "old_command": "filter id 34 and explain cfe",
+    "expected_json": {
+      "intent": "counterfactual",
+      "entities": {
+        "patient_id": 34
+      }
+    },
+    "line_number": 191
+  }
+]

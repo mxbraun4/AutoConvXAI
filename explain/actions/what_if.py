@@ -73,7 +73,27 @@ def what_if_operation(conversation, parse_text, i, **kwargs):
     
     # Get the feature name (handle case insensitive matching)
     feature_name = features[0]
-    temp_dataset = conversation.temp_dataset.contents
+    
+    # Check if we have a recent prediction instance to use for what-if
+    # This provides context when user asks "what if X was Y?" after a specific prediction
+    if hasattr(conversation, 'last_prediction_instance') and conversation.last_prediction_instance:
+        # Use the specific prediction instance for contextual what-if analysis
+        prediction_data = conversation.last_prediction_instance['data'].copy()
+        temp_dataset = {
+            'X': prediction_data,
+            'y': None,
+            'full_data': prediction_data,
+            'cat': conversation.get_var('dataset').contents.get('cat', []),
+            'numeric': conversation.get_var('dataset').contents.get('numeric', []),
+            'ids_to_regenerate': []
+        }
+        is_contextual_whatif = True
+        original_context = conversation.last_prediction_instance
+    else:
+        # Use current dataset context (original behavior)
+        temp_dataset = conversation.temp_dataset.contents
+        is_contextual_whatif = False
+        original_context = None
     
     # Find actual feature name (case insensitive)
     actual_feature = None
@@ -119,7 +139,11 @@ def what_if_operation(conversation, parse_text, i, **kwargs):
 
     # Get original predictions BEFORE the change for comparison
     model = conversation.get_var('model').contents
-    original_data = conversation.temp_dataset.contents['X'].copy()
+    # Use the correct dataset based on context
+    if is_contextual_whatif:
+        original_data = temp_dataset['X'].copy()
+    else:
+        original_data = conversation.temp_dataset.contents['X'].copy()
     
     # Make original predictions (before change)
     try:
@@ -152,9 +176,11 @@ def what_if_operation(conversation, parse_text, i, **kwargs):
         new_predictions = None
         new_probabilities = None
 
-    # Track regeneration and parse operations
-    processed_ids = list(conversation.temp_dataset.contents['X'].index)
-    conversation.temp_dataset.contents['ids_to_regenerate'].extend(processed_ids)
+    # Track regeneration and parse operations  
+    processed_ids = list(temp_dataset['X'].index)
+    if not is_contextual_whatif:
+        # Only update conversation temp_dataset if not in contextual mode
+        conversation.temp_dataset.contents['ids_to_regenerate'].extend(processed_ids)
 
     conversation.add_interpretable_parse_op("and")
     conversation.add_interpretable_parse_op(parse_op)
@@ -166,8 +192,17 @@ def what_if_operation(conversation, parse_text, i, **kwargs):
         'operation': update_term,
         'value': update_value,
         'description': parse_op,
-        'instances_affected': len(processed_ids)
+        'instances_affected': len(processed_ids),
+        'is_contextual': is_contextual_whatif
     }
+    
+    # For contextual what-if, include original prediction context
+    if is_contextual_whatif and original_context:
+        result['original_context'] = {
+            'input_features': original_context['features'],
+            'original_prediction': original_context['prediction'],
+            'original_confidence': round(original_context['confidence'] * 100, 2) if original_context['confidence'] else None
+        }
     
     # Add prediction comparison if we have both before and after
     if original_predictions is not None and new_predictions is not None:

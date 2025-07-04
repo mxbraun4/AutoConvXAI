@@ -104,17 +104,17 @@ class LLMFormatter:
             )
             
             formatted = response.choices[0].message.content.strip()
-                
-            # Fallback to action result if formatting fails
+            
+            # Log short responses for debugging but don't fallback
             if not formatted or len(formatted.strip()) < 10:
                 logger.warning(f"LLM formatter returned short response: {formatted}")
-                return self._create_fallback_response(action_result)
                 
             return formatted
             
         except Exception as e:
             logger.error(f"Error in LLM formatting: {e}")
-            return self._create_fallback_response(action_result)
+            # Re-raise the error instead of using fallback
+            raise
     
     def _build_context(self, conversation):
         """Extract relevant context from conversation"""
@@ -266,6 +266,13 @@ CONTEXT: {context_str}
 RAW RESULTS:
 {action_result}
 
+INTERPRETING STRUCTURED DATA:
+- If result has type="feature_importance" and top_k field: User asked for top N features, mention the exact number
+- If result has type="single_prediction": Focus on the prediction class and confidence
+- If result has type="data_summary": Describe the dataset characteristics
+- If result is a dictionary with structured fields: Extract the key information, don't show raw dict format
+- If result is a tuple: Use the first element which contains the structured data
+
 TASK: Transform these raw results into a brief, natural response (2-3 sentences max) that:
 
 1. DIRECTLY ANSWERS the user's specific question with factual data only
@@ -317,10 +324,12 @@ PREDICT INTENT: The user wants to know WHAT WOULD HAPPEN. Focus on:
         elif autogen_intent == 'important':
             base_prompt += """
 IMPORTANCE INTENT: The user wants to know WHAT MATTERS MOST. Focus on:
-- Ranking and prioritization
-- Relative importance
-- Impact on outcomes
+- Ranking and prioritization of features
+- Relative importance and impact on outcomes
+- If it's a "top N" request, clearly state the number requested
 - Use phrases like "most critical", "key factors", "strongest influence"
+- For top-k requests: "The top [N] most important features are: [list]"
+- Always explain WHY these features are important
 """
         elif autogen_intent == 'performance':
             base_prompt += """
@@ -470,80 +479,6 @@ GUIDELINES:
         
         return followup_prompt
     
-    def _create_fallback_response(self, action_result):
-        """Create a simple fallback when LLM formatting fails"""
-        if isinstance(action_result, tuple) and len(action_result) >= 1:
-            result_data = action_result[0]
-        else:
-            result_data = action_result
-            
-        if isinstance(result_data, dict):
-            # Handle structured data from converted actions
-            result_type = result_data.get('type', 'unknown')
-            
-            if result_type == 'performance_score':
-                return f"The model achieves {result_data['score_percentage']}% accuracy on {result_data['instances_evaluated']} instances."
-            elif result_type == 'single_prediction':
-                conf = f" with {result_data['confidence']}% confidence" if result_data.get('confidence') else ""
-                return f"The model predicts: {result_data['prediction_class']}{conf}"
-            elif result_type == 'data_summary':
-                return f"Dataset contains {result_data['dataset_size']} instances with features: {', '.join(result_data['features'][:3])}..."
-            elif result_type == 'feature_statistics':
-                stats = result_data['statistics']
-                if stats.get('type') == 'numerical':
-                    return f"{result_data['feature_name']} statistics: mean={stats['mean']}, std={stats['std']}"
-                else:
-                    return f"{result_data['feature_name']} distribution: {stats.get('distribution', {})}"
-            elif result_type == 'single_explanation':
-                conf = f" with {result_data['confidence']}% confidence" if result_data.get('confidence') else ""
-                return f"Instance {result_data['instance_id']} prediction: {result_data['prediction_class']}{conf}. Top features: {', '.join([f['feature'] for f in result_data['feature_importance'][:3]])}"
-            elif result_type == 'multiple_explanations':
-                summary = f"Analyzed {result_data['total_instances']} instances. "
-                pred_summary = result_data['prediction_summary']
-                for class_name, stats in pred_summary.items():
-                    summary += f"{class_name}: {stats['count']} ({stats['percentage']}%) "
-                return summary
-            elif result_type == 'what_if_change':
-                return f"Changed {result_data['feature_name']} by {result_data['operation']} {result_data['value']} for {result_data['instances_affected']} instance(s)"
-            elif result_type == 'what_if_comparison':
-                if 'prediction_changed' in result_data:
-                    # Single instance comparison
-                    original = result_data['original_prediction_class']
-                    new = result_data['new_prediction_class']
-                    if result_data['prediction_changed']:
-                        return f"Changed {result_data['feature_name']} to {result_data['value']}: prediction changed from {original} to {new}"
-                    else:
-                        return f"Changed {result_data['feature_name']} to {result_data['value']}: prediction remains {new}"
-                else:
-                    # Multiple instances comparison
-                    return f"Changed {result_data['feature_name']} to {result_data['value']} for {result_data['instances_affected']} instances"
-            elif result_type == 'single_instance':
-                # Handle single instance display from show_data.py
-                instance_id = result_data['instance_id']
-                features = result_data['features']
-                label_info = result_data.get('label_info')
-                
-                # Build feature display
-                feature_text = ', '.join([f"{name}: {val}" for name, val in features.items()])
-                
-                # Include label if available
-                if label_info:
-                    label_text = label_info['label_text']
-                    return f"Patient {instance_id}: {feature_text}. Ground truth label: {label_text}."
-                else:
-                    return f"Patient {instance_id}: {feature_text}."
-            elif result_type == 'counterfactual_explanation':
-                summary = f"Generated {result_data['total_counterfactuals']} counterfactual scenarios for instance {result_data['instance_id']}. "
-                summary += f"Original prediction: {result_data['original_prediction_class']}. "
-                if result_data.get('summary'):
-                    summary += f"Key changes: {result_data['summary']}"
-                return summary
-            elif result_type == 'error':
-                return f"Error: {result_data['message']}"
-            else:
-                return f"Result: {str(result_data)}"
-        else:
-            return str(result_data)
 
 # Initialize components
 logger.info("🚀 Initializing simple 3-component architecture...")

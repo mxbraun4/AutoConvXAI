@@ -1,0 +1,45 @@
+# Lightweight Docker image for running AutoGen evaluation tests
+# Build: docker build -f Dockerfile.test -t ttm-gpt4-test .
+# Run: docker run -e OPENAI_API_KEY=your-key ttm-gpt4-test python run_json_tests.py quick
+
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Copy only test requirements
+COPY requirements-test.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-test.txt
+
+# Create necessary directory structure
+RUN mkdir -p explain/decoders explain/actions
+
+# Copy only necessary files for testing
+COPY parsing_accuracy/ parsing_accuracy/
+COPY explain/decoders/autogen_decoder.py explain/decoders/autogen_decoder.py
+COPY explain/decoders/__init__.py explain/decoders/__init__.py
+COPY explain/actions/get_action_functions.py explain/actions/get_action_functions.py
+COPY explain/actions/*.py explain/actions/
+
+# Create empty __init__.py files if they don't exist
+RUN touch explain/__init__.py explain/actions/__init__.py
+
+# Copy test runner
+COPY run_json_tests.py .
+
+# Set Python path
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Default command
+CMD ["python", "run_json_tests.py", "quick"]

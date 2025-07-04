@@ -13,12 +13,14 @@ def measure_interaction_effects(conversation, parse_text, i, **kwargs):
 
     This function identifies which features work together and how they influence
     model predictions synergistically. Returns structured data about feature interactions.
+    
+    Can analyze specific feature pairs (from AutoGen entities) or discover top interactions.
 
     Arguments:
         conversation: The conversation object
         parse_text: The parse text for the question
         i: Index in the parse
-        **kwargs: additional kwargs
+        **kwargs: additional kwargs including AutoGen entities (features list)
     """
     
     # Filtering text
@@ -69,31 +71,98 @@ def measure_interaction_effects(conversation, parse_text, i, **kwargs):
             single_explanations = mega_explainer_exp.get_explanations([sample_id], single_instance, ids_to_regenerate=[], save_to_cache=False)
             explanations[sample_id] = single_explanations[sample_id]
 
-    # Store the feature importance arrays from sampled explanations
-    feature_importances = []
-    for current_id in sample_ids:
-        list_exp = explanations[current_id].list_exp
-        list_imps = [coef[1] for coef in list_exp]
-        feature_importances.append(list_imps)
+    # Check if specific features are requested via AutoGen entities
+    requested_features = kwargs.get('features', [])
     
-    feature_importances = np.array(feature_importances)
-    mean_feature_importances = np.mean(np.abs(feature_importances), axis=0)
+    if requested_features and len(requested_features) >= 2:
+        # User requested specific features - analyze those
+        # Validate that the requested features exist in the dataset
+        available_features = list(data.columns)
+        valid_features = []
+        
+        for feature in requested_features:
+            # Case-insensitive matching
+            matching_feature = None
+            for col in available_features:
+                if col.lower() == feature.lower():
+                    matching_feature = col
+                    break
+            
+            if matching_feature:
+                valid_features.append(matching_feature)
+            else:
+                return {
+                    'type': 'interaction_effects',
+                    'error': f'Feature "{feature}" not found in dataset. Available features: {available_features}',
+                    'filter_applied': parse_op
+                }, 0
+        
+        if len(valid_features) < 2:
+            return {
+                'type': 'interaction_effects', 
+                'error': f'Need at least 2 valid features for interaction analysis. Found: {valid_features}',
+                'filter_applied': parse_op
+            }, 0
+        
+        # Analyze the specific feature pair(s)
+        interactions = []
+        feature_pairs = []
+        
+        # If exactly 2 features, analyze their interaction
+        if len(valid_features) == 2:
+            f1, f2 = valid_features[0], valid_features[1]
+            try:
+                i_score = interaction_explainer.feature_interaction(f1, f2, number_sub_samples=NUM_TO_SAMPLE)
+                interactions.append(i_score)
+                feature_pairs.append((f1, f2))
+            except Exception as e:
+                return {
+                    'type': 'interaction_effects',
+                    'error': f'Failed to analyze interaction between {f1} and {f2}: {str(e)}',
+                    'filter_applied': parse_op
+                }, 0
+        else:
+            # If more than 2 features, analyze all pairs
+            for idx1, f1 in enumerate(valid_features):
+                for idx2 in range(idx1 + 1, len(valid_features)):
+                    f2 = valid_features[idx2]
+                    try:
+                        i_score = interaction_explainer.feature_interaction(f1, f2, number_sub_samples=NUM_TO_SAMPLE)
+                        interactions.append(i_score)
+                        feature_pairs.append((f1, f2))
+                    except Exception as e:
+                        # Continue with other pairs if one fails
+                        continue
+        
+    else:
+        # No specific features requested - use automatic top feature discovery
+        # Store the feature importance arrays from sampled explanations
+        feature_importances = []
+        for current_id in sample_ids:
+            list_exp = explanations[current_id].list_exp
+            list_imps = [coef[1] for coef in list_exp]
+            feature_importances.append(list_imps)
+        
+        feature_importances = np.array(feature_importances)
+        mean_feature_importances = np.mean(np.abs(feature_importances), axis=0)
 
-    # Get the names of the top features
-    topk_features = np.argsort(mean_feature_importances)[-NUM_FEATURES_TO_COMPUTE_INTERACTIONS:]
-    topk_names = [data.columns[j] for j in topk_features]
+        # Get the names of the top features
+        topk_features = np.argsort(mean_feature_importances)[-NUM_FEATURES_TO_COMPUTE_INTERACTIONS:]
+        topk_names = [data.columns[j] for j in topk_features]
 
-    interactions = []
-    feature_pairs = []
-    
-    for idx1, f1 in enumerate(topk_names):
-        for idx2 in range(idx1 + 1, len(topk_names)):
-            f2 = topk_names[idx2]
-            i_score = interaction_explainer.feature_interaction(f1,
-                                                                f2,
-                                                                number_sub_samples=NUM_TO_SAMPLE)
-            interactions.append(i_score)
-            feature_pairs.append((f1, f2))
+        interactions = []
+        feature_pairs = []
+        
+        for idx1, f1 in enumerate(topk_names):
+            for idx2 in range(idx1 + 1, len(topk_names)):
+                f2 = topk_names[idx2]
+                try:
+                    i_score = interaction_explainer.feature_interaction(f1, f2, number_sub_samples=NUM_TO_SAMPLE)
+                    interactions.append(i_score)
+                    feature_pairs.append((f1, f2))
+                except Exception as e:
+                    # Continue with other pairs if one fails
+                    continue
 
     # Sort interactions by strength
     sorted_indices = np.argsort(interactions)[::-1]  # Descending order

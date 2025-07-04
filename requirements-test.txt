@@ -1,0 +1,21 @@
+# Minimal requirements for AutoGen evaluation testing
+# This file contains only the dependencies needed to run the parsing accuracy tests
+
+# AutoGen Framework - for the decoder
+autogen-agentchat>=0.4.0,<0.7.0
+autogen-core>=0.4.0,<0.7.0
+autogen-ext>=0.4.0,<0.7.0
+
+# OpenAI API client
+openai>=1.0.0
+
+# Token counting for AutoGen
+tiktoken>=0.5.0
+
+# Basic data handling (minimal versions needed by autogen_decoder)
+numpy>=1.24.0,<2.0.0
+pandas>=1.5.0,<2.0.0
+scikit-learn>=1.3.0
+
+# Testing
+pytest>=7.0.0

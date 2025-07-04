@@ -21,6 +21,12 @@ This is the main chat interface for interacting with ML model explanations.
     <messagebody>
         <!-- Main chat interface container -->
         <section class="ttm">
+          <!-- Header with branding -->
+          <header class="ttm-header">
+            <h1 class="app-title">AutoConvXAI</h1>
+            <p class="app-subtitle">Conversational Explainable AI</p>
+          </header>
+          
           <!-- Chat message display area -->
           <main class="ttm-chat">
             <!-- Initial welcome message -->
@@ -54,37 +60,67 @@ This is the main chat interface for interacting with ML model explanations.
               </div>
               
               <!-- Sample question buttons organized by category -->
-              <div class="buttons" id="generation-buttons">
-                  <!-- Data Exploration -->
-                  <button id="idea-data" class="idea-button" onclick="sampleData()">🎲 dataset overview</button>
-                  <button id="idea-statistic" class="idea-button" onclick="sampleStatistic()">🎲 feature statistics</button>
-                  <button id="idea-show" class="idea-button" onclick="sampleShow()">🎲 show data</button>
-                  <button id="idea-define" class="idea-button" onclick="sampleDefine()">🎲 feature definitions</button>
+              <div class="generation-sections" id="generation-buttons">
+                  <!-- 📊 Data & Exploration Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">📊 Data & Exploration</h3>
+                      <div class="section-buttons">
+                          <button id="idea-data" class="idea-button" onclick="sampleData()">🎲 dataset overview</button>
+                          <button id="idea-show" class="idea-button" onclick="sampleShow()">🎲 show data</button>
+                          <button id="idea-labels" class="idea-button" onclick="sampleLabels()">🎲 data labels</button>
+                          <button id="idea-statistic" class="idea-button" onclick="sampleStatistic()">🎲 feature statistics</button>
+                          <button id="idea-define" class="idea-button" onclick="sampleDefine()">🎲 feature definitions</button>
+                      </div>
+                  </div>
                   
-                  <!-- Filtering -->
-                  <button id="idea-filter" class="idea-button" onclick="sampleFilter()">🎲 filter data</button>
+                  <!-- 🔍 Filtering Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">🔍 Filtering</h3>
+                      <div class="section-buttons">
+                          <button id="idea-filter" class="idea-button" onclick="sampleFilter()">🎲 filter data</button>
+                      </div>
+                  </div>
                   
-                  <!-- Model Analysis -->
-                  <button id="idea-predict" class="idea-button" onclick="samplePredict()">🎲 predictions</button>
-                  <button id="idea-likelihood" class="idea-button" onclick="sampleLikelihood()">🎲 prediction confidence</button>
-                  <button id="idea-why" class="idea-button" onclick="sampleWhy()">🎲 explanations</button>
-                  <button id="idea-important" class="idea-button" onclick="sampleImportant()">🎲 important features</button>
-                  <button id="idea-performance" class="idea-button" onclick="samplePerformance()">🎲 model performance</button>
-                  <button id="idea-mistakes" class="idea-button" onclick="sampleMistakes()">🎲 model mistakes</button>
-                  <button id="idea-model" class="idea-button" onclick="sampleModel()">🎲 model info</button>
-                  <button id="idea-labels" class="idea-button" onclick="sampleLabels()">🎲 data labels</button>
+                  <!-- 🤖 Predictions & Analysis Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">🤖 Predictions & Analysis</h3>
+                      <div class="section-buttons">
+                          <button id="idea-predict" class="idea-button" onclick="samplePredict()">🎲 predictions</button>
+                          <button id="idea-likelihood" class="idea-button" onclick="sampleLikelihood()">🎲 prediction confidence</button>
+                          <button id="idea-why" class="idea-button" onclick="sampleWhy()">🎲 explanations</button>
+                          <button id="idea-important" class="idea-button" onclick="sampleImportant()">🎲 important features</button>
+                      </div>
+                  </div>
                   
-                  <!-- What-If Analysis -->
-                  <button id="idea-whatif" class="idea-button" onclick="sampleWhatIf()">🎲 what if scenarios</button>
-                  <button id="idea-flip" class="idea-button" onclick="sampleFlip()">🎲 counterfactuals</button>
+                  <!-- 📈 Model Performance Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">📈 Model Performance</h3>
+                      <div class="section-buttons">
+                          <button id="idea-performance" class="idea-button" onclick="samplePerformance()">🎲 model performance</button>
+                          <button id="idea-mistakes" class="idea-button" onclick="sampleMistakes()">🎲 model mistakes</button>
+                          <button id="idea-model" class="idea-button" onclick="sampleModel()">🎲 model info</button>
+                      </div>
+                  </div>
                   
-                  <!-- Feature Analysis -->
-                  <button id="idea-interaction" class="idea-button" onclick="sampleInteractions()">🎲 feature interactions</button>
+                  <!-- 🔄 What-If Analysis Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">🔄 What-If Analysis</h3>
+                      <div class="section-buttons">
+                          <button id="idea-whatif" class="idea-button" onclick="sampleWhatIf()">🎲 what if scenarios</button>
+                          <button id="idea-flip" class="idea-button" onclick="sampleFlip()">🎲 counterfactuals</button>
+                          <button id="idea-interaction" class="idea-button" onclick="sampleInteractions()">🎲 feature interactions</button>
+                      </div>
+                  </div>
                   
-                  <!-- System Help -->
-                  <button id="idea-capabilities" class="idea-button" onclick="sampleCapabilities()">🎲 system capabilities</button>
-                  <button id="idea-self" class="idea-button" onclick="sampleSelf()">🎲 about system</button>
-                  <button id="idea-followup" class="idea-button" onclick="sampleFollowup()">🎲 follow-up questions</button>
+                  <!-- ❓ System Help Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">❓ System Help</h3>
+                      <div class="section-buttons">
+                          <button id="idea-capabilities" class="idea-button" onclick="sampleCapabilities()">🎲 system capabilities</button>
+                          <button id="idea-self" class="idea-button" onclick="sampleSelf()">🎲 about system</button>
+                          <button id="idea-followup" class="idea-button" onclick="sampleFollowup()">🎲 follow-up questions</button>
+                      </div>
+                  </div>
               </div>
           </div>
         </section>
@@ -201,38 +237,6 @@ This is the main chat interface for interacting with ML model explanations.
         botResponse(msgText);
       });
 
-      // Feedback button handlers - hide feedback UI and log response
-      function answeredNo(logText) {
-        $('.all-feedback').fadeOut(250, function() {
-            $('.all-feedback').remove();
-        });
-        const feedback = `MessageID: ${logText} || Feedback: Negative || Username: {{ currentUserId }}`;
-        logFeedback(feedback);
-      }
-
-      function answeredInsight(logText) {
-        $('.all-feedback').fadeOut(250, function() {
-            $('.all-feedback').remove();
-        });
-        const feedback = `MessageID: ${logText} || Feedback: Insightful || Username: {{ currentUserId }}`;
-        logFeedback(feedback);
-      }
-
-      function answeredConfused(logText) {
-        $('.all-feedback').fadeOut(250, function() {
-            $('.all-feedback').remove();
-        });
-        const feedback = `MessageID: ${logText} || Feedback: Confused || Username: {{ currentUserId }}`;
-        logFeedback(feedback);
-      }
-
-      function answeredYes(logText) {
-        $('.all-feedback').fadeOut(250, function() {
-            $('.all-feedback').remove();
-        });
-        const feedback = `MessageID: ${logText} || Feedback: Positive || Username: {{ currentUserId }}`;
-        logFeedback(feedback);
-      }
 
       // Show typing indicator while waiting for bot response
       function insertLoadingDots() {
@@ -266,25 +270,12 @@ This is the main chat interface for interacting with ML model explanations.
         let msgHTML = "";
 
         if (side == "left") {
-         // Bot message with feedback buttons
+         // Bot message - clean format without feedback
          msgHTML = `
             <div class="msg ${side}-msg">
               <div class="msg-bubble">
                 <div class="msg-text">${text}</div>
-              <div class="happy-sad-unsure-response">
-                <div class="all-feedback">
-                <div class="feedback-opener">
-                    Feedback
-                  </div>
-                   <div class="feedback-form" >
-                        <button title="positive" class="unhappy-button" id="yesbutton" onclick="answeredYes('${logText}');">👍</button>
-                        <button title="negative" class="unhappy-button" id="nobutton" onclick="answeredNo('${logText}');">👎</button>
-                        <button title="insightful" class="unhappy-button" id="insightbutton" onclick="answeredInsight('${logText}');">💡</button>
-                        <button title="confused" class="unhappy-button" id="confusedbutton" onclick="answeredConfused('${logText}');">😕</button>
-                    </div>
-                </div>
               </div>
-            </div>
             </div>
             `;
             ttmChat.insertAdjacentHTML("beforeend", msgHTML);
@@ -310,11 +301,6 @@ This is the main chat interface for interacting with ML model explanations.
        */
       function botResponse(rawText) {
           let dataPackage = {userInput: rawText, userName: "{{ currentUserId }}"};
-          
-          // Hide any existing feedback forms
-          $('.all-feedback').fadeOut(250, function() {
-            $('.all-feedback').remove();
-          });
           
           const result = $.ajax({
               type: 'POST',
@@ -344,22 +330,8 @@ This is the main chat interface for interacting with ML model explanations.
       }
     </script>
 
-    <!-- Feedback logging and keyboard navigation -->
+    <!-- Keyboard navigation -->
     <script>
-      /**
-       * Send feedback to server for analytics
-       * @param {string} feedback - Formatted feedback string
-       */
-      function logFeedback(feedback) {
-        result = $.ajax({
-          type: 'POST',
-          url:"{{ url_for('.log_feedback') }}",
-          data: feedback,
-          processData: false, 
-          contentType: false,
-          cache: false,
-        });
-      }
 
       // Arrow key navigation through input history
       document.onkeydown = checkKey;

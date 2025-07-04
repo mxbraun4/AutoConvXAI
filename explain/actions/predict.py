@@ -40,6 +40,16 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
             except:
                 confidence = None
             
+            # Store this instance for potential what-if follow-up queries
+            # Don't modify temp_dataset to preserve general dataset access
+            conversation.last_prediction_instance = {
+                'data': data_df,
+                'features': dict(zip(ent_features, ent_vals)),
+                'all_features': new_instance.to_dict(),
+                'prediction': int(model_predictions[0]),
+                'confidence': confidence
+            }
+            
             # Return structured data for single instance prediction
             result = {
                 'type': 'single_prediction',

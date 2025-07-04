@@ -209,7 +209,14 @@ EXAMPLES:
 "what are the actual labels" → intent: "labels"
 "how many patients are there" → intent: "count"
 "what does BMI mean" → intent: "define", entities: {features: ["BMI"]}
+"explain the target variable" → intent: "define", entities: {features: ["target variable"]}
+"what is the target variable" → intent: "define", entities: {features: ["target variable"]}
+"define the target" → intent: "define", entities: {features: ["target"]}
 "tell me about yourself" → intent: "about"
+"top three features" → intent: "important", entities: {topk: 3}
+"three most important features" → intent: "important", entities: {topk: 3}
+"top 5 features for predictions" → intent: "important", entities: {topk: 5}
+"what are the most important 2 features" → intent: "important", entities: {topk: 2}
 
 CONVERSATIONAL CONTEXT EXAMPLES:
 "tell me more about that" → intent: "followup"
@@ -231,6 +238,7 @@ OUTPUT FORMAT (JSON ONLY - NO DUPLICATE KEYS):
     "features": ["feature_names_or_null"],
     "operators": ["operators_or_null"], 
     "values": [numbers_or_null],
+    "topk": number_or_null,
     "filter_type": "prediction|feature|label|null",
     "prediction_values": [numbers_for_prediction_filtering_or_null],
     "label_values": [numbers_for_label_filtering_or_null]
@@ -298,6 +306,7 @@ When the dataset is currently filtered, critically analyze:
 - "statistics": Depends on context - could be filtered or full dataset
 - "explain": Keep current filter if asking about specific filtered instances
 - "predict": Keep current filter if asking about specific instances
+- "counterfactual": CRITICAL - Keep current filter when asking about "this patient" or specific filtered instances. Counterfactuals need exactly one instance.
 - "count": CRITICAL - If user asks "overall", "total", "in the dataset" → needs full dataset
            If user asks "how many" with NEW filtering criteria (features, operators, values) → ALWAYS needs full dataset 
            If user asks "how many" without qualifiers and no new filters → use current filter context
@@ -335,14 +344,24 @@ User: "Show me patient 10"
 Initial Intent: "show"
 Critical Analysis: "Correct! User wants to display a specific patient's data, which is exactly what 'show' intent is for."
 
+User: "Show counterfactuals for this patient"
+Initial Intent: "counterfactual"
+Critical Analysis: "Correct intent! When user says 'this patient' and dataset is filtered to one instance, keep current filter. Counterfactuals work on single instances."
+Validated Intent: "counterfactual" with requires_full_dataset: false
+
 User: "What's the accuracy on older patients?"
 Initial Intent: "performance" 
 Critical Analysis: "Good interpretation, but 'older' is vague. Should we assume age > 40, > 50, or > 65? Intent is correct but entities need clarification."
 
 User: "What's the average age in the dataset?"
 Initial Intent: "data"
-Critical Analysis: "This asks for a specific statistic (average) about a specific feature (age). Should be 'statistics' not 'data'. Data is for general dataset info."
-Validated Intent: "statistics" with entities: {"features": ["Age"]}
+Critical Analysis: "Correct! Simple average queries for basic dataset statistics should remain 'data' intent. The data action handles feature statistics appropriately."
+Validated Intent: "data"
+
+User: "Explain the target variable"
+Initial Intent: "explain"
+Critical Analysis: "This is asking for a definition/explanation of what the target variable represents, not an explanation of a model prediction. Should be 'define' not 'explain'."
+Validated Intent: "define" with entities: {"features": ["target variable"]}
 
 User: "How many instances are there with age > 40?"
 Initial Intent: "count"
@@ -955,13 +974,13 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
             logger.info("Executing AutoGen processing in isolated thread...")
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(run_in_isolated_thread)
-                result = future.result(timeout=15)  # Reduced from 30 to 15 seconds for faster responses
+                result = future.result(timeout=30)  # Increased back to 30 seconds to handle complex agent discussions
                 logger.info("Thread execution completed successfully")
                 return result
                 
         except concurrent.futures.TimeoutError:
-            logger.error("Thread execution timed out after 15 seconds")
-            return self._create_error_response("System timeout after 15 seconds - agents need more focus")
+            logger.error("Thread execution timed out after 30 seconds")
+            return self._create_error_response("System timeout after 30 seconds - agents need more focus")
         except Exception as e:
             logger.error(f"Thread execution failed: {e}")
             return self._create_error_response(f"Thread execution error: {str(e)}")

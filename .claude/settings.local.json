@@ -18,7 +18,8 @@
       "Bash(pip install:*)",
       "Bash(curl:*)",
       "Bash(rg:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git config:*)"
     ],
     "deny": []
   }
