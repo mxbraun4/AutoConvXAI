@@ -1,0 +1,262 @@
+[
+  {
+    "question": "Can you please show a few examples the model predicts incorrectly and how accurate the model is on the data?",
+    "old_command": "mistake sample and score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 141
+  },
+  {
+    "question": "Could you demonstrate a few instances where the model predicts incorrectly and how accurate the model is on the data?",
+    "old_command": "mistake sample and score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 142
+  },
+  {
+    "question": "Could you give us a few situations where the model predicts incorrectly and how accurate the model is on the data?",
+    "old_command": "mistake sample and score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 143
+  },
+  {
+    "question": "Can you describe some incorrect predictions the model has made and tell me how reliable the model is on the data?",
+    "old_command": "mistake sample and score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 144
+  },
+  {
+    "question": "What did the models predict for people over 50? What mistakes did the model have?",
+    "old_command": "filter age greater than 50 and predict and mistake sample",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          50
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 145
+  },
+  {
+    "question": "what are the exact predictions for people older than 50 and what are some mistakes the model makes on this data?",
+    "old_command": "filter age greater than 50 and predict and mistake sample",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          50
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 146
+  },
+  {
+    "question": "Could you display data point number 21 and let me know if the model correctly predicted it?",
+    "old_command": "filter id 21 and show and mistake sample",
+    "expected_json": {
+      "entities": {
+        "patient_id": 21
+      },
+      "action": "filter"
+    },
+    "line_number": 147
+  },
+  {
+    "question": "could you show me data point number 21 and tell me whether the model predicts it accurately?",
+    "old_command": "filter id 21 and show and mistake sample",
+    "expected_json": {
+      "entities": {
+        "patient_id": 21
+      },
+      "action": "filter"
+    },
+    "line_number": 148
+  },
+  {
+    "question": "Let me see data point 21. Did the model predict it correctly?",
+    "old_command": "filter id 21 and show and mistake sample",
+    "expected_json": {
+      "entities": {
+        "patient_id": 21
+      },
+      "action": "filter"
+    },
+    "line_number": 149
+  },
+  {
+    "question": "Show data point 21. Did the model predict data point 21 accurately?",
+    "old_command": "filter id 21 and show and mistake sample",
+    "expected_json": {
+      "entities": {
+        "patient_id": 21
+      },
+      "action": "filter"
+    },
+    "line_number": 150
+  },
+  {
+    "question": "show me data point number 21 and tell me whether the model predicts it correctly?",
+    "old_command": "filter id 21 and show and mistake sample",
+    "expected_json": {
+      "entities": {
+        "patient_id": 21
+      },
+      "action": "filter"
+    },
+    "line_number": 151
+  },
+  {
+    "question": "For those with glucose values of 80 and age over 40, what are the true labels?",
+    "old_command": "filter glucose equal to 80 or filter age greater than 40 and label",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "glucose equal to 80 or filter age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 152
+  },
+  {
+    "question": "What are the true labels for people over 40 with glucose of 80?",
+    "old_command": "filter glucose equal to 80 or filter age greater than 40 and label",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "glucose equal to 80 or filter age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 153
+  },
+  {
+    "question": "For people older than 40 and with glucose values of 80, what are the true labels?",
+    "old_command": "filter glucose equal to 80 or filter age greater than 40 and label",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "glucose equal to 80 or filter age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 154
+  },
+  {
+    "question": "What are the true labels for people aged older than 40 or has glucose values of 80?",
+    "old_command": "filter glucose equal to 80 or filter age greater than 40 and label",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "glucose equal to 80 or filter age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 155
+  },
+  {
+    "question": "What are the true labels for people with glucose values 80 or aged older than 40?",
+    "old_command": "filter glucose equal to 80 or filter age greater than 40 and label",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "glucose equal to 80 or filter age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 156
+  },
+  {
+    "question": "What predictions do you make for people with insulin levels of 23?",
+    "old_command": "filter insulin equal to 23 and predict",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 157
+  },
+  {
+    "question": "What are your predictions for people with insulin levels of 23?",
+    "old_command": "filter insulin equal to 23 and predict",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 158
+  },
+  {
+    "question": "What do you foresee for people with insulin levels of 23?",
+    "old_command": "filter insulin equal to 23 and predict",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 159
+  },
+  {
+    "question": "What's your prediction for people with insulin levels at 23?",
+    "old_command": "filter insulin equal to 23 and predict",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 160
+  }
+]

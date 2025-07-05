@@ -66,205 +66,108 @@ class AutoGenDecoder:
         # Initialize the specialized agent network
         self._setup_agent_architecture()
         
-        # Initialize direct action mapping
-        self._setup_action_mapping()
+        # No longer need action mapping - agents output actions directly
         
         logger.info(f"Initialized AutoGenDecoder with model={model}, max_rounds={max_rounds}")
     
-    def _setup_action_mapping(self):
-        """Set up direct intent-to-action mapping."""
-        self.intent_to_action = {
-            # Core data operations (data handles both overview and counting)
-            "data": "data",
-            "count": "data",  # Count queries use data action
-            "statistics": "statistic",
-            
-            # Model operations
-            "predict": "predict",
-            "explain": "explain",
-            "important": "important",
-            "performance": "score",
-            "confidence": "likelihood",
-            "mistakes": "mistake",
-            
-            # Data manipulation (filter handles all filter types)
-            "filter": "filter",
-            "show": "show",
-            "labels": "label",
-            "predictionfilter": "filter",  # All filtering uses filter action
-            "labelfilter": "filter",       # All filtering uses filter action
-            
-            # What-if analysis (counterfactual handles all variants)
-            "whatif": "change",
-            "counterfactual": "counterfactual",
-            "alternatives": "counterfactual",  # Alternatives use counterfactual action
-            "scenarios": "counterfactual",     # Scenarios use counterfactual action
-            
-            # Feature analysis
-            "interactions": "interact",
-            "define": "define",
-            "function": "function",
-            
-            # Conversational (all map to self)
-            "about": "self",
-            "casual": "self",
-            "followup": "followup",
-            "model": "model",
-            "self": "self"
-        }
-        
-    def _map_intent_to_action(self, intent: str) -> str:
-        """Direct mapping from intent to action without agent overhead."""
-        return self.intent_to_action.get(intent, "explain")  # Default to explain
+    # Removed: No longer need intent-to-action mapping
     
 
     def _setup_agent_architecture(self):
         """Initialize the two specialized agents for the processing pipeline.
         
         Creates:
-        - Intent extraction agent: Understands user intent and extracts entities
-        - Intent validation agent: Critically examines and refines intent through discussion
+        - Action extraction agent: Understands user action and extracts entities
+        - Action validation agent: Critically examines and refines action through discussion
         """
         
-        # Agent 1: Intent Extraction and Entity Recognition
+        # Agent 1: Action Extraction and Entity Recognition
         # This agent performs the initial semantic analysis of user input
-        self.intent_extraction_agent = AssistantAgent(
-            name="IntentExtractor",
+        self.action_extraction_agent = AssistantAgent(
+            name="ActionExtractor",
             model_client=self.model_client,
-            system_message=self._create_intent_extraction_prompt()
+            system_message=self._create_action_extraction_prompt()
         )
         
-        # Agent 2: Intent Validation and Critical Analysis
-        # This agent critically examines if the intent was correctly interpreted
-        self.intent_validation_agent = AssistantAgent(
-            name="IntentValidator",
+        # Agent 2: Action Validation and Critical Analysis
+        # This agent critically examines if the action was correctly interpreted
+        self.action_validation_agent = AssistantAgent(
+            name="ActionValidator",
             model_client=self.model_client,
-            system_message=self._create_intent_validation_prompt()
+            system_message=self._create_action_validation_prompt()
         )
         
         logger.info("Successfully initialized two-agent architecture")
 
-    def _create_intent_extraction_prompt(self) -> str:
+    def _create_action_extraction_prompt(self) -> str:
         """Generate discussion-focused intent extraction prompt for collaborative analysis."""
-        return """You are an intent extraction agent for ML model queries. ENGAGE IN DISCUSSION with the validation agent.
+        return """You are an action extraction agent for ML model queries. ENGAGE IN DISCUSSION with the validation agent.
 
-TASK: Extract intent and entities from user queries about machine learning models, then DISCUSS your interpretation with the validation agent.
+TASK: Extract action and entities from user queries about machine learning models, then DISCUSS your interpretation with the validation agent.
 
-DISCUSSION GUIDELINES:
-- Present your initial interpretation
-- Listen to validation agent's questions and concerns
-- Revise your interpretation based on discussion
-- Consider context and dataset implications together
-- Focus on reaching consensus on intent and entities
+ACTION DEFINITIONS:
+- data: Statistics and counts about the existing dataset, including model prediction distributions on current data
+- predict: Generate predictions and probability scores for new instances with specific feature values that aren't in the dataset
+- explain: Reasoning behind model decisions
+- important: Feature importance rankings
+- score: Model performance metrics
+- filter: Display data subsets
+- whatif: How changes to existing cases affect predictions
+- counterfactual: Find changes needed for desired outcomes
+- mistake: Model error analysis
+- interact: Feature relationships
+- show: Display specific instances
+- statistic: Feature-specific statistics
+- label: Ground truth values
+- define: Feature definitions
+- self: System information
+- followup: Analysis based on previous results
+- model: Model architecture details
 
-INTENT TYPES:
-INTENT GOALS AND PURPOSES:
-- data: Get general dataset statistics, averages, summaries (overall dataset information)
-- predict: Generate actual model predictions/probabilities for specific instances or conditions
-- explain: Understand WHY the model made predictions (reasoning process, methodology, decision logic)
-- important: Discover which features matter most for model predictions (feature importance rankings)
-- performance: Evaluate how accurate/good the model is (accuracy metrics, evaluation results)
-- filter: Display/show subset of data meeting specific criteria (data viewing/browsing)
-- whatif: Explore hypothetical scenarios by changing feature values (what-if analysis)
-- counterfactual: Find alternative scenarios that would flip/change model predictions
-- mistakes: Analyze where and how the model makes errors (error analysis)
-- confidence: Get prediction confidence scores/probabilities for model outputs
-- interactions: Understand how features work together (feature interactions and dependencies)
-- show: Display specific data instances/records (data viewing for individual cases)
-- statistics: Get detailed statistics about specific features (distributions, means, etc.)
-- labels: Access ground truth/actual labels (true outcomes vs predictions)
-- count: Count number of data points (total counts or counts meeting criteria)
-- define: Get definitions/explanations of features or concepts
-- about: Get system information (capabilities, model details)
-- casual: Handle greetings and casual conversation
+KEY DISTINCTIONS:
+- predict creates predictions and probability scores for new data points; data analyzes existing dataset
+- whatif explores changes; counterfactual seeks specific outcomes
 
-CONVERSATIONAL CONTEXT INTENTS:
-- followup: Handle greetings, chat, and analytical conclusions based on previous results
-- model: Model information ("about the model", "model details", "training info")
-- predictionfilter: Filter by predictions ("where model predicted diabetes", "prediction = 1")
-- labelfilter: Filter by actual labels ("actual diabetic patients", "ground truth = 1")
+ENTITY EXTRACTION RULES:
+- ALWAYS extract features, operators, values when mentioned in any context
+- Entity extraction is independent of intent type - extract whenever present
 
-CRITICAL RULES: 
-- Questions asking WHY/HOW about specific predictions → EXPLAIN (even with "believe", "think")
-- Questions with "process", "method", "approach", "determine" → EXPLAIN (asking about methodology)
-- Questions with "predict" + "how much/often/many" → PREDICT (asking for prediction quantities)
-- Questions comparing feature importance → IMPORTANT (e.g., "is X more important than Y")
-- Statements drawing conclusions from previous results → FOLLOWUP
+FEATURE RECOGNITION PATTERNS:
+- Direct mention: "BMI", "age", "glucose" → feature names
+- Natural language: "people with high BMI" → features: ["BMI"]
+- Compound phrases: "patients over 40 years old" → features: ["Age"]
 
-SPECIAL FILTERING TYPES:
-- Prediction filtering: "show instances where model predicted 1", "cases where model predicts diabetes"
-- Feature filtering: "patients with age > 50", "glucose less than 100"
-- Label filtering: "instances where ground truth is 1", "actual diabetic patients"
+OPERATOR RECOGNITION PATTERNS:
+- "over", "above", "more than", "greater than" → ">"
+- "under", "below", "less than", "fewer than" → "<"
+- "at least", "minimum of" → ">="
+- "at most", "maximum of" → "<="
+- "equal to", "exactly", "is" → "="
+- "not equal", "different from" → "!="
 
-CRITICAL INTENT DISAMBIGUATION EXAMPLES:
+VALUE EXTRACTION:
+- Numbers with units: "40 years old" → values: [40], features: ["Age"]  
+- Simple numbers: "BMI over 30" → values: [30]
+- Multiple values: "age between 30 and 50" → values: [30, 50], operators: [">=", "<="]
 
-EXPLAIN vs PREDICT (Focus on user's goal):
-"what method would you use to figure out if people with glucose > 120 have diabetes?" → intent: "explain" (wants to understand reasoning/methodology)
-"how do you determine if people with glucose > 120 have diabetes?" → intent: "explain" (wants to understand decision process)
-"what's your process for determining whether people with glucose > 120 have diabetes?" → intent: "explain" (wants to understand approach/methodology)
-"predict diabetes for people with glucose > 120" → intent: "predict" (wants actual prediction results)
-"how much do you predict people aged over 30 have diabetes?" → intent: "predict" (wants prediction probabilities)
-"how often do you predict people aged more than 30 have diabetes?" → intent: "predict" (wants prediction rates/percentages)
+SPECIAL PATTERNS:
+- "top X", "best X", "highest X" → topk: X
+- "patient ID", "patient number", "case ID" → patient_id: number
+- Filtering: "show diabetic patients" → filter_type: "label", label_values: [1]
 
-EXPLAIN vs FILTER (Focus on user's goal):
-"explain why the model predicted data point 100" → intent: "explain" (wants reasoning)
-"show me data point 100" → intent: "show" (wants to see the data)
-"patients with glucose > 120" → intent: "filter" (wants to see/display subset)
+KEY DISTINCTIONS:
+- DATA: Statistics, counts, and frequencies about the current dataset including model prediction distributions
+- PREDICT: Generate new predictions and probability scores for specific instances with given feature values
+- EXPLAIN: Reasoning and methodology behind model decisions
+- WHATIF: Explore how changes to existing data points affect predictions
 
-EXPLAIN vs COUNTERFACTUAL (For dual-intent questions, prioritize the primary goal):
-"why did the model predict data point 100 and what can you do to change it?" → intent: "explain" (primary focus on understanding why)
-"what can you do to change the prediction for data point 100?" → intent: "counterfactual" (primary focus on changing outcome)
+FOCUS: Determine if the query seeks information about existing data or creation of new predictions
 
-EXAMPLES:
-"whats the average age in the dataset" → intent: "data"
-"how accurate is the model" → intent: "performance" 
-"explain patient 5" → intent: "explain", entities: {patient_id: 5}
-"predict for glucose > 120" → intent: "predict", entities: {features: ["glucose"], operators: [">"], values: [120]}
-"glucose levels over 120" → intent: "filter", entities: {features: ["glucose"], operators: [">"], values: [120]}
-"people aged over 30" → intent: "filter", entities: {features: ["age"], operators: [">"], values: [30]}
-"BMI above 25" → intent: "filter", entities: {features: ["BMI"], operators: [">"], values: [25]}
-"glucose under 100" → intent: "filter", entities: {features: ["glucose"], operators: ["<"], values: [100]}
-"age below 40" → intent: "filter", entities: {features: ["age"], operators: ["<"], values: [40]}
-"show instances where model predicted 1" → intent: "filter", entities: {filter_type: "prediction", prediction_values: [1]}
-"patients with age > 50" → intent: "filter", entities: {features: ["age"], operators: [">"], values: [50]}
-"show cases where ground truth is 1" → intent: "filter", entities: {filter_type: "label", label_values: [1]}
-"what if BMI was 25 instead" → intent: "whatif", entities: {features: ["BMI"], values: [25]}
-"show counterfactuals for patient 5" → intent: "counterfactual", entities: {patient_id: 5}
-"what are the alternatives to flip this prediction" → intent: "counterfactual"
-"show me scenarios that would change the outcome" → intent: "counterfactual"
-"what changes would make this patient non-diabetic" → intent: "counterfactual"
-"show me the model's biggest mistakes" → intent: "mistakes"
-"how confident is the model" → intent: "confidence"
-"how do age and BMI interact" → intent: "interactions", entities: {features: ["age", "BMI"]}
-"show me patient 10" → intent: "show", entities: {patient_id: 10}
-"glucose statistics" → intent: "statistics", entities: {features: ["glucose"]}
-"what are the actual labels" → intent: "labels"
-"how many patients are there" → intent: "count"
-"what does BMI mean" → intent: "define", entities: {features: ["BMI"]}
-"explain the target variable" → intent: "define", entities: {features: ["target variable"]}
-"what is the target variable" → intent: "define", entities: {features: ["target variable"]}
-"define the target" → intent: "define", entities: {features: ["target"]}
-"tell me about yourself" → intent: "about"
-"top three features" → intent: "important", entities: {topk: 3}
-"three most important features" → intent: "important", entities: {topk: 3}
-"top 5 features for predictions" → intent: "important", entities: {topk: 5}
-"what are the most important 2 features" → intent: "important", entities: {topk: 2}
+COMPOUND QUESTIONS: Choose the PRIMARY action when multiple actions seem relevant. For questions asking both "why" and "how to change", prioritize the explanation aspect.
 
-CONVERSATIONAL CONTEXT EXAMPLES:
-"tell me more about that" → intent: "followup"
-"so the model underpredicts the amount of people with diabetes?" → intent: "followup"
-"this means the model is conservative" → intent: "followup"
-"the model seems to underestimate cases" → intent: "followup"
-"does this mean the model is biased?" → intent: "followup"
-"so it appears the predictions are lower" → intent: "followup"
-"therefore the model misses some cases" → intent: "followup"
-"what about the model itself" → intent: "model"
-"show me where the model predicted diabetes" → intent: "predictionfilter", entities: {prediction_values: [1]}
-"filter to actual diabetic patients" → intent: "labelfilter", entities: {label_values: [1]}
-
-OUTPUT FORMAT (JSON ONLY - NO DUPLICATE KEYS):
+OUTPUT FORMAT (JSON ONLY - SINGLE ACTION ONLY):
 {
-  "intent": "detected_intent",
+  "action": "single_detected_action",
   "entities": {
     "patient_id": number_or_null,
     "features": ["feature_names_or_null"],
@@ -278,147 +181,68 @@ OUTPUT FORMAT (JSON ONLY - NO DUPLICATE KEYS):
   "confidence": 0.95
 }
 
-CRITICAL: Never use the same JSON key twice. Use prediction_values for prediction filtering, values for feature filtering, and label_values for label filtering.
-
 Be fast, accurate, and concise. No explanations needed."""
 
-    def _create_intent_validation_prompt(self) -> str:
-        """Generate discussion-focused validation prompt for intent analysis."""
-        return """You are an intent validation agent. ENGAGE IN CRITICAL DISCUSSION about the intent interpretation.
+    def _create_action_validation_prompt(self) -> str:
+        """Generate discussion-focused validation prompt for action analysis."""
+        return """You are an action validation agent. ENGAGE IN CRITICAL DISCUSSION about the action interpretation.
 
-Your job: Look at the user's original query and the extracted intent, then DISCUSS with the intent extraction agent to reach consensus.
+Your job: Look at the user's original query and the extracted action, then DISCUSS with the action extraction agent to reach consensus.
 
 DISCUSSION GUIDELINES:
 - Ask probing questions about ambiguous cases
-- Challenge assumptions about user intent
-- Discuss context implications (filtered vs full dataset)
+- Challenge assumptions about user action  
 - Consider alternative interpretations
-- Reach consensus through reasoned discussion
-- Focus particularly on dataset context and size implications
+- Focus on the user's core goal
+- Validate entity extraction accuracy
 
-CRITICAL ANALYSIS QUESTIONS FOR DISCUSSION:
-1. Could this query have multiple interpretations?
-2. Did we capture the user's real goal?
-3. Is there a better way to understand this request?
-4. Are we missing important context or nuance?
-5. CONTEXT-SENSITIVE: If dataset is currently filtered, does this query need full dataset or filtered dataset?
-6. DATASET SIZE IMPLICATIONS: Does this query need all data or just the current filtered subset?
-7. FOLLOW-UP DETECTION: Does this query reference previous results or make analytical conclusions? If so, it should be "followup".
+ACTION DEFINITIONS FOR VALIDATION:
+- data: Statistics about existing dataset including model predictions on current data
+- predict: Predictions and probability scores for new instances not in the dataset
+- explain: Model reasoning
+- important: Feature rankings
+- score: Performance metrics
+- filter: Data subsets
+- whatif: Impact of changes to existing cases
+- counterfactual: Changes for desired outcomes
+- mistake: Error analysis
+- interact: Feature relationships
+- show: Specific instances
+- statistic: Feature-specific stats
+- label: True labels
+- define: Definitions
+- self: System info
+- followup: Previous result analysis
+- model: Model details
 
-INTENT GOALS TO VALIDATE:
-- data: Get general dataset statistics, averages, summaries (overall dataset information)
-- statistics: Get detailed statistics about specific features (distributions, means, etc.)
-- predict: Generate actual model predictions/probabilities for specific instances or conditions
-- explain: Understand WHY the model made predictions (reasoning process, methodology, decision logic)
-- important: Discover which features matter most for model predictions (feature importance rankings)
-- performance: Evaluate how accurate/good the model is (accuracy metrics, evaluation results)
-- filter: Display/show subset of data meeting specific criteria (data viewing/browsing)
-- show: Display specific data instances/records (data viewing for individual cases)
-- counterfactual: Find alternative scenarios that would flip/change model predictions
-- interactions: Understand how features work together (feature interactions and dependencies)
-- mistakes: Analyze where and how the model makes errors (error analysis)
-- whatif: Explore hypothetical scenarios by changing feature values (what-if analysis)
-- confidence: Get prediction confidence scores/probabilities for model outputs
-- labels: Access ground truth/actual labels (true outcomes vs predictions)
-- count: Count number of data points (total counts or counts meeting criteria)
-- define: Get definitions/explanations of features or concepts
-- about: Get system information (capabilities, model details)
-- casual: Handle greetings and casual conversation
-- followup: Follow-up questions and analytical conclusions
-- model: Get model information (architecture, training details)
-- predictionfilter: Filter by model predictions (show instances where model predicted X)
-- labelfilter: Filter by actual labels (show instances where ground truth is Y)
+CRITICAL VALIDATION POINTS:
+- DATA vs PREDICT: Statistics about current dataset vs new instance generation
+- EXPLAIN vs WHATIF: Methodology/reasoning vs exploration of changes  
+- COMPOUND QUERIES: Prioritize primary intent, avoid multiple actions
+- METHOD QUESTIONS: Asking about approach means explanation is needed
+- LIKELIHOOD QUESTIONS: Probability and confidence questions should use predict action
 
-CONTEXT-SENSITIVE VALIDATION:
-When the dataset is currently filtered, critically analyze:
-- "mistakes": MUST use full dataset (reset filter) - user wants to understand overall model errors
-- "performance": MUST use full dataset (reset filter) - user wants overall model accuracy  
-- "important": MUST use full dataset (reset filter) - user wants global feature importance
-- "data": Depends on context - for general counts without "overall"/"total", keep current filter
-- "statistics": Depends on context - could be filtered or full dataset
-- "explain": Keep current filter if asking about specific filtered instances
-- "predict": Keep current filter if asking about specific instances
-- "counterfactual": CRITICAL - Keep current filter when asking about "this patient" or specific filtered instances. Counterfactuals need exactly one instance.
-- "count": CRITICAL - If user asks "overall", "total", "in the dataset" → needs full dataset
-           If user asks "how many" with NEW filtering criteria (features, operators, values) → ALWAYS needs full dataset 
-           If user asks "how many" without qualifiers and no new filters → use current filter context
-           EXAMPLE: "how many instances are there with age > 40" has NEW criteria → requires_full_dataset: true
+ENTITY VALIDATION CHECKLIST:
+- Are features correctly identified from natural language?
+- Are operators and values properly extracted from conditions?
+- Is topk captured for ranking requests?
+- Are filter types and values appropriate?
 
-CRITICAL DECISION: 
-- If user asks about "average", "mean", "std", "distribution" of a SPECIFIC FEATURE → use "statistics"
-- If user asks about general dataset info without specific features → use "data"
-
-VALIDATION RULE:
-- Questions asking WHY/HOW about specific predictions → "explain" (not followup)
-- Method/process questions → "explain" (not predict)
-
-User: "How does age affect the model?"
-Initial Intent: "performance" 
-Critical Analysis: "This is ambiguous! Could mean:
-- Feature importance of age (important)
-- Performance across age groups (statistics) 
-- Age interaction effects (interactions)
-- Model accuracy on age-filtered data (performance)
-Recommend: Ask for clarification or choose 'important' as most likely."
-
-User: "so the model underpredicts the amount of people with diabetes?"
-Initial Intent: "explain"
-Critical Analysis: "This is a follow-up analytical question that should be 'followup' not 'explain'. The user is drawing a conclusion from previous results (comparing predictions vs ground truth). This doesn't need a new explanation - it needs a conversational response using existing context."
-Validated Intent: "followup"
-
-User: "Show me patients over 40"
-Initial Intent: "filter"
-Critical Analysis: "Correct! User clearly wants to filter data by age > 40."
-
-User: "What are the feature values of patient 5?"
-Initial Intent: "show"
-Critical Analysis: "Correct! User wants to display data for a specific patient instance (patient 5), not filter the dataset. This is a 'show' request."
-
-User: "Show me patient 10"
-Initial Intent: "show"
-Critical Analysis: "Correct! User wants to display a specific patient's data, which is exactly what 'show' intent is for."
-
-User: "Show counterfactuals for this patient"
-Initial Intent: "counterfactual"
-Critical Analysis: "Correct intent! When user says 'this patient' and dataset is filtered to one instance, keep current filter. Counterfactuals work on single instances."
-Validated Intent: "counterfactual" with requires_full_dataset: false
-
-User: "What's the accuracy on older patients?"
-Initial Intent: "performance" 
-Critical Analysis: "Good interpretation, but 'older' is vague. Should we assume age > 40, > 50, or > 65? Intent is correct but entities need clarification."
-
-User: "What's the average age in the dataset?"
-Initial Intent: "data"
-Critical Analysis: "Correct! Simple average queries for basic dataset statistics should remain 'data' intent. The data action handles feature statistics appropriately."
-Validated Intent: "data"
-
-User: "Explain the target variable"
-Initial Intent: "explain"
-Critical Analysis: "This is asking for a definition/explanation of what the target variable represents, not an explanation of a model prediction. Should be 'define' not 'explain'."
-Validated Intent: "define" with entities: {"features": ["target variable"]}
-
-User: "How many instances are there with age > 40?"
-Initial Intent: "count"
-Critical Analysis: "This count query introduces NEW filtering criteria (age > 40), so it needs the full dataset to apply the filter from scratch. Even if the dataset is currently filtered to diabetes cases, the user wants to know about age > 40 across ALL patients."
-Validated Intent: "count" with entities: {"features": ["Age"], "operators": [">"], "values": [40]} and requires_full_dataset: true
-
-CRITICAL: When validating entities, preserve the EXACT SAME structure as the original entities. Use the same keys (features not feature, values not value, etc.)
-
-OUTPUT FORMAT (JSON ONLY):
+OUTPUT FORMAT (JSON ONLY - SINGLE ACTION ONLY):
 {
-  "validated_intent": "final_intent_decision",
+  "validated_action": "single_final_action",
   "entities": {
     "patient_id": number_or_null,
     "features": ["feature_names_or_null"],
     "operators": ["operators_or_null"], 
     "values": [numbers_or_null],
+    "topk": number_or_null,
     "filter_type": "prediction|feature|label|null",
     "prediction_values": [numbers_for_prediction_filtering_or_null],
     "label_values": [numbers_for_label_filtering_or_null]
   },
   "confidence": 0.95,
-  "critical_analysis": "your_reasoning_about_potential_issues_or_ambiguities",
-  "alternative_interpretations": ["list", "of", "other", "possible", "meanings"],
+  "critical_analysis": "brief_reasoning_about_potential_issues",
   "requires_full_dataset": true_or_false
 }
 
@@ -580,11 +404,11 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         processing_prompt = (
             f"{contextual_prompt}\n\n"
             f"Execute the collaborative natural language understanding pipeline:\n"
-            f"1. Intent Extraction Agent: Analyze the query and extract intent/entities\n"
-            f"2. Intent Validation Agent: Critically examine the interpretation\n"
+            f"1. Action Extraction Agent: Analyze the query and extract action/entities\n"
+            f"2. Action Validation Agent: Critically examine the interpretation\n"
             f"3. DISCUSS: Engage in back-and-forth discussion about ambiguities\n"
             f"4. FOCUS: Pay special attention to dataset context (filtered vs full dataset)\n"
-            f"5. CONSENSUS: Reach agreement on final intent and entities\n"
+            f"5. CONSENSUS: Reach agreement on final action and entities\n"
             f"Collaborate through 4 rounds of discussion until you reach consensus."
         )
         
@@ -627,8 +451,8 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         # Use runtime inspection to handle API parameter variations
         team_parameters = {
             "participants": [
-                self.intent_extraction_agent,
-                self.intent_validation_agent,
+                self.action_extraction_agent,
+                self.action_validation_agent,
             ]
         }
         
@@ -666,17 +490,17 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         for message_index, message in enumerate(collaboration_result.messages):
             extracted_response = self._extract_json_response(message, message_index)
             
-            if extracted_response:
+            if extracted_response and isinstance(extracted_response, dict):
                 # Classify response by content structure
                 response_type = self._classify_response_type(extracted_response)
                 
-                if response_type == "intent" and not intent_response:
+                if response_type == "action" and not intent_response:
                     intent_response = extracted_response
                     # Handle casual conversation early termination
-                    if intent_response.get('intent') == 'casual':
+                    if intent_response.get('action') == 'self':
                         return self._create_casual_response()
                         
-                elif response_type == "intent_validation" and not intent_validation_response:
+                elif response_type == "action_validation" and not intent_validation_response:
                     intent_validation_response = extracted_response
         
         # Log what we found from agents for debugging
@@ -687,7 +511,10 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
 
     def _extract_json_response(self, message, message_index: int) -> Optional[Dict]:
         """Extract JSON from agent message - clean and direct."""
-        if not (hasattr(message, 'content') and message.content and '{' in message.content):
+        if not hasattr(message, 'content') or not message.content:
+            return None
+        # Check for None content before using 'in' operator
+        if message.content is None or '{' not in message.content:
             return None
             
         content = message.content
@@ -697,17 +524,24 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
             import re
             json_block_match = re.search(r'```json\s*(\{.*?\})\s*```', content, re.DOTALL)
             if json_block_match:
-                return json.loads(json_block_match.group(1))
+                result = json.loads(json_block_match.group(1))
+                # Ensure we only return dict objects
+                return result if isinstance(result, dict) else None
             
             # Pattern 2: Direct JSON
             if content.strip().startswith('{') and content.strip().endswith('}'):
-                return json.loads(content.strip())
+                result = json.loads(content.strip())
+                # Ensure we only return dict objects
+                return result if isinstance(result, dict) else None
                 
             # Pattern 3: Embedded JSON
             json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
             json_matches = re.findall(json_pattern, content)
             for match in json_matches:
-                return json.loads(match)
+                result = json.loads(match)
+                # Ensure we only return dict objects
+                if isinstance(result, dict):
+                    return result
         except json.JSONDecodeError:
             pass
         
@@ -727,12 +561,14 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         Returns:
             Response type classification string
         """
-        if 'intent' in response:
-            return "intent"
-        elif 'validated_intent' in response:
-            return "intent_validation"
-        elif 'action' in response:
+        # Handle None response gracefully
+        if response is None:
+            return "unknown"
+            
+        if 'action' in response:
             return "action"
+        elif 'validated_action' in response:
+            return "action_validation"
         elif 'valid' in response:
             return "validation"
         else:
@@ -816,11 +652,8 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         Returns:
             Complete integrated response from 2-agent collaboration
         """
-        # Use validated intent from the critical thinking agent
-        validated_intent = intent_validation_response.get('validated_intent', intent_response.get('intent', 'data'))
-        
-        # Map intent to action using direct mapping
-        final_action = self._map_intent_to_action(validated_intent)
+        # Use validated action directly from the critical thinking agent
+        validated_action = intent_validation_response.get('validated_action', intent_response.get('action', 'data'))
         
         # Use validated entities from intent validation, falling back to original entities
         validated_entities = intent_validation_response.get('entities', {})
@@ -843,7 +676,7 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
                 command_structure[key] = original_val
         
         # Create action list for backward compatibility
-        action_list = [final_action] if final_action else ["explain"]
+        action_list = [validated_action] if validated_action else ["explain"]
         
         # Calculate aggregate confidence score
         confidence_score = min(
@@ -852,11 +685,11 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         )
         
         return {
-            "generation": f"parsed: {final_action}[e]",
+            "generation": f"parsed: {validated_action}[e]",
             "confidence": confidence_score,
             "method": "autogen_2agent_discussion",
-            "intent_response": {
-                "intent": validated_intent,  # Use validated intent for filter reset logic
+            "action_response": {
+                "action": validated_action,
                 "entities": command_structure,
                 "confidence": confidence_score
             },
@@ -866,15 +699,14 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
                 "alternative_interpretations": intent_validation_response.get('alternative_interpretations', [])
             },
             "agent_reasoning": {
-                "original_intent": intent_response.get('intent', 'data'),
-                "validated_intent": validated_intent,
+                "original_action": intent_response.get('action', 'data'),
+                "validated_action": validated_action,
                 "critical_analysis": intent_validation_response.get('critical_analysis', ''),
-                "alternative_interpretations": intent_validation_response.get('alternative_interpretations', []),
-                "action_mapping": f"Intent '{validated_intent}' → Action '{final_action}'"
+                "alternative_interpretations": intent_validation_response.get('alternative_interpretations', [])
             },
             "command_structure": command_structure,
             "action_list": action_list,
-            "final_action": final_action,
+            "final_action": validated_action,
             "validation_passed": True,  # Critical thinking validation always passes with improvements
             "identified_issues": intent_validation_response.get('alternative_interpretations', [])
         }
@@ -892,9 +724,8 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         Returns:
             Partial response with available information
         """
-        # Get intent and map to action
-        intent = intent_response.get('intent', 'explain')
-        final_action = self._map_intent_to_action(intent)
+        # Get action directly - no mapping needed
+        final_action = intent_response.get('action', 'explain')
         
         # Calculate confidence with penalty for missing validation
         confidence_score = intent_response.get('confidence', 0.8) * 0.9  # Penalty for missing validation
@@ -903,12 +734,17 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
             "generation": f"parsed: {final_action}[e]",
             "confidence": confidence_score,
             "method": "autogen_partial_pipeline",
-            "intent_response": intent_response,  # Include full intent response for context reset detection
+            "action_response": {
+                "action": final_action,
+                "entities": intent_response.get('entities', {}),
+                "confidence": confidence_score
+            },
             "agent_reasoning": {
-                "intent_analysis": intent_response.get('reasoning', ''),
-                "action_mapping": f"Intent '{intent}' → Action '{final_action}'",
+                "action_analysis": intent_response.get('reasoning', ''),
                 "validation_results": "Validation agent response unavailable"
             },
+            "command_structure": intent_response.get('entities', {}),
+            "action_list": [final_action],
             "final_action": final_action,
             "validation_passed": True,  # Assume valid with programmatic validation
             "identified_issues": []
@@ -930,26 +766,37 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         """
         logger.info("Creating minimal response - agents didn't reach consensus")
         
-        # Try to extract intent and entities from first agent response
-        intent_response = None
+        # Try to extract action and entities from first agent response
+        action_response = None
         for message in collaboration_result.messages:
             extracted_response = self._extract_json_response(message, 0)
-            if extracted_response and 'intent' in extracted_response:
-                intent_response = extracted_response
+            if extracted_response and isinstance(extracted_response, dict) and 'action' in extracted_response:
+                action_response = extracted_response
                 break
         
-        if intent_response:
-            # Use the extracted intent and entities
+        if action_response:
+            # Use the extracted action and entities
+            action = action_response.get("action")
             return {
-                "intent": intent_response.get("intent"),
-                "entities": intent_response.get("entities", {}),
-                "confidence": intent_response.get("confidence", 0.8),
-                "method": "autogen_intent_extraction",
-                "original_query": user_query
+                "generation": f"parsed: {action}[e]",
+                "confidence": action_response.get("confidence", 0.8),
+                "method": "autogen_partial_pipeline",
+                "action_response": {
+                    "action": action,
+                    "entities": action_response.get("entities", {}),
+                    "confidence": action_response.get("confidence", 0.8)
+                },
+                "agent_reasoning": {
+                    "action_analysis": "",
+                    "validation_results": "Validation agent response unavailable"
+                },
+                "final_action": action,
+                "validation_passed": True,
+                "identified_issues": []
             }
         else:
             # NO FALLBACKS - Fail fast when AutoGen doesn't work
-            raise Exception("AutoGen failed to extract intent - no fallback allowed")
+            raise Exception("AutoGen failed to extract action - no fallback allowed")
 
     def _create_error_response(self, error_message: str) -> Dict[str, Any]:
         """
@@ -994,6 +841,9 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
                 logger.info(f"Starting async processing for query: {user_query[:50]}...")
                 result = new_loop.run_until_complete(self.complete(user_query, conversation, grammar))
                 logger.info("Async processing completed successfully")
+                
+                # Don't call cleanup here - it can interfere with event loop closure
+                # The decoder will be reused without cleanup between test cases
                 return result
             except asyncio.TimeoutError:
                 logger.warning("AutoGen processing timed out")
@@ -1003,12 +853,24 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
                 return self._create_error_response(f"AutoGen processing error: {str(e)}")
             finally:
                 try:
-                    # Proper cleanup of the event loop
+                    # Only clean up the event loop, not the decoder resources
+                    # Decoder cleanup happens only when creating a fresh decoder between batches
+                    
+                    # Cancel any pending tasks in the event loop
                     pending = asyncio.all_tasks(new_loop)
                     if pending:
                         for task in pending:
                             task.cancel()
-                        new_loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+                        # Wait briefly for cancellation to complete
+                        try:
+                            new_loop.run_until_complete(asyncio.wait_for(
+                                asyncio.gather(*pending, return_exceptions=True), 
+                                timeout=1.0
+                            ))
+                        except asyncio.TimeoutError:
+                            pass  # Tasks didn't cancel in time, proceed anyway
+                    
+                    # Close the loop
                     new_loop.close()
                     logger.debug("Event loop cleaned up successfully")
                 except Exception as cleanup_error:
@@ -1038,16 +900,28 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         finally:
             loop.close()
     
-    async def cleanup(self):
+    async def cleanup(self, full_cleanup=True):
         """
         Clean Up System Resources
         
         Properly releases resources used by the multi-agent system,
-        including LLM client connections and agent references.
+        including LLM client connections and optionally agent references.
         """
         try:
-            await self.model_client.close()
-            logger.info("AutoGen decoder resources cleaned up successfully")
+            # Only close model client connections during full cleanup
+            # When reusing decoder, keep the client alive for subsequent requests
+            if full_cleanup and hasattr(self, 'model_client') and self.model_client:
+                await self.model_client.close()
+            
+            # Only clear agent references if doing full cleanup (e.g., before deletion)
+            # Don't clear them if we plan to reuse the decoder
+            if full_cleanup:
+                if hasattr(self, 'intent_extraction_agent'):
+                    self.intent_extraction_agent = None
+                if hasattr(self, 'intent_validation_agent'):
+                    self.intent_validation_agent = None
+                
+            logger.debug(f"AutoGen decoder resources cleaned up (full_cleanup={full_cleanup})")
         except Exception as e:
             logger.warning(f"Resource cleanup warning: {e}")
 

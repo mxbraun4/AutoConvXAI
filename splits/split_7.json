@@ -1,0 +1,272 @@
+[
+  {
+    "question": "What would the predictions for the data be if the bmi in the data set were to be increased by 5 points?",
+    "old_command": "change bmi increase 5 and predict",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 121
+  },
+  {
+    "question": "If the bmi is increased by 5 points in the data set, what would the prediction for the data be?",
+    "old_command": "change bmi increase 5 and predict",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 122
+  },
+  {
+    "question": "What would be the predictions if BMI was increased by 5 points?",
+    "old_command": "change bmi increase 5 and predict",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 123
+  },
+  {
+    "question": "If BMI was increased by 5 points, what would be the predictions?",
+    "old_command": "change bmi increase 5 and predict",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 124
+  },
+  {
+    "question": "What are the chances someone will develop diabetes with bmi 10 points lower?",
+    "old_command": "change bmi decrease 10 and likelihood",
+    "expected_json": {
+      "entities": {},
+      "action": "predict"
+    },
+    "line_number": 125
+  },
+  {
+    "question": "If people eliminate 10 points from their bmi's, would they cut down their risk of diabetes?",
+    "old_command": "change bmi decrease 10 and likelihood",
+    "expected_json": {
+      "entities": {},
+      "action": "predict"
+    },
+    "line_number": 126
+  },
+  {
+    "question": "When predicting whether people older than 50 with bmi's over 30 have diabates, what are typical mistakes the model makes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 127
+  },
+  {
+    "question": "What mistakes can typically be expected when the model predicts whether people older than 50 with bmi over 30 have diabetes",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 128
+  },
+  {
+    "question": "For people older than 50 with bmi over 30, what mistakes are typically made by the model?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 129
+  },
+  {
+    "question": "What are some frequent errors caused by the model when predicting if individuals over 50 with a BMI of higher than 30 have diabetes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 130
+  },
+  {
+    "question": "What are typical errors the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 131
+  },
+  {
+    "question": "What are the mistakes the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 132
+  },
+  {
+    "question": "What are errors that the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 133
+  },
+  {
+    "question": "What are normal mistakes the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+    "old_command": "filter age greater than 50 and filter bmi greater than 30 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          30
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 134
+  },
+  {
+    "question": "I'd like to see mistakes made on people with insulin over 50.",
+    "old_command": "filter insulin greater than 50 and mistake sample",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "insulin"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          50
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 135
+  },
+  {
+    "question": "For this data subset, how accurate is the model?",
+    "old_command": "previousfilter and score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 136
+  },
+  {
+    "question": "How accurate is the model given this subset of data?",
+    "old_command": "previousfilter and score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 137
+  },
+  {
+    "question": "How accurate is the model for this subset in the data?",
+    "old_command": "previousfilter and score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 138
+  },
+  {
+    "question": "What is the accuracy of the model for this subset in the data?",
+    "old_command": "previousfilter and score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 139
+  },
+  {
+    "question": "For this subset in the data, what is the models accuracy?",
+    "old_command": "previousfilter and score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 140
+  }
+]

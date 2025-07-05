@@ -1,0 +1,880 @@
+{
+  "report": {
+    "total_cases": 20,
+    "intent_accuracy": 0.4,
+    "entity_accuracy": 0.9,
+    "overall_accuracy": 0.4,
+    "error_rate": 0.0,
+    "intent_breakdown": {
+      "whatif": {
+        "total": 6,
+        "correct": 4,
+        "accuracy": 0.6666666666666666
+      },
+      "important": {
+        "total": 1,
+        "correct": 1,
+        "accuracy": 1.0
+      },
+      "explain": {
+        "total": 6,
+        "correct": 3,
+        "accuracy": 0.5
+      },
+      "predict": {
+        "total": 5,
+        "correct": 0,
+        "accuracy": 0.0
+      },
+      "filter": {
+        "total": 2,
+        "correct": 0,
+        "accuracy": 0.0
+      }
+    },
+    "intent_mismatches": [
+      {
+        "question": "For the data point with id 33, predict the change in the likelihood of having diabetes if we increase glucose by 100.",
+        "expected_intent": "whatif",
+        "actual_intent": "predict",
+        "expected_entities": {
+          "patient_id": 33
+        },
+        "actual_entities": {}
+      },
+      {
+        "question": "likelihood of having diabetes if we were to increase glucose by 100 for the data point with id 33",
+        "expected_intent": "whatif",
+        "actual_intent": "predict",
+        "expected_entities": {
+          "patient_id": 33
+        },
+        "actual_entities": {}
+      },
+      {
+        "question": "What effect do the features have those predictions made by the model on the training information?",
+        "expected_intent": "explain",
+        "actual_intent": "interact",
+        "expected_entities": {},
+        "actual_entities": {}
+      },
+      {
+        "question": "Still imagine they were 20 years more aged?",
+        "expected_intent": "explain",
+        "actual_intent": "change",
+        "expected_entities": {},
+        "actual_entities": {}
+      },
+      {
+        "question": "But what happens if they happen to be twenty years older?",
+        "expected_intent": "explain",
+        "actual_intent": "change",
+        "expected_entities": {},
+        "actual_entities": {}
+      }
+    ],
+    "entity_mismatches": []
+  },
+  "detailed_results": [
+    {
+      "question": "If we increased glucose by 100 for the data point with id 33, what would happen to the likelihood of having diabetes",
+      "expected": {
+        "intent": "whatif",
+        "entities": {
+          "patient_id": 33
+        }
+      },
+      "actual": {
+        "generation": "parsed: change[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "whatif",
+          "entities": {
+            "prediction_values": null,
+            "filter_type": null,
+            "values": [
+              100
+            ],
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              ">"
+            ],
+            "patient_id": 33,
+            "topk": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The operator '>' suggests a change rather than a shift in the existing value. The focus is on exploring the outcome of an increase in glucose, not necessarily a prediction output. However, we may need to clarify how the value for 'Glucose' is being interpreted (as the change from the current value should be noted).",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "whatif",
+          "validated_intent": "whatif",
+          "critical_analysis": "The operator '>' suggests a change rather than a shift in the existing value. The focus is on exploring the outcome of an increase in glucose, not necessarily a prediction output. However, we may need to clarify how the value for 'Glucose' is being interpreted (as the change from the current value should be noted).",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'whatif' → Action 'change'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "filter_type": null,
+          "values": [
+            100
+          ],
+          "features": [
+            "Glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "patient_id": 33,
+          "topk": null,
+          "label_values": null
+        },
+        "action_list": [
+          "change"
+        ],
+        "final_action": "change",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "If we increased glucose by 100 for the data point with id 33, would the likelihood of having diabetes go up or down",
+      "expected": {
+        "intent": "whatif",
+        "entities": {
+          "patient_id": 33
+        }
+      },
+      "actual": {
+        "generation": "parsed: change[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "whatif",
+          "entities": {
+            "patient_id": 33,
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              ">"
+            ],
+            "values": [
+              100
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'whatif' → Action 'change'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "change",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "If we increase glucose by 100, what would happen to the likelihood of having diabetes for the data point with id 33?",
+      "expected": {
+        "intent": "whatif",
+        "entities": {
+          "patient_id": 33
+        }
+      },
+      "actual": {
+        "generation": "parsed: change[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "whatif",
+          "entities": {
+            "patient_id": 33,
+            "features": [
+              "Glucose"
+            ],
+            "operators": null,
+            "values": [
+              100
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'whatif' → Action 'change'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "change",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "For the data point with id 33, predict the change in the likelihood of having diabetes if we increase glucose by 100.",
+      "expected": {
+        "intent": "whatif",
+        "entities": {
+          "patient_id": 33
+        }
+      },
+      "actual": {
+        "generation": "parsed: predict[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "predict",
+          "entities": {
+            "patient_id": 33,
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              "+"
+            ],
+            "values": [
+              100
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'predict' → Action 'predict'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "predict",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What changes in the likelihood of having diabetes would be made if we were to increase glucose by 100 in data point 33?",
+      "expected": {
+        "intent": "whatif",
+        "entities": {
+          "patient_id": 33
+        }
+      },
+      "actual": {
+        "generation": "parsed: change[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "whatif",
+          "entities": {
+            "patient_id": 33,
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              "+"
+            ],
+            "values": [
+              100
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'whatif' → Action 'change'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "change",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "likelihood of having diabetes if we were to increase glucose by 100 for the data point with id 33",
+      "expected": {
+        "intent": "whatif",
+        "entities": {
+          "patient_id": 33
+        }
+      },
+      "actual": {
+        "generation": "parsed: predict[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "predict",
+          "entities": {
+            "patient_id": 33,
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              "+"
+            ],
+            "values": [
+              100
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'predict' → Action 'predict'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "predict",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What are the top three features used to make predictions for people that have dropped their bmi's by 10 points?",
+      "expected": {
+        "intent": "important",
+        "entities": {
+          "topk": 3
+        }
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "important",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "BMI"
+            ],
+            "operators": [
+              "-"
+            ],
+            "values": [
+              10
+            ],
+            "topk": 3,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'important' → Action 'important'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What is the typical rationale the model uses to predict people with glucose levels below 80?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            80
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              "<"
+            ],
+            "values": [
+              80
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'explain' → Action 'explain'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "what do you think the reason is for the model predicting people with glucose levels less than 80?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            80
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              "<"
+            ],
+            "values": [
+              80
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'explain' → Action 'explain'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "model's rationale for predicting people with glucose levels below a value of 80?",
+      "expected": {
+        "intent": "explain",
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            80
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "explain",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              "<"
+            ],
+            "values": [
+              80
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'explain' → Action 'explain'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What effect do the features have those predictions made by the model on the training information?",
+      "expected": {
+        "intent": "explain",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: interact[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "interactions",
+          "entities": {
+            "patient_id": null,
+            "features": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'interactions' → Action 'interact'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "interact",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "Still imagine they were 20 years more aged?",
+      "expected": {
+        "intent": "explain",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: change[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "whatif",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Age"
+            ],
+            "operators": [
+              "+"
+            ],
+            "values": [
+              20
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'whatif' → Action 'change'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "change",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "But what happens if they happen to be twenty years older?",
+      "expected": {
+        "intent": "explain",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: change[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "whatif",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Age"
+            ],
+            "operators": [
+              "+"
+            ],
+            "values": [
+              20
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'whatif' → Action 'change'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "change",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What are the chances they have diabetes?",
+      "expected": {
+        "intent": "predict",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: likelihood[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "confidence",
+          "entities": {
+            "patient_id": null,
+            "features": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'confidence' → Action 'likelihood'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "likelihood",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What are the odds they have diabetes?",
+      "expected": {
+        "intent": "predict",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "error": "AutoGen processing error: AutoGen failed to extract intent - no fallback allowed",
+        "confidence": 0.1,
+        "method": "autogen_error_recovery",
+        "timestamp": "unknown"
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "Can you let me know the odds that they have diabetes?",
+      "expected": {
+        "intent": "predict",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "error": "AutoGen processing error: AutoGen failed to extract intent - no fallback allowed",
+        "confidence": 0.1,
+        "method": "autogen_error_recovery",
+        "timestamp": "unknown"
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What are the actual chances that they have diabetes?",
+      "expected": {
+        "intent": "predict",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "error": "AutoGen processing error: AutoGen failed to extract intent - no fallback allowed",
+        "confidence": 0.1,
+        "method": "autogen_error_recovery",
+        "timestamp": "unknown"
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "How high is the likelihood of them having diabetes?",
+      "expected": {
+        "intent": "predict",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "error": "AutoGen processing error: AutoGen failed to extract intent - no fallback allowed",
+        "confidence": 0.1,
+        "method": "autogen_error_recovery",
+        "timestamp": "unknown"
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "Could you indicate, the specifics, for people above age 45?",
+      "expected": {
+        "intent": "filter",
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            45
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "error": "AutoGen processing error: AutoGen failed to extract intent - no fallback allowed",
+        "confidence": 0.1,
+        "method": "autogen_error_recovery",
+        "timestamp": "unknown"
+      },
+      "intent_match": false,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "Can you please show me data for people older than 45?",
+      "expected": {
+        "intent": "filter",
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            45
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "error": "AutoGen processing error: AutoGen failed to extract intent - no fallback allowed",
+        "confidence": 0.1,
+        "method": "autogen_error_recovery",
+        "timestamp": "unknown"
+      },
+      "intent_match": false,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    }
+  ]
+}

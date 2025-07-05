@@ -1,0 +1,109 @@
+[
+  {
+    "question": "What lead to all these people being diagnosed with diabetes?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 181
+  },
+  {
+    "question": "Is there a reason why all these people were diagnosed with diabetes by you?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 182
+  },
+  {
+    "question": "You diagnosed these people with diabetes, why?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 183
+  },
+  {
+    "question": "Why did you diagnose diabetes in these people?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 184
+  },
+  {
+    "question": "For what reason did you diagnose these people with diabetes?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 185
+  },
+  {
+    "question": "Are people who don't reduce their bmi's by 10 have more of a threat to attain diabetes? How?",
+    "old_command": "previousfilter and change bmi decrease 10 and likelihood and explain features",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 186
+  },
+  {
+    "question": "Would people who lower their BMI's by 10 have diabetes? Why?",
+    "old_command": "previousfilter and change bmi decrease 10 and likelihood and explain features",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 187
+  },
+  {
+    "question": "To be diagnosed as unlikely to have diabetes, what does patient 34 have to do?",
+    "old_command": "filter id 34 and explain cfe",
+    "expected_json": {
+      "entities": {
+        "patient_id": 34
+      },
+      "action": "counterfactual"
+    },
+    "line_number": 188
+  },
+  {
+    "question": "For patient number 34 to be unlikely to have diabetes, what do they need to do?",
+    "old_command": "filter id 34 and explain cfe",
+    "expected_json": {
+      "entities": {
+        "patient_id": 34
+      },
+      "action": "counterfactual"
+    },
+    "line_number": 189
+  },
+  {
+    "question": "To unlikely have diabetes, and be diagnosed as so, what does patient number 34 need to do?",
+    "old_command": "filter id 34 and explain cfe",
+    "expected_json": {
+      "entities": {
+        "patient_id": 34
+      },
+      "action": "counterfactual"
+    },
+    "line_number": 190
+  },
+  {
+    "question": "In the case of patient 34, what would they need to do to not be diagnosed with diabetes?",
+    "old_command": "filter id 34 and explain cfe",
+    "expected_json": {
+      "entities": {
+        "patient_id": 34
+      },
+      "action": "counterfactual"
+    },
+    "line_number": 191
+  }
+]

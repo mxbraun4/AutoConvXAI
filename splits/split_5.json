@@ -1,0 +1,196 @@
+[
+  {
+    "question": "Can you show what the labels are for the data points where insulin levels are that of 20?",
+    "old_command": "filter insulin equal to 20 and label",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 81
+  },
+  {
+    "question": "What are the labels for the data points where insulin levels are equal to 20?",
+    "old_command": "filter insulin equal to 20 and label",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 82
+  },
+  {
+    "question": "Can you describe the data?",
+    "old_command": "data",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 83
+  },
+  {
+    "question": "Can you provide a description of the data?",
+    "old_command": "data",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 84
+  },
+  {
+    "question": "Can you describe how the data features interact with the model's predictions?",
+    "old_command": "previousfilter and interact",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 85
+  },
+  {
+    "question": "How exactly do the various features of the data interact in the model's predictions on this particular data set?",
+    "old_command": "previousfilter and interact",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 86
+  },
+  {
+    "question": "Can you tell me how the various features of the data interact in the model's predictions on this particular data set?",
+    "old_command": "previousfilter and interact",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 87
+  },
+  {
+    "question": "How do the elements of the information cooperate in the model's predictions on this specific information?",
+    "old_command": "previousfilter and interact",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 88
+  },
+  {
+    "question": "For data point number 32, how likely is diabetes?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "entities": {
+        "patient_id": 32
+      },
+      "action": "predict"
+    },
+    "line_number": 89
+  },
+  {
+    "question": "How likely is diabetes in data point number 32?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "entities": {
+        "patient_id": 32
+      },
+      "action": "predict"
+    },
+    "line_number": 90
+  },
+  {
+    "question": "What are the chances of diabetes for data point 32?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "entities": {
+        "patient_id": 32
+      },
+      "action": "predict"
+    },
+    "line_number": 91
+  },
+  {
+    "question": "What is the possibility that the thirty-second data point has diabetes?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "entities": {
+        "patient_id": 32
+      },
+      "action": "predict"
+    },
+    "line_number": 92
+  },
+  {
+    "question": "what is the chance that number 32 has diabetes?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "entities": {
+        "patient_id": 32
+      },
+      "action": "predict"
+    },
+    "line_number": 93
+  },
+  {
+    "question": "What is the likely chance that data point 32 has diabetes?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "entities": {
+        "patient_id": 32
+      },
+      "action": "predict"
+    },
+    "line_number": 94
+  },
+  {
+    "question": "What is the likelihood that data point number 32 has diabetes?",
+    "old_command": "filter id 32 and likelihood",
+    "expected_json": {
+      "entities": {
+        "patient_id": 32
+      },
+      "action": "predict"
+    },
+    "line_number": 95
+  },
+  {
+    "question": "Which slip-ups are you prone to making?",
+    "old_command": "mistake typical",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 96
+  },
+  {
+    "question": "What mistakes do you commonly make?",
+    "old_command": "mistake typical",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 97
+  },
+  {
+    "question": "What are the frequent mistakes you make?",
+    "old_command": "mistake typical",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 98
+  },
+  {
+    "question": "What are examples of your mistakes when predicting whether people have diabetes?",
+    "old_command": "mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 99
+  },
+  {
+    "question": "Will you show me examples of inaccurate predictions on whether people have diabetes?",
+    "old_command": "mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 100
+  }
+]

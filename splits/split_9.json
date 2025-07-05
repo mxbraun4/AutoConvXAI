@@ -1,0 +1,262 @@
+[
+  {
+    "question": "What are errors that the model makes on people with a diabetes pedigree function greater or equal to 0.8?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 161
+  },
+  {
+    "question": "What are some of the mistakes the model makes on people with a diabetes pedigree function greater or equal to 0.8?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 162
+  },
+  {
+    "question": "What common errors does the the model make on people with a diabetes pedigree function greater or equal to 0.8?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 163
+  },
+  {
+    "question": "Where did the model make a mistake on people with a diabetes pedigree function 0.8 or higher?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 164
+  },
+  {
+    "question": "What was the exact mistakes that took place with the model on people with diabetes pedigree function at or higher than 0.8?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 165
+  },
+  {
+    "question": "What types of errors does the model make when dealing with diabetes individuals with a pedigree function of 0.8 or higher?",
+    "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "filter"
+    },
+    "line_number": 166
+  },
+  {
+    "question": "For the data points for people older than 76, what would the predictions be if their glucose levels went down 20?",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 167
+  },
+  {
+    "question": "Considering data points on people older than 76, how would the predictions change if their glucose levels were reduced by 20?",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 168
+  },
+  {
+    "question": "Reduce glucose levels by 20 for all data points older than 76 and show me the predictions.",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 169
+  },
+  {
+    "question": "Reduce glucose levels by 20 for data points with age greater than 76, and show me the predictions",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 170
+  },
+  {
+    "question": "Show me the predictions for data points with age over 76 after reducing glucose levels by 20.",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 171
+  },
+  {
+    "question": "Reduce the glucose levels of data points over age 76 by 20, then show me the predictions.",
+    "old_command": "filter age greater than 76 and change glucose decrease 20 and predict",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          76
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 172
+  },
+  {
+    "question": "What are the odds people in this data have diabetes?",
+    "old_command": "likelihood",
+    "expected_json": {
+      "entities": {},
+      "action": "predict"
+    },
+    "line_number": 173
+  },
+  {
+    "question": "What percentage of people in this data have diabetes?",
+    "old_command": "likelihood",
+    "expected_json": {
+      "entities": {},
+      "action": "predict"
+    },
+    "line_number": 174
+  },
+  {
+    "question": "What prediction can you make on the instances in this data? What do you think the mistakes will be in the predictions?",
+    "old_command": "predict and mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 175
+  },
+  {
+    "question": "In the case of the instances in the data, what do you predict. On another note, what errors do you think these predictions will have?",
+    "old_command": "predict and mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 176
+  },
+  {
+    "question": "What mistakes are considered common when diagnosing people with BMIs over 40 for diabetes?",
+    "old_command": "filter bmi greater than 40 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 177
+  },
+  {
+    "question": "What are common errors that you find when diagnosing patients with bmi over 40 with diabetes?",
+    "old_command": "filter bmi greater than 40 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 178
+  },
+  {
+    "question": "What was your reasoning for giving these people a diabetes diagnosis?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 179
+  },
+  {
+    "question": "Why were all these people diagnosed with diabetes?",
+    "old_command": "previousfilter and explain features",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 180
+  }
+]

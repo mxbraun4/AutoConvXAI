@@ -1,0 +1,332 @@
+[
+  {
+    "question": "Can you please explain the mistakes you've made predicting if people are diabetic?",
+    "old_command": "mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 101
+  },
+  {
+    "question": "Can you show me instances of the mistakes you've made when predicting whether people have diabetes?",
+    "old_command": "mistake sample",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 102
+  },
+  {
+    "question": "How often are you right at predicting whether people have diabetes or not?",
+    "old_command": "score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 103
+  },
+  {
+    "question": "How accurate are your predictions regarding whether or not people have diabetes?",
+    "old_command": "score accuracy",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 104
+  },
+  {
+    "question": "What are common mistakes that are often made when making predictions about people under 25 and their diabetes risk?",
+    "old_command": "filter age less than 25 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          25
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 105
+  },
+  {
+    "question": "What are common mistakes you make when predicting if people younger than 25 have diabetes?",
+    "old_command": "filter age less than 25 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          25
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 106
+  },
+  {
+    "question": "What common mistakes can you make when predicting if individuals under the age of 25 have diabetes?",
+    "old_command": "filter age less than 25 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          25
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 107
+  },
+  {
+    "question": "Can you tell me common mistakes you made predicting whether or not folks under 25 have diabetes?",
+    "old_command": "filter age less than 25 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          25
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 108
+  },
+  {
+    "question": "Could you describe some mistakes you have made predicting whether folks under 25 have diabetes?",
+    "old_command": "filter age less than 25 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          "<"
+        ],
+        "values": [
+          25
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 109
+  },
+  {
+    "question": "How correctly can you predict diabetes for people with BMI's over 40?",
+    "old_command": "filter bmi greater than 40 and score accuracy",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 110
+  },
+  {
+    "question": "What is the precision of your projection that those with BMI's over forty have diabetes?",
+    "old_command": "filter bmi greater than 40 and score accuracy",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 111
+  },
+  {
+    "question": "How on target, can you gauge, whether humans, with 40 plus, BMIs, have the condition of diabetes?",
+    "old_command": "filter bmi greater than 40 and score accuracy",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "bmi"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 112
+  },
+  {
+    "question": "What are some of the mistakes most people make on individuals over 40?",
+    "old_command": "filter age greater than 40 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 113
+  },
+  {
+    "question": "What are some of the common mistakes we make regarding people over 40?",
+    "old_command": "filter age greater than 40 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 114
+  },
+  {
+    "question": "Considering the mistakes you make on people whose ages are greater than 40, can you provide some examples?",
+    "old_command": "filter age greater than 40 and mistake sample",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 115
+  },
+  {
+    "question": "Can you tell me some mistakes you have made about people over 40?",
+    "old_command": "filter age greater than 40 and mistake sample",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 116
+  },
+  {
+    "question": "What kinds of mistakes have you made about people above 40?",
+    "old_command": "filter age greater than 40 and mistake sample",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 117
+  },
+  {
+    "question": "On people over 40, what are some common mistakes that you make?",
+    "old_command": "filter age greater than 40 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 118
+  },
+  {
+    "question": "What mistakes are you inclined to make on people over the age of 40?",
+    "old_command": "filter age greater than 40 and mistake typical",
+    "expected_json": {
+      "entities": {
+        "features": [
+          "age"
+        ],
+        "operators": [
+          ">"
+        ],
+        "values": [
+          40
+        ]
+      },
+      "action": "filter"
+    },
+    "line_number": 119
+  },
+  {
+    "question": "If the bmi in the data set were increased by 5 points, what would the predictions for the data be?",
+    "old_command": "change bmi increase 5 and predict",
+    "expected_json": {
+      "entities": {},
+      "action": "explain"
+    },
+    "line_number": 120
+  }
+]

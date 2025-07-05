@@ -1,0 +1,1533 @@
+{
+  "report": {
+    "total_cases": 20,
+    "intent_accuracy": 0.8,
+    "entity_accuracy": 0.9,
+    "overall_accuracy": 0.8,
+    "error_rate": 0.0,
+    "intent_breakdown": {
+      "whatif": {
+        "total": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      },
+      "count": {
+        "total": 9,
+        "correct": 9,
+        "accuracy": 1.0
+      },
+      "predict": {
+        "total": 4,
+        "correct": 0,
+        "accuracy": 0.0
+      },
+      "important": {
+        "total": 3,
+        "correct": 3,
+        "accuracy": 1.0
+      }
+    },
+    "intent_mismatches": [
+      {
+        "question": "Will you show me how likely it is that people older than 30 have diabetes?",
+        "expected_intent": "predict",
+        "actual_intent": "likelihood",
+        "expected_entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ]
+        },
+        "actual_entities": {}
+      },
+      {
+        "question": "What is the likelihood of diabetes being had by people older than 30?",
+        "expected_intent": "predict",
+        "actual_intent": "likelihood",
+        "expected_entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ]
+        },
+        "actual_entities": {
+          "prediction_values": null,
+          "values": [
+            30
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            ">"
+          ],
+          "label_values": [
+            1
+          ],
+          "filter_type": "label",
+          "features": [
+            "Age"
+          ]
+        }
+      },
+      {
+        "question": "How likely is it for someone to have diabetes if they are between 20 and 30 or have had 2 pregnancies?",
+        "expected_intent": "predict",
+        "actual_intent": "likelihood",
+        "expected_entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            "30 or filter pregnancies equal to two"
+          ]
+        },
+        "actual_entities": {}
+      },
+      {
+        "question": "What chances are for people that either (1) have had two pregnancies or (2) are older than 20 and younger than 30 to have diabetes?",
+        "expected_intent": "predict",
+        "actual_intent": "likelihood",
+        "expected_entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            "30 or filter pregnancies equal to two"
+          ]
+        },
+        "actual_entities": {}
+      }
+    ],
+    "entity_mismatches": []
+  },
+  "detailed_results": [
+    {
+      "question": "What changes would occur in the predictions if people with a bmi of 30 were reduced in age by 5 years.",
+      "expected": {
+        "intent": "whatif",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: change[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "whatif",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              30,
+              5
+            ],
+            "patient_id": null,
+            "topk": null,
+            "operators": [
+              "=",
+              "<"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "BMI",
+              "Age"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The operators need clarification. The user seems to imply reducing age rather than making it less than a certain value. Additionally, we need to confirm whether the 'filter_type' should be set to look for predictions based on BMI and Age conditions.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "whatif",
+          "validated_intent": "whatif",
+          "critical_analysis": "The operators need clarification. The user seems to imply reducing age rather than making it less than a certain value. Additionally, we need to confirm whether the 'filter_type' should be set to look for predictions based on BMI and Age conditions.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'whatif' → Action 'change'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            30,
+            5
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            "=",
+            "<"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "BMI",
+            "Age"
+          ]
+        },
+        "action_list": [
+          "change"
+        ],
+        "final_action": "change",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "If we lowered the age by 5 years for people with a bmi of 30, what changes would occur in the predictions?",
+      "expected": {
+        "intent": "whatif",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: change[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "whatif",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "BMI",
+              "Age"
+            ],
+            "operators": [
+              "=",
+              "<"
+            ],
+            "values": [
+              30,
+              5
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'whatif' → Action 'change'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "change",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "How exactly would the predictions change if age were decreased by 5 years for people with a bmi of 30?",
+      "expected": {
+        "intent": "whatif",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: change[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "whatif",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "BMI",
+              "Age"
+            ],
+            "operators": null,
+            "values": [
+              30,
+              5
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'whatif' → Action 'change'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "change",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "How exactly would the predictions change if age were decreased by 5 years for people with a bmi of 30?",
+      "expected": {
+        "intent": "whatif",
+        "entities": {}
+      },
+      "actual": {
+        "generation": "parsed: change[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "whatif",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "BMI",
+              "Age"
+            ],
+            "operators": null,
+            "values": [
+              30,
+              5
+            ],
+            "topk": null,
+            "filter_type": "prediction",
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'whatif' → Action 'change'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "change",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What amount of people have less than three pregnancies?",
+      "expected": {
+        "intent": "count",
+        "entities": {
+          "features": [
+            "pregnancies"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            3
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: data[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "count",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              3
+            ],
+            "patient_id": null,
+            "topk": null,
+            "operators": [
+              "<"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "Pregnancies"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The count intent is accurately captured as the user is inquiring about the number of individuals. However, we should ensure that 'filter_type' is not needed, as counting instances in this context does not require a specific filter beyond the condition stated.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "count",
+          "validated_intent": "count",
+          "critical_analysis": "The count intent is accurately captured as the user is inquiring about the number of individuals. However, we should ensure that 'filter_type' is not needed, as counting instances in this context does not require a specific filter beyond the condition stated.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'count' → Action 'data'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            3
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            "<"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "Pregnancies"
+          ]
+        },
+        "action_list": [
+          "data"
+        ],
+        "final_action": "data",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What's the number of people that have been pregnant less than three times?",
+      "expected": {
+        "intent": "count",
+        "entities": {
+          "features": [
+            "pregnancies"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            3
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: data[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "count",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              3
+            ],
+            "patient_id": null,
+            "topk": null,
+            "operators": [
+              "<"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "Pregnancies"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent of counting people with less than three pregnancies has been correctly identified. The extracted features, operator, and values align with the user query. However, we might want to confirm if any filter type is required for the count, though it seems unnecessary in this scenario since it's a straightforward count of instances that meet the criteria.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "count",
+          "validated_intent": "count",
+          "critical_analysis": "The intent of counting people with less than three pregnancies has been correctly identified. The extracted features, operator, and values align with the user query. However, we might want to confirm if any filter type is required for the count, though it seems unnecessary in this scenario since it's a straightforward count of instances that meet the criteria.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'count' → Action 'data'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            3
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            "<"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "Pregnancies"
+          ]
+        },
+        "action_list": [
+          "data"
+        ],
+        "final_action": "data",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "Can you tell me how many people have less than three pregnancies?",
+      "expected": {
+        "intent": "count",
+        "entities": {
+          "features": [
+            "pregnancies"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            3
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: data[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "count",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              3
+            ],
+            "patient_id": null,
+            "topk": null,
+            "operators": [
+              "<"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "Pregnancies"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent correctly identifies the user's request to count individuals with fewer than three pregnancies. All extracted entities align with the user's query. No additional filters seem necessary for this straightforward count task. I suggest maintaining the final extraction as is.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "count",
+          "validated_intent": "count",
+          "critical_analysis": "The intent correctly identifies the user's request to count individuals with fewer than three pregnancies. All extracted entities align with the user's query. No additional filters seem necessary for this straightforward count task. I suggest maintaining the final extraction as is.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'count' → Action 'data'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            3
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            "<"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "Pregnancies"
+          ]
+        },
+        "action_list": [
+          "data"
+        ],
+        "final_action": "data",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What is the number of mothers with less than three pregnancies?",
+      "expected": {
+        "intent": "count",
+        "entities": {
+          "features": [
+            "pregnancies"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            3
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: data[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "count",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Pregnancies"
+            ],
+            "operators": [
+              "<"
+            ],
+            "values": [
+              3
+            ],
+            "topk": null,
+            "filter_type": "label",
+            "prediction_values": null,
+            "label_values": [
+              1
+            ]
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'count' → Action 'data'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "data",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "According to the data provided, how many instance of greater than 100 blood pressure can be counted?",
+      "expected": {
+        "intent": "count",
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            100
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: data[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "count",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              100
+            ],
+            "patient_id": null,
+            "topk": null,
+            "operators": [
+              ">"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "BloodPressure"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent is accurately identified as counting instances where blood pressure is greater than 100. The entities seem well defined; however, we might want to consider if a 'filter_type' should be introduced since the user is querying specific count instances that could relate to a categorization or grouping. For instance, is there an interest in whether these instances lead to a specific outcome (label) for further analysis?",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "count",
+          "validated_intent": "count",
+          "critical_analysis": "The intent is accurately identified as counting instances where blood pressure is greater than 100. The entities seem well defined; however, we might want to consider if a 'filter_type' should be introduced since the user is querying specific count instances that could relate to a categorization or grouping. For instance, is there an interest in whether these instances lead to a specific outcome (label) for further analysis?",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'count' → Action 'data'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            100
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            ">"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "BloodPressure"
+          ]
+        },
+        "action_list": [
+          "data"
+        ],
+        "final_action": "data",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "How many times was the blood pressure from the data greater than 100?",
+      "expected": {
+        "intent": "count",
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            100
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: data[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "count",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              100
+            ],
+            "patient_id": null,
+            "topk": null,
+            "operators": [
+              ">"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "BloodPressure"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent to count instances of blood pressure greater than 100 is accurately captured. All extracted entities are aligned with the user's query. However, the 'filter_type' remains unspecified; since the user's focus is on counting, it may not be strictly necessary. We should also confirm if counting instances in this manner accurately reflects the user's intent, as it could also imply an interest in frequency or distribution in different contexts.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "count",
+          "validated_intent": "count",
+          "critical_analysis": "The intent to count instances of blood pressure greater than 100 is accurately captured. All extracted entities are aligned with the user's query. However, the 'filter_type' remains unspecified; since the user's focus is on counting, it may not be strictly necessary. We should also confirm if counting instances in this manner accurately reflects the user's intent, as it could also imply an interest in frequency or distribution in different contexts.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'count' → Action 'data'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            100
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            ">"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "BloodPressure"
+          ]
+        },
+        "action_list": [
+          "data"
+        ],
+        "final_action": "data",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What is the number of occurrences in the data of blood pressure over 100?",
+      "expected": {
+        "intent": "count",
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            100
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: data[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "count",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              100
+            ],
+            "patient_id": null,
+            "topk": null,
+            "operators": [
+              ">"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "BloodPressure"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent is accurately identified as counting occurrences of blood pressure readings exceeding 100. The entities extracted represent the user's request accurately. The inclusion of a 'filter_type' may not be necessary as this is a straightforward count request. However, it's worth noting that the term 'occurrences' could imply a need for context on how this data is being utilized; further exploration into possible analytical goals could add depth to the interpretation.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "count",
+          "validated_intent": "count",
+          "critical_analysis": "The intent is accurately identified as counting occurrences of blood pressure readings exceeding 100. The entities extracted represent the user's request accurately. The inclusion of a 'filter_type' may not be necessary as this is a straightforward count request. However, it's worth noting that the term 'occurrences' could imply a need for context on how this data is being utilized; further exploration into possible analytical goals could add depth to the interpretation.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'count' → Action 'data'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            100
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            ">"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "BloodPressure"
+          ]
+        },
+        "action_list": [
+          "data"
+        ],
+        "final_action": "data",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "How many instances are in the model for blood pressure over 100?",
+      "expected": {
+        "intent": "count",
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            100
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: data[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "count",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              100
+            ],
+            "patient_id": null,
+            "topk": null,
+            "operators": [
+              ">"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "BloodPressure"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent to count instances of blood pressure readings greater than 100 is appropriately captured. The extraction details align closely with the user's request. The phrase 'in the model' might suggest a focus on how this variable is being used within a prediction context, but in this case, it seems clear that the user is interested in raw counts rather than model-specific metrics. As such, keeping 'filter_type' unset seems appropriate, but we may want to consider semantic clarification between counts from data versus model instances.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "count",
+          "validated_intent": "count",
+          "critical_analysis": "The intent to count instances of blood pressure readings greater than 100 is appropriately captured. The extraction details align closely with the user's request. The phrase 'in the model' might suggest a focus on how this variable is being used within a prediction context, but in this case, it seems clear that the user is interested in raw counts rather than model-specific metrics. As such, keeping 'filter_type' unset seems appropriate, but we may want to consider semantic clarification between counts from data versus model instances.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'count' → Action 'data'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            100
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            ">"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "BloodPressure"
+          ]
+        },
+        "action_list": [
+          "data"
+        ],
+        "final_action": "data",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What's the number of points in the data where blood pressure is greater than 100?",
+      "expected": {
+        "intent": "count",
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            100
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: data[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "count",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              100
+            ],
+            "patient_id": null,
+            "topk": null,
+            "operators": [
+              ">"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "BloodPressure"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent to count instances where blood pressure exceeds 100 has been correctly identified. The extracted entities are aligned with the user's request. The term 'points' in the user's query relates back to how many individual data records correspond to that blood pressure condition. 'Filter_type' remains non-essential for this query as it’s focused on a simple count, which adds clarity to the extraction. Additionally, it's important to confirm the dataset context to ensure that the count remains relevant to the user's needs, likely without filtering since they are interested in the total instances.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "count",
+          "validated_intent": "count",
+          "critical_analysis": "The intent to count instances where blood pressure exceeds 100 has been correctly identified. The extracted entities are aligned with the user's request. The term 'points' in the user's query relates back to how many individual data records correspond to that blood pressure condition. 'Filter_type' remains non-essential for this query as it’s focused on a simple count, which adds clarity to the extraction. Additionally, it's important to confirm the dataset context to ensure that the count remains relevant to the user's needs, likely without filtering since they are interested in the total instances.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'count' → Action 'data'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            100
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            ">"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "BloodPressure"
+          ]
+        },
+        "action_list": [
+          "data"
+        ],
+        "final_action": "data",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "Will you show me how likely it is that people older than 30 have diabetes?",
+      "expected": {
+        "intent": "predict",
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: likelihood[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "confidence",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Age"
+            ],
+            "operators": [
+              ">"
+            ],
+            "values": [
+              30
+            ],
+            "topk": null,
+            "filter_type": "label",
+            "prediction_values": null,
+            "label_values": [
+              1
+            ]
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'confidence' → Action 'likelihood'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "likelihood",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What is the likelihood of diabetes being had by people older than 30?",
+      "expected": {
+        "intent": "predict",
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: likelihood[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "confidence",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              30
+            ],
+            "patient_id": null,
+            "topk": null,
+            "operators": [
+              ">"
+            ],
+            "label_values": [
+              1
+            ],
+            "filter_type": "label",
+            "features": [
+              "Age"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent to determine the likelihood of diabetes among individuals older than 30 is correctly captured as 'confidence.' The extracted features, operator, and values are properly aligned with the user’s query. The implementation of 'filter_type' as 'label' is appropriate since we're specifically interested in those identified as having diabetes. We may want to clarify how 'likelihood' will be computed (e.g., percentage, probability, etc.) and ensure that 'label_values' accurately reflects the intended filter based on how diabetes is encoded in the dataset.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "confidence",
+          "validated_intent": "confidence",
+          "critical_analysis": "The intent to determine the likelihood of diabetes among individuals older than 30 is correctly captured as 'confidence.' The extracted features, operator, and values are properly aligned with the user’s query. The implementation of 'filter_type' as 'label' is appropriate since we're specifically interested in those identified as having diabetes. We may want to clarify how 'likelihood' will be computed (e.g., percentage, probability, etc.) and ensure that 'label_values' accurately reflects the intended filter based on how diabetes is encoded in the dataset.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'confidence' → Action 'likelihood'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            30
+          ],
+          "patient_id": null,
+          "topk": null,
+          "operators": [
+            ">"
+          ],
+          "label_values": [
+            1
+          ],
+          "filter_type": "label",
+          "features": [
+            "Age"
+          ]
+        },
+        "action_list": [
+          "likelihood"
+        ],
+        "final_action": "likelihood",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "How likely is it for someone to have diabetes if they are between 20 and 30 or have had 2 pregnancies?",
+      "expected": {
+        "intent": "predict",
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            "30 or filter pregnancies equal to two"
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: likelihood[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "confidence",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Age",
+              "Pregnancies"
+            ],
+            "operators": [
+              ">=",
+              "<=",
+              "="
+            ],
+            "values": [
+              20,
+              30,
+              2
+            ],
+            "topk": null,
+            "filter_type": "label",
+            "prediction_values": null,
+            "label_values": [
+              1
+            ]
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'confidence' → Action 'likelihood'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "likelihood",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What chances are for people that either (1) have had two pregnancies or (2) are older than 20 and younger than 30 to have diabetes?",
+      "expected": {
+        "intent": "predict",
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            "30 or filter pregnancies equal to two"
+          ]
+        }
+      },
+      "actual": {
+        "generation": "parsed: likelihood[e]",
+        "confidence": 0.855,
+        "method": "autogen_partial_pipeline",
+        "intent_response": {
+          "intent": "confidence",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Pregnancies",
+              "Age"
+            ],
+            "operators": [
+              "=",
+              ">=",
+              "<="
+            ],
+            "values": [
+              2,
+              20,
+              30
+            ],
+            "topk": null,
+            "filter_type": "label",
+            "prediction_values": null,
+            "label_values": [
+              1
+            ]
+          },
+          "confidence": 0.95
+        },
+        "agent_reasoning": {
+          "intent_analysis": "",
+          "action_mapping": "Intent 'confidence' → Action 'likelihood'",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "final_action": "likelihood",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": false,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "People with a 40+ bmi have what top five most important features based on the model's predictions?",
+      "expected": {
+        "intent": "important",
+        "entities": {
+          "features": [
+            "bmi"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ],
+          "topk": 5
+        }
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "important",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              40
+            ],
+            "patient_id": null,
+            "topk": 5,
+            "operators": [
+              ">"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent to identify the top five most important features for individuals with a BMI over 40 is clearly established as 'important.' The entities are well captured, with 'features' focused on BMI and 'topk' correctly set to 5. However, the 'filter_type' is absent; while it may not be critical in this context, it could enhance clarity regarding the intention to analyze feature importance specifically related to those with the designated BMI. We should ensure that we are addressing feature importance based on model predictions as inferred from the user query.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "important",
+          "validated_intent": "important",
+          "critical_analysis": "The intent to identify the top five most important features for individuals with a BMI over 40 is clearly established as 'important.' The entities are well captured, with 'features' focused on BMI and 'topk' correctly set to 5. However, the 'filter_type' is absent; while it may not be critical in this context, it could enhance clarity regarding the intention to analyze feature importance specifically related to those with the designated BMI. We should ensure that we are addressing feature importance based on model predictions as inferred from the user query.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'important' → Action 'important'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            40
+          ],
+          "patient_id": null,
+          "topk": 5,
+          "operators": [
+            ">"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "If your bmi is over 40 than what are the five most important aspects of the model's prediction?",
+      "expected": {
+        "intent": "important",
+        "entities": {
+          "features": [
+            "bmi"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ],
+          "topk": 5
+        }
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "important",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              40
+            ],
+            "patient_id": null,
+            "topk": 5,
+            "operators": [
+              ">"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent correctly identifies the need to know the top five most important features for BMI over 40, categorized under 'important.' The extracted entities accurately represent the user's request according to the model's predictions. However, the 'filter_type' is absent; while not critical, adding context regarding how 'importance' is defined could enhance the clarity of the intent. We may also want to confirm if the importance metrics come from a particular model or method of assessment, ensuring we source from the appropriate model behavior.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "important",
+          "validated_intent": "important",
+          "critical_analysis": "The intent correctly identifies the need to know the top five most important features for BMI over 40, categorized under 'important.' The extracted entities accurately represent the user's request according to the model's predictions. However, the 'filter_type' is absent; while not critical, adding context regarding how 'importance' is defined could enhance the clarity of the intent. We may also want to confirm if the importance metrics come from a particular model or method of assessment, ensuring we source from the appropriate model behavior.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'important' → Action 'important'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            40
+          ],
+          "patient_id": null,
+          "topk": 5,
+          "operators": [
+            ">"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "When your BMI is over 40, what are the five most important things for the model's prediction?",
+      "expected": {
+        "intent": "important",
+        "entities": {
+          "features": [
+            "bmi"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ],
+          "topk": 5
+        }
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "intent_response": {
+          "intent": "important",
+          "entities": {
+            "prediction_values": null,
+            "values": [
+              40
+            ],
+            "patient_id": null,
+            "topk": 5,
+            "operators": [
+              ">"
+            ],
+            "label_values": null,
+            "filter_type": null,
+            "features": [
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": true,
+          "critical_analysis": "The intent to discover the five most important features that influence model predictions for individuals with a BMI over 40 is correctly classified as 'important.' The extracted entities accurately represent the user’s request. However, the 'filter_type' is not specified; while it may not be necessary for simply identifying important features, it could help clarify whether the importance metrics are derived from a particular model or an analysis method. I suggest considering a more comprehensive understanding of what 'important' conveys in terms of predictive modeling.",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_intent": "important",
+          "validated_intent": "important",
+          "critical_analysis": "The intent to discover the five most important features that influence model predictions for individuals with a BMI over 40 is correctly classified as 'important.' The extracted entities accurately represent the user’s request. However, the 'filter_type' is not specified; while it may not be necessary for simply identifying important features, it could help clarify whether the importance metrics are derived from a particular model or an analysis method. I suggest considering a more comprehensive understanding of what 'important' conveys in terms of predictive modeling.",
+          "alternative_interpretations": [],
+          "action_mapping": "Intent 'important' → Action 'important'"
+        },
+        "command_structure": {
+          "prediction_values": null,
+          "values": [
+            40
+          ],
+          "patient_id": null,
+          "topk": 5,
+          "operators": [
+            ">"
+          ],
+          "label_values": null,
+          "filter_type": null,
+          "features": [
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "intent_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    }
+  ]
+}
