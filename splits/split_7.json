@@ -3,8 +3,12 @@
     "question": "What would the predictions for the data be if the bmi in the data set were to be increased by 5 points?",
     "old_command": "change bmi increase 5 and predict",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": ["BMI"],
+        "operators": ["+"],
+        "values": [5]
+      },
+      "action": "whatif"
     },
     "line_number": 121
   },
@@ -12,8 +16,12 @@
     "question": "If the bmi is increased by 5 points in the data set, what would the prediction for the data be?",
     "old_command": "change bmi increase 5 and predict",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": ["BMI"],
+        "operators": ["+"],
+        "values": [5]
+      },
+      "action": "whatif"
     },
     "line_number": 122
   },
@@ -21,8 +29,12 @@
     "question": "What would be the predictions if BMI was increased by 5 points?",
     "old_command": "change bmi increase 5 and predict",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": ["BMI"],
+        "operators": ["+"],
+        "values": [5]
+      },
+      "action": "whatif"
     },
     "line_number": 123
   },
@@ -30,8 +42,12 @@
     "question": "If BMI was increased by 5 points, what would be the predictions?",
     "old_command": "change bmi increase 5 and predict",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": ["BMI"],
+        "operators": ["+"],
+        "values": [5]
+      },
+      "action": "whatif"
     },
     "line_number": 124
   },
@@ -39,8 +55,12 @@
     "question": "What are the chances someone will develop diabetes with bmi 10 points lower?",
     "old_command": "change bmi decrease 10 and likelihood",
     "expected_json": {
-      "entities": {},
-      "action": "predict"
+      "entities": {
+        "features": ["BMI"],
+        "operators": ["-"],
+        "values": [10]
+      },
+      "action": "whatif"
     },
     "line_number": 125
   },
@@ -48,8 +68,12 @@
     "question": "If people eliminate 10 points from their bmi's, would they cut down their risk of diabetes?",
     "old_command": "change bmi decrease 10 and likelihood",
     "expected_json": {
-      "entities": {},
-      "action": "predict"
+      "entities": {
+        "features": ["BMI"],
+        "operators": ["-"],
+        "values": [10]
+      },
+      "action": "whatif"
     },
     "line_number": 126
   },
@@ -59,16 +83,19 @@
     "expected_json": {
       "entities": {
         "features": [
-          "bmi"
+          "Age",
+          "BMI"
         ],
         "operators": [
+          ">",
           ">"
         ],
         "values": [
+          50,
           30
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 127
   },
@@ -78,16 +105,19 @@
     "expected_json": {
       "entities": {
         "features": [
-          "bmi"
+          "Age",
+          "BMI"
         ],
         "operators": [
+          ">",
           ">"
         ],
         "values": [
+          50,
           30
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 128
   },
@@ -97,16 +127,19 @@
     "expected_json": {
       "entities": {
         "features": [
-          "bmi"
+          "Age",
+          "BMI"
         ],
         "operators": [
+          ">",
           ">"
         ],
         "values": [
+          50,
           30
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 129
   },
@@ -116,16 +149,19 @@
     "expected_json": {
       "entities": {
         "features": [
-          "bmi"
+          "Age",
+          "BMI"
         ],
         "operators": [
+          ">",
           ">"
         ],
         "values": [
+          50,
           30
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 130
   },
@@ -135,16 +171,19 @@
     "expected_json": {
       "entities": {
         "features": [
-          "bmi"
+          "Age",
+          "BMI"
         ],
         "operators": [
+          ">",
           ">"
         ],
         "values": [
+          50,
           30
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 131
   },
@@ -154,16 +193,19 @@
     "expected_json": {
       "entities": {
         "features": [
-          "bmi"
+          "Age",
+          "BMI"
         ],
         "operators": [
+          ">",
           ">"
         ],
         "values": [
+          50,
           30
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 132
   },
@@ -173,16 +215,19 @@
     "expected_json": {
       "entities": {
         "features": [
-          "bmi"
+          "Age",
+          "BMI"
         ],
         "operators": [
+          ">",
           ">"
         ],
         "values": [
+          50,
           30
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 133
   },
@@ -192,16 +237,19 @@
     "expected_json": {
       "entities": {
         "features": [
-          "bmi"
+          "Age",
+          "BMI"
         ],
         "operators": [
+          ">",
           ">"
         ],
         "values": [
+          50,
           30
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 134
   },
@@ -229,7 +277,7 @@
     "old_command": "previousfilter and score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 136
   },
@@ -238,7 +286,7 @@
     "old_command": "previousfilter and score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 137
   },
@@ -247,7 +295,7 @@
     "old_command": "previousfilter and score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 138
   },
@@ -256,7 +304,7 @@
     "old_command": "previousfilter and score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 139
   },
@@ -265,7 +313,7 @@
     "old_command": "previousfilter and score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 140
   }

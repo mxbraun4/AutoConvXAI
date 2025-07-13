@@ -60,8 +60,12 @@
     "question": "On average what age are the individuals in these data?",
     "old_command": "statistic age",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": [
+          "age"
+        ]
+      },
+      "action": "statistic"
     },
     "line_number": 64
   },
@@ -69,8 +73,12 @@
     "question": "According to the data, what is the mean age?",
     "old_command": "statistic age",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": [
+          "age"
+        ]
+      },
+      "action": "statistic"
     },
     "line_number": 65
   },
@@ -78,8 +86,12 @@
     "question": "What's the mean age in the data?",
     "old_command": "statistic age",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": [
+          "age"
+        ]
+      },
+      "action": "statistic"
     },
     "line_number": 66
   },
@@ -87,8 +99,12 @@
     "question": "What's the average age in the data?",
     "old_command": "statistic age",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": [
+          "age"
+        ]
+      },
+      "action": "statistic"
     },
     "line_number": 67
   },

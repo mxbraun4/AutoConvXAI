@@ -501,7 +501,7 @@
           30
         ]
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 34
   },
@@ -520,7 +520,7 @@
           30
         ]
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 35
   },
@@ -539,7 +539,7 @@
           "30 or filter pregnancies equal to two"
         ]
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 36
   },
@@ -558,7 +558,7 @@
           "30 or filter pregnancies equal to two"
         ]
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 37
   },
@@ -788,7 +788,7 @@
     "old_command": "previousfilter and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 54
   },
@@ -797,7 +797,7 @@
     "old_command": "previousfilter and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 55
   },
@@ -806,7 +806,7 @@
     "old_command": "previousfilter and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 56
   },
@@ -815,7 +815,7 @@
     "old_command": "previousfilter and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 57
   },
@@ -824,7 +824,7 @@
     "old_command": "previousfilter and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 58
   },
@@ -927,8 +927,12 @@
     "question": "On average what age are the individuals in these data?",
     "old_command": "statistic age",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": [
+          "age"
+        ]
+      },
+      "action": "statistic"
     },
     "line_number": 64
   },
@@ -936,8 +940,12 @@
     "question": "According to the data, what is the mean age?",
     "old_command": "statistic age",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": [
+          "age"
+        ]
+      },
+      "action": "statistic"
     },
     "line_number": 65
   },
@@ -945,8 +953,12 @@
     "question": "What's the mean age in the data?",
     "old_command": "statistic age",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": [
+          "age"
+        ]
+      },
+      "action": "statistic"
     },
     "line_number": 66
   },
@@ -954,8 +966,12 @@
     "question": "What's the average age in the data?",
     "old_command": "statistic age",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": [
+          "age"
+        ]
+      },
+      "action": "statistic"
     },
     "line_number": 67
   },
@@ -1245,7 +1261,7 @@
       "entities": {
         "patient_id": 32
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 89
   },
@@ -1256,7 +1272,7 @@
       "entities": {
         "patient_id": 32
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 90
   },
@@ -1267,7 +1283,7 @@
       "entities": {
         "patient_id": 32
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 91
   },
@@ -1278,7 +1294,7 @@
       "entities": {
         "patient_id": 32
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 92
   },
@@ -1289,7 +1305,7 @@
       "entities": {
         "patient_id": 32
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 93
   },
@@ -1300,7 +1316,7 @@
       "entities": {
         "patient_id": 32
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 94
   },
@@ -1311,7 +1327,7 @@
       "entities": {
         "patient_id": 32
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 95
   },
@@ -1383,7 +1399,7 @@
     "old_command": "score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 103
   },
@@ -1392,7 +1408,7 @@
     "old_command": "score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 104
   },
@@ -1686,7 +1702,7 @@
     "old_command": "change bmi increase 5 and predict",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "whatif"
     },
     "line_number": 120
   },
@@ -1695,7 +1711,7 @@
     "old_command": "change bmi increase 5 and predict",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "whatif"
     },
     "line_number": 121
   },
@@ -1704,7 +1720,7 @@
     "old_command": "change bmi increase 5 and predict",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "whatif"
     },
     "line_number": 122
   },
@@ -1713,7 +1729,7 @@
     "old_command": "change bmi increase 5 and predict",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "whatif"
     },
     "line_number": 123
   },
@@ -1722,7 +1738,7 @@
     "old_command": "change bmi increase 5 and predict",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "whatif"
     },
     "line_number": 124
   },
@@ -1731,7 +1747,7 @@
     "old_command": "change bmi decrease 10 and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 125
   },
@@ -1740,7 +1756,7 @@
     "old_command": "change bmi decrease 10 and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 126
   },
@@ -1920,7 +1936,7 @@
     "old_command": "previousfilter and score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 136
   },
@@ -1929,7 +1945,7 @@
     "old_command": "previousfilter and score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 137
   },
@@ -1938,7 +1954,7 @@
     "old_command": "previousfilter and score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 138
   },
@@ -1947,7 +1963,7 @@
     "old_command": "previousfilter and score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 139
   },
@@ -1956,7 +1972,7 @@
     "old_command": "previousfilter and score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 140
   },
@@ -2225,7 +2241,7 @@
     "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
     "expected_json": {
       "entities": {},
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 161
   },
@@ -2234,7 +2250,7 @@
     "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
     "expected_json": {
       "entities": {},
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 162
   },
@@ -2243,7 +2259,7 @@
     "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
     "expected_json": {
       "entities": {},
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 163
   },
@@ -2252,7 +2268,7 @@
     "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
     "expected_json": {
       "entities": {},
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 164
   },
@@ -2261,7 +2277,7 @@
     "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
     "expected_json": {
       "entities": {},
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 165
   },
@@ -2270,7 +2286,7 @@
     "old_command": "filter diabetespedigreefunction greater equal than 0.8 and mistake sample",
     "expected_json": {
       "entities": {},
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 166
   },
@@ -2289,7 +2305,7 @@
           76
         ]
       },
-      "action": "filter"
+      "action": "whatif"
     },
     "line_number": 167
   },
@@ -2308,7 +2324,7 @@
           76
         ]
       },
-      "action": "filter"
+      "action": "whatif"
     },
     "line_number": 168
   },
@@ -2327,7 +2343,7 @@
           76
         ]
       },
-      "action": "filter"
+      "action": "whatif"
     },
     "line_number": 169
   },
@@ -2346,7 +2362,7 @@
           76
         ]
       },
-      "action": "filter"
+      "action": "whatif"
     },
     "line_number": 170
   },
@@ -2365,7 +2381,7 @@
           76
         ]
       },
-      "action": "filter"
+      "action": "whatif"
     },
     "line_number": 171
   },
@@ -2384,7 +2400,7 @@
           76
         ]
       },
-      "action": "filter"
+      "action": "whatif"
     },
     "line_number": 172
   },
@@ -2393,7 +2409,7 @@
     "old_command": "likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "data"
     },
     "line_number": 173
   },
@@ -2402,7 +2418,7 @@
     "old_command": "likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "data"
     },
     "line_number": 174
   },
@@ -2439,7 +2455,7 @@
           40
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 177
   },
@@ -2458,7 +2474,7 @@
           40
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 178
   },

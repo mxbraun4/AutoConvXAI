@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Evaluate split 4 independently.
+Evaluate split 5 independently.
 """
 
 import os
@@ -20,11 +20,11 @@ def main():
         return
     
     # Setup
-    split_file = 'splits/split_4.json'
-    results_dir = 'results_split_4'
+    split_file = 'splits/split_5.json'
+    results_dir = 'results_split_5'
     os.makedirs(results_dir, exist_ok=True)
     
-    print(f"Starting evaluation of split 4...")
+    print(f"Starting evaluation of split 5...")
     print(f"Results will be saved to {results_dir}/")
     
     start_time = time.time()
@@ -34,7 +34,7 @@ def main():
     
     # Run evaluation on all cases in this split (single batch)
     test_cases = evaluator.test_cases
-    print(f"Evaluating {len(test_cases)} test cases in split 4")
+    print(f"Evaluating {len(test_cases)} test cases in split 5")
     
     # Evaluate all cases in one batch
     results = evaluator.evaluate_parallel(test_cases, max_workers=1, batch_refresh=True)
@@ -47,7 +47,7 @@ def main():
     
     # Print summary
     print("\n" + "="*50)
-    print(f"SPLIT 4 EVALUATION RESULTS")
+    print(f"SPLIT 5 EVALUATION RESULTS")
     print("="*50)
     print(f"Total Cases: {report['total_cases']}")
     print(f"Action Accuracy: {report['action_accuracy']:.2%}")

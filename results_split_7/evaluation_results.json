@@ -1,0 +1,1642 @@
+{
+  "report": {
+    "total_cases": 20,
+    "action_accuracy": 0.9,
+    "entity_accuracy": 1.0,
+    "overall_accuracy": 0.9,
+    "error_rate": 0.0,
+    "action_breakdown": {
+      "whatif": {
+        "total": 6,
+        "correct": 5,
+        "accuracy": 0.8333333333333334
+      },
+      "explain": {
+        "total": 8,
+        "correct": 8,
+        "accuracy": 1.0
+      },
+      "filter": {
+        "total": 1,
+        "correct": 0,
+        "accuracy": 0.0
+      },
+      "score": {
+        "total": 5,
+        "correct": 5,
+        "accuracy": 1.0
+      }
+    },
+    "action_mismatches": [
+      {
+        "question": "What are the chances someone will develop diabetes with bmi 10 points lower?",
+        "expected_action": "whatif",
+        "actual_action": "predict",
+        "expected_entities": {
+          "features": [
+            "BMI"
+          ],
+          "operators": [
+            "-"
+          ],
+          "values": [
+            10
+          ]
+        },
+        "actual_entities": {
+          "operators": [
+            "-"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            10
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "BMI"
+          ]
+        }
+      },
+      {
+        "question": "I'd like to see mistakes made on people with insulin over 50.",
+        "expected_action": "filter",
+        "actual_action": "explain",
+        "expected_entities": {
+          "features": [
+            "insulin"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            50
+          ]
+        },
+        "actual_entities": {
+          "operators": [
+            ">"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            50
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "Insulin"
+          ]
+        }
+      }
+    ],
+    "entity_mismatches": []
+  },
+  "detailed_results": [
+    {
+      "question": "What would the predictions for the data be if the bmi in the data set were to be increased by 5 points?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BMI"
+          ],
+          "operators": [
+            "+"
+          ],
+          "values": [
+            5
+          ]
+        },
+        "action": "whatif"
+      },
+      "actual": {
+        "generation": "parsed: whatif[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "whatif",
+          "entities": {
+            "operators": [
+              "+"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              5
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "whatif",
+          "validated_action": "whatif",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            "+"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            5
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "whatif"
+        ],
+        "final_action": "whatif",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "If the bmi is increased by 5 points in the data set, what would the prediction for the data be?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BMI"
+          ],
+          "operators": [
+            "+"
+          ],
+          "values": [
+            5
+          ]
+        },
+        "action": "whatif"
+      },
+      "actual": {
+        "generation": "parsed: whatif[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "whatif",
+          "entities": {
+            "operators": [
+              "+"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              5
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "whatif",
+          "validated_action": "whatif",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            "+"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            5
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "whatif"
+        ],
+        "final_action": "whatif",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What would be the predictions if BMI was increased by 5 points?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BMI"
+          ],
+          "operators": [
+            "+"
+          ],
+          "values": [
+            5
+          ]
+        },
+        "action": "whatif"
+      },
+      "actual": {
+        "generation": "parsed: whatif[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "whatif",
+          "entities": {
+            "operators": [
+              "+"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              5
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "whatif",
+          "validated_action": "whatif",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            "+"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            5
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "whatif"
+        ],
+        "final_action": "whatif",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "If BMI was increased by 5 points, what would be the predictions?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BMI"
+          ],
+          "operators": [
+            "+"
+          ],
+          "values": [
+            5
+          ]
+        },
+        "action": "whatif"
+      },
+      "actual": {
+        "generation": "parsed: whatif[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "whatif",
+          "entities": {
+            "operators": [
+              "+"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              5
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "whatif",
+          "validated_action": "whatif",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            "+"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            5
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "whatif"
+        ],
+        "final_action": "whatif",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What are the chances someone will develop diabetes with bmi 10 points lower?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BMI"
+          ],
+          "operators": [
+            "-"
+          ],
+          "values": [
+            10
+          ]
+        },
+        "action": "whatif"
+      },
+      "actual": {
+        "generation": "parsed: predict[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "predict",
+          "entities": {
+            "operators": [
+              "-"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              10
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "predict",
+          "validated_action": "predict",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            "-"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            10
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "predict"
+        ],
+        "final_action": "predict",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "If people eliminate 10 points from their bmi's, would they cut down their risk of diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BMI"
+          ],
+          "operators": [
+            "-"
+          ],
+          "values": [
+            10
+          ]
+        },
+        "action": "whatif"
+      },
+      "actual": {
+        "generation": "parsed: whatif[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "whatif",
+          "entities": {
+            "operators": [
+              "-"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              10
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "whatif",
+          "validated_action": "whatif",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            "-"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            10
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "whatif"
+        ],
+        "final_action": "whatif",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "When predicting whether people older than 50 with bmi's over 30 have diabates, what are typical mistakes the model makes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "Age",
+            "BMI"
+          ],
+          "operators": [
+            ">",
+            ">"
+          ],
+          "values": [
+            50,
+            30
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "operators": [
+              ">",
+              ">"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              50,
+              30
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            ">",
+            ">"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            50,
+            30
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What mistakes can typically be expected when the model predicts whether people older than 50 with bmi over 30 have diabetes",
+      "expected": {
+        "entities": {
+          "features": [
+            "Age",
+            "BMI"
+          ],
+          "operators": [
+            ">",
+            ">"
+          ],
+          "values": [
+            50,
+            30
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "operators": [
+              ">",
+              ">"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              50,
+              30
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            ">",
+            ">"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            50,
+            30
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "For people older than 50 with bmi over 30, what mistakes are typically made by the model?",
+      "expected": {
+        "entities": {
+          "features": [
+            "Age",
+            "BMI"
+          ],
+          "operators": [
+            ">",
+            ">"
+          ],
+          "values": [
+            50,
+            30
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "operators": [
+              ">",
+              ">"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              50,
+              30
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            ">",
+            ">"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            50,
+            30
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What are some frequent errors caused by the model when predicting if individuals over 50 with a BMI of higher than 30 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "Age",
+            "BMI"
+          ],
+          "operators": [
+            ">",
+            ">"
+          ],
+          "values": [
+            50,
+            30
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "operators": [
+              ">",
+              ">"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              50,
+              30
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            ">",
+            ">"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            50,
+            30
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What are typical errors the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "Age",
+            "BMI"
+          ],
+          "operators": [
+            ">",
+            ">"
+          ],
+          "values": [
+            50,
+            30
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "operators": [
+              ">",
+              ">"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              50,
+              30
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            ">",
+            ">"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            50,
+            30
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What are the mistakes the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "Age",
+            "BMI"
+          ],
+          "operators": [
+            ">",
+            ">"
+          ],
+          "values": [
+            50,
+            30
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "operators": [
+              ">",
+              ">"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              50,
+              30
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            ">",
+            ">"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            50,
+            30
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What are errors that the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "Age",
+            "BMI"
+          ],
+          "operators": [
+            ">",
+            ">"
+          ],
+          "values": [
+            50,
+            30
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "operators": [
+              ">",
+              ">"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              50,
+              30
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            ">",
+            ">"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            50,
+            30
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What are normal mistakes the model makes when predicting whether people older than 50 with bmi's above 30 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "Age",
+            "BMI"
+          ],
+          "operators": [
+            ">",
+            ">"
+          ],
+          "values": [
+            50,
+            30
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "operators": [
+              ">",
+              ">"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              50,
+              30
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            ">",
+            ">"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            50,
+            30
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "I'd like to see mistakes made on people with insulin over 50.",
+      "expected": {
+        "entities": {
+          "features": [
+            "insulin"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            50
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "operators": [
+              ">"
+            ],
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": [
+              50
+            ],
+            "filter_type": null,
+            "patient_id": null,
+            "features": [
+              "Insulin"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": [
+            ">"
+          ],
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": [
+            50
+          ],
+          "filter_type": null,
+          "patient_id": null,
+          "features": [
+            "Insulin"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "For this data subset, how accurate is the model?",
+      "expected": {
+        "entities": {},
+        "action": "score"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "operators": null,
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "score",
+          "validated_action": "score",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": null,
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "How accurate is the model given this subset of data?",
+      "expected": {
+        "entities": {},
+        "action": "score"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "operators": null,
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "score",
+          "validated_action": "score",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": null,
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "How accurate is the model for this subset in the data?",
+      "expected": {
+        "entities": {},
+        "action": "score"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "operators": null,
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "score",
+          "validated_action": "score",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": null,
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What is the accuracy of the model for this subset in the data?",
+      "expected": {
+        "entities": {},
+        "action": "score"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "operators": null,
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "score",
+          "validated_action": "score",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": null,
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "For this subset in the data, what is the models accuracy?",
+      "expected": {
+        "entities": {},
+        "action": "score"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "operators": null,
+            "label_values": null,
+            "topk": null,
+            "prediction_values": null,
+            "values": null,
+            "filter_type": null,
+            "patient_id": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "score",
+          "validated_action": "score",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "operators": null,
+          "label_values": null,
+          "topk": null,
+          "prediction_values": null,
+          "values": null,
+          "filter_type": null,
+          "patient_id": null,
+          "features": null
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    }
+  ]
+}

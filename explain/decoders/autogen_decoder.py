@@ -101,32 +101,41 @@ class AutoGenDecoder:
 
     def _create_action_extraction_prompt(self) -> str:
         """Generate discussion-focused intent extraction prompt for collaborative analysis."""
-        return """You are an action extraction agent for ML model queries. ENGAGE IN DISCUSSION with the validation agent.
+        return """You are an action extraction agent for ML model queries.
 
-TASK: Extract action and entities from user queries about machine learning models, then DISCUSS your interpretation with the validation agent.
+TASK: Extract action and entities from user queries about machine learning models.
+
+APPROACH: First explain your reasoning, then provide JSON output.
 
 ACTION DEFINITIONS:
-- data: Statistics and counts about the existing dataset, including model prediction distributions on current data
-- predict: Generate predictions and probability scores for new instances with specific feature values that aren't in the dataset
-- explain: Reasoning behind model decisions
+- data: Analyze groups/populations in the dataset ("people", "patients", "those who"). Returns counts, percentages, or statistics about existing data
+- new_pred: Generate NEW probability score for an individual case ("someone", "a person", "a patient"). Returns a single prediction probability for a new instance
+- explain: Reasoning and methodology behind model decisions, including data descriptions and mistake analysis. Use for "describe the data", "how does X work", "what mistakes", etc.
 - important: Feature importance rankings
 - score: Model performance metrics
-- filter: Display data subsets
-- whatif: How changes to existing cases affect predictions
-- counterfactual: Find changes needed for desired outcomes
-- mistake: Model error analysis
-- interact: Feature relationships
-- show: Display specific instances
-- statistic: Feature-specific statistics
+- filter: Display/show specific data points that match criteria (returns actual instances, not counts). Use for "show labels", "show data points", "what predictions for people/patients with X", "predictions for those with X"
+- whatif: Explore how changes to existing data points affect predictions
+- counterfactual: Find specific changes needed to achieve desired outcomes
+- statistic: Distribution analysis of a single feature (mean, std, etc) without conditions
 - label: Ground truth values
 - define: Feature definitions
 - self: System information
 - followup: Analysis based on previous results
 - model: Model architecture details
+- interact: Feature interaction analysis - how features work together to influence predictions
 
 KEY DISTINCTIONS:
-- predict creates predictions and probability scores for new data points; data analyzes existing dataset
-- whatif explores changes; counterfactual seeks specific outcomes
+- Use "filter" for queries asking to "show" or "display" specific data points or labels
+- Use "explain" for ANY question about model reasoning, data descriptions, or mistake analysis
+- Use "interact" for questions about how features work together or feature interactions
+- Use "explain" NOT "data" for general data description questions like "describe the data"
+- Do NOT use "mistake" or "show" actions - these should map to "explain" or "filter"
+
+PREDICTION QUERIES - Simple Rule:
+- Hypothetical (would predict) → new_pred
+- Question about actual (does predict) → filter
+- "what would the model predict for a person/someone" → new_pred (hypothetical case)
+- "what does the model predict for people/patients" → filter (shows existing data)
 
 ENTITY EXTRACTION RULES:
 - ALWAYS extract features, operators, values when mentioned in any context
@@ -144,6 +153,8 @@ OPERATOR RECOGNITION PATTERNS:
 - "at most", "maximum of" → "<="
 - "equal to", "exactly", "is" → "="
 - "not equal", "different from" → "!="
+- "increase by", "increased by", "add", "plus" → "+"
+- "decrease by", "decreased by", "subtract", "eliminate", "remove" → "-"
 
 VALUE EXTRACTION:
 - Numbers with units: "40 years old" → values: [40], features: ["Age"]  
@@ -152,20 +163,17 @@ VALUE EXTRACTION:
 
 SPECIAL PATTERNS:
 - "top X", "best X", "highest X" → topk: X
-- "patient ID", "patient number", "case ID" → patient_id: number
+- "patient ID X", "data point X", "case X", "point number X" → patient_id: X
 - Filtering: "show diabetic patients" → filter_type: "label", label_values: [1]
-
-KEY DISTINCTIONS:
-- DATA: Statistics, counts, and frequencies about the current dataset including model prediction distributions
-- PREDICT: Generate new predictions and probability scores for specific instances with given feature values
-- EXPLAIN: Reasoning and methodology behind model decisions
-- WHATIF: Explore how changes to existing data points affect predictions
 
 FOCUS: Determine if the query seeks information about existing data or creation of new predictions
 
 COMPOUND QUESTIONS: Choose the PRIMARY action when multiple actions seem relevant. For questions asking both "why" and "how to change", prioritize the explanation aspect.
 
-OUTPUT FORMAT (JSON ONLY - SINGLE ACTION ONLY):
+OUTPUT FORMAT:
+First provide a brief explanation of your interpretation, then output your JSON in a code block:
+
+```json
 {
   "action": "single_detected_action",
   "entities": {
@@ -180,47 +188,48 @@ OUTPUT FORMAT (JSON ONLY - SINGLE ACTION ONLY):
   },
   "confidence": 0.95
 }
-
-Be fast, accurate, and concise. No explanations needed."""
+```"""
 
     def _create_action_validation_prompt(self) -> str:
         """Generate discussion-focused validation prompt for action analysis."""
-        return """You are an action validation agent. ENGAGE IN CRITICAL DISCUSSION about the action interpretation.
+        return """You are an action validation agent.
 
-Your job: Look at the user's original query and the extracted action, then DISCUSS with the action extraction agent to reach consensus.
+TASK: Validate and refine the action extraction agent's interpretation.
 
-DISCUSSION GUIDELINES:
-- Ask probing questions about ambiguous cases
-- Challenge assumptions about user action  
-- Consider alternative interpretations
-- Focus on the user's core goal
-- Validate entity extraction accuracy
+APPROACH: Review the extraction, provide critical analysis, then output your validated JSON.
 
 ACTION DEFINITIONS FOR VALIDATION:
-- data: Statistics about existing dataset including model predictions on current data
-- predict: Predictions and probability scores for new instances not in the dataset
-- explain: Model reasoning
-- important: Feature rankings
-- score: Performance metrics
-- filter: Data subsets
-- whatif: Impact of changes to existing cases
-- counterfactual: Changes for desired outcomes
-- mistake: Error analysis
-- interact: Feature relationships
-- show: Specific instances
-- statistic: Feature-specific stats
-- label: True labels
-- define: Definitions
-- self: System info
-- followup: Previous result analysis
-- model: Model details
+- data: Analyze groups/populations in the dataset ("people", "patients", "those who"). Returns counts, percentages, or statistics about existing data
+- new_pred: Generate NEW probability score for an individual case ("someone", "a person", "a patient"). Returns a single prediction probability for a new instance
+- explain: Reasoning and methodology behind model decisions, including data descriptions and mistake analysis. Use for "describe the data", "how does X work", "what mistakes", etc.
+- important: Feature importance rankings
+- score: Model performance metrics
+- filter: Display/show specific data points that match criteria (returns actual instances, not counts). Use for "show labels", "show data points", "what predictions for people/patients with X", "predictions for those with X"
+- whatif: Explore how changes to existing data points affect predictions (requires specific features to change, not just patient_id)
+- counterfactual: Find specific changes needed to achieve desired outcomes
+- statistic: Distribution analysis of a single feature (mean, std, etc) without conditions
+- label: Ground truth values
+- define: Feature definitions
+- self: System information
+- followup: Analysis based on previous results
+- model: Model architecture details
+- interact: Feature interaction analysis - how features work together to influence predictions
 
-CRITICAL VALIDATION POINTS:
-- DATA vs PREDICT: Statistics about current dataset vs new instance generation
-- EXPLAIN vs WHATIF: Methodology/reasoning vs exploration of changes  
-- COMPOUND QUERIES: Prioritize primary intent, avoid multiple actions
-- METHOD QUESTIONS: Asking about approach means explanation is needed
-- LIKELIHOOD QUESTIONS: Probability and confidence questions should use predict action
+VALIDATION RULES:
+- If the extraction agent used "interact", "mistake", or "show", validate to use "explain" or "filter" instead
+- Use "filter" for queries asking to "show" or "display" specific data points or labels
+- Use "explain" for ANY question about model reasoning, data descriptions, or mistake analysis
+- Use "interact" for questions about how features work together or feature interactions
+- Use "explain" NOT "data" for general data description questions like "describe the data"
+- NEVER validate to actions not in the above list
+
+PREDICTION QUERIES - Simple Rule:
+- Hypothetical (would predict) → new_pred
+- Question about actual (does predict) → filter
+- "what would the model predict for a person/someone" → new_pred (hypothetical case)
+- "what does the model predict for people/patients" → filter (shows existing data)
+
+COMPOUND QUERY GUIDANCE: When multiple actions seem relevant, prioritize the primary intent, look for what actually is doable with given info and then choose ONE action.
 
 ENTITY VALIDATION CHECKLIST:
 - Are features correctly identified from natural language?
@@ -228,7 +237,10 @@ ENTITY VALIDATION CHECKLIST:
 - Is topk captured for ranking requests?
 - Are filter types and values appropriate?
 
-OUTPUT FORMAT (JSON ONLY - SINGLE ACTION ONLY):
+OUTPUT FORMAT:
+First provide your critical analysis, then output your final JSON in a code block:
+
+```json
 {
   "validated_action": "single_final_action",
   "entities": {
@@ -241,12 +253,9 @@ OUTPUT FORMAT (JSON ONLY - SINGLE ACTION ONLY):
     "prediction_values": [numbers_for_prediction_filtering_or_null],
     "label_values": [numbers_for_label_filtering_or_null]
   },
-  "confidence": 0.95,
-  "critical_analysis": "brief_reasoning_about_potential_issues",
-  "requires_full_dataset": true_or_false
+  "confidence": 0.95
 }
-
-Be thoughtful and question everything. Better to catch ambiguity now than give wrong answers later."""
+```"""
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
         """
@@ -391,6 +400,7 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         # Stage 1: Context Construction and Preparation
         contextual_prompt = self._build_contextual_prompt(user_query, conversation)
         logger.info(f"Processing query: {user_query[:100]}...")
+        logger.debug(f"Context prompt: {contextual_prompt[:1000]}...")
         logger.info("Stage 1: Context construction completed")
         
         # Stage 2: Multi-Agent Team Configuration
@@ -404,12 +414,10 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         processing_prompt = (
             f"{contextual_prompt}\n\n"
             f"Execute the collaborative natural language understanding pipeline:\n"
-            f"1. Action Extraction Agent: Analyze the query and extract action/entities\n"
-            f"2. Action Validation Agent: Critically examine the interpretation\n"
-            f"3. DISCUSS: Engage in back-and-forth discussion about ambiguities\n"
-            f"4. FOCUS: Pay special attention to dataset context (filtered vs full dataset)\n"
-            f"5. CONSENSUS: Reach agreement on final action and entities\n"
-            f"Collaborate through 4 rounds of discussion until you reach consensus."
+            f"1. Action Extraction Agent: Analyze the query and provide your interpretation with JSON output\n"
+            f"2. Action Validation Agent: Review, validate, and refine the interpretation with your JSON output\n"
+            f"3. Both agents should explain their reasoning before outputting JSON\n"
+            f"4. Focus on accuracy and consider the dataset context"
         )
         
         logger.info("Stage 3: Starting agent collaboration...")
@@ -488,6 +496,12 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
         
         # Extract structured responses from agent communications
         for message_index, message in enumerate(collaboration_result.messages):
+            # Debug: Log agent message content
+            if hasattr(message, 'content') and message.content:
+                logger.debug(f"Message {message_index} from {getattr(message, 'source', 'unknown')}: {message.content[:500]}...")
+            else:
+                logger.debug(f"Message {message_index}: No content")
+            
             extracted_response = self._extract_json_response(message, message_index)
             
             if extracted_response and isinstance(extracted_response, dict):
@@ -512,9 +526,11 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
     def _extract_json_response(self, message, message_index: int) -> Optional[Dict]:
         """Extract JSON from agent message - clean and direct."""
         if not hasattr(message, 'content') or not message.content:
+            logger.debug(f"Message {message_index}: No content attribute or empty content")
             return None
         # Check for None content before using 'in' operator
         if message.content is None or '{' not in message.content:
+            logger.debug(f"Message {message_index}: No JSON markers found in content")
             return None
             
         content = message.content
@@ -542,9 +558,10 @@ Be thoughtful and question everything. Better to catch ambiguity now than give w
                 # Ensure we only return dict objects
                 if isinstance(result, dict):
                     return result
-        except json.JSONDecodeError:
-            pass
+        except json.JSONDecodeError as e:
+            logger.debug(f"Message {message_index}: JSON decode error in embedded pattern: {e}")
         
+        logger.debug(f"Message {message_index}: No valid JSON found after trying all patterns")
         return None
 
     def _classify_response_type(self, response: Dict) -> str:

@@ -221,7 +221,7 @@
           30
         ]
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 34
   },
@@ -240,7 +240,7 @@
           30
         ]
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 35
   },
@@ -259,7 +259,7 @@
           "30 or filter pregnancies equal to two"
         ]
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 36
   },
@@ -278,7 +278,7 @@
           "30 or filter pregnancies equal to two"
         ]
       },
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 37
   },

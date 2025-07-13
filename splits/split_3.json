@@ -165,7 +165,7 @@
     "old_command": "previousfilter and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 54
   },
@@ -174,7 +174,7 @@
     "old_command": "previousfilter and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 55
   },
@@ -183,7 +183,7 @@
     "old_command": "previousfilter and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 56
   },
@@ -192,7 +192,7 @@
     "old_command": "previousfilter and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 57
   },
@@ -201,7 +201,7 @@
     "old_command": "previousfilter and likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 58
   },

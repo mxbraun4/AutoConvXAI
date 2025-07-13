@@ -32,21 +32,18 @@ def get_all_action_functions_map():
         'interact': measure_interaction_effects,
         'filter': filter_operation,
         'explain': explain_operation,
-        'predict': predict_operation,
+        'new_pred': predict_operation,
         'self': self_operation,
         'data': data_operation,
         'followup': followup_operation,
         'important': important_operation,
-        'show': show_operation,
-        'change': what_if_operation,
-        'likelihood': predict_likelihood,
         'model': model_operation,
-        'function': function_operation,
         'score': score_operation,
         'label': show_labels_operation,
         'mistake': show_mistakes_operation,
         'statistic': feature_stats,
         'define': define_operation,
-        'counterfactual': counterfactual_operation
+        'counterfactual': counterfactual_operation,
+        'whatif': what_if_operation
     }
     return actions

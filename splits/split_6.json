@@ -13,7 +13,7 @@
     "old_command": "mistake sample",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "filter"
     },
     "line_number": 102
   },
@@ -22,7 +22,7 @@
     "old_command": "score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 103
   },
@@ -31,7 +31,7 @@
     "old_command": "score accuracy",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "score"
     },
     "line_number": 104
   },
@@ -50,7 +50,7 @@
           25
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 105
   },
@@ -69,7 +69,7 @@
           25
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 106
   },
@@ -88,7 +88,7 @@
           25
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 107
   },
@@ -107,7 +107,7 @@
           25
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 108
   },
@@ -126,7 +126,7 @@
           25
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 109
   },
@@ -145,7 +145,7 @@
           40
         ]
       },
-      "action": "filter"
+      "action": "score"
     },
     "line_number": 110
   },
@@ -164,7 +164,7 @@
           40
         ]
       },
-      "action": "filter"
+      "action": "score"
     },
     "line_number": 111
   },
@@ -177,13 +177,13 @@
           "bmi"
         ],
         "operators": [
-          ">"
+          ">="
         ],
         "values": [
           40
         ]
       },
-      "action": "filter"
+      "action": "score"
     },
     "line_number": 112
   },
@@ -202,7 +202,7 @@
           40
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 113
   },
@@ -221,7 +221,7 @@
           40
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 114
   },
@@ -259,7 +259,7 @@
           40
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 116
   },
@@ -278,7 +278,7 @@
           40
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 117
   },
@@ -297,7 +297,7 @@
           40
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 118
   },
@@ -316,7 +316,7 @@
           40
         ]
       },
-      "action": "filter"
+      "action": "explain"
     },
     "line_number": 119
   },
@@ -324,8 +324,12 @@
     "question": "If the bmi in the data set were increased by 5 points, what would the predictions for the data be?",
     "old_command": "change bmi increase 5 and predict",
     "expected_json": {
-      "entities": {},
-      "action": "explain"
+      "entities": {
+        "features": ["BMI"],
+        "operators": ["+"],
+        "values": [5]
+      },
+      "action": "whatif"
     },
     "line_number": 120
   }

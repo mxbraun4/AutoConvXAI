@@ -1,0 +1,1598 @@
+{
+  "report": {
+    "total_cases": 20,
+    "action_accuracy": 1.0,
+    "entity_accuracy": 0.9,
+    "overall_accuracy": 0.9,
+    "error_rate": 0.0,
+    "action_breakdown": {
+      "filter": {
+        "total": 16,
+        "correct": 16,
+        "accuracy": 1.0
+      },
+      "statistic": {
+        "total": 4,
+        "correct": 4,
+        "accuracy": 1.0
+      }
+    },
+    "action_mismatches": [],
+    "entity_mismatches": [
+      {
+        "question": "How old are average people who have bmi value greater than 35 and have more than 1 pregnancy",
+        "expected_action": "filter",
+        "actual_action": "filter",
+        "expected_entities": {
+          "features": [
+            "pregnancies"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            1
+          ]
+        },
+        "actual_entities": {
+          "filter_type": "null",
+          "values": [
+            35,
+            1
+          ],
+          "features": [
+            "Age",
+            "BMI",
+            "Pregnancies"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            ">",
+            ">"
+          ],
+          "topk": null,
+          "prediction_values": null
+        }
+      },
+      {
+        "question": "Can you tell me the average age of folks whose bmi is over 35 and have had more than one pregnancy?",
+        "expected_action": "filter",
+        "actual_action": "filter",
+        "expected_entities": {
+          "features": [
+            "pregnancies"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            1
+          ]
+        },
+        "actual_entities": {
+          "filter_type": "null",
+          "values": [
+            35,
+            1
+          ],
+          "features": [
+            "Age",
+            "BMI",
+            "Pregnancies"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            ">",
+            ">"
+          ],
+          "topk": null,
+          "prediction_values": null
+        }
+      }
+    ]
+  },
+  "detailed_results": [
+    {
+      "question": "Do you have data for people over 45 you can show me?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            45
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "null",
+            "values": [
+              45
+            ],
+            "features": [
+              "Age"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              ">"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "null",
+          "values": [
+            45
+          ],
+          "features": [
+            "Age"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            ">"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "For people over 45, do you have data you could show me?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            45
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "null",
+            "values": [
+              45
+            ],
+            "features": [
+              "Age"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              ">"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "null",
+          "values": [
+            45
+          ],
+          "features": [
+            "Age"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            ">"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "Can you show me the data you have for people older than 45?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            45
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "null",
+            "values": [
+              45
+            ],
+            "features": [
+              "Age"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              ">"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "null",
+          "values": [
+            45
+          ],
+          "features": [
+            "Age"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            ">"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "On average what age are the individuals in these data?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ]
+        },
+        "action": "statistic"
+      },
+      "actual": {
+        "generation": "parsed: statistic[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "statistic",
+          "entities": {
+            "filter_type": "null",
+            "values": null,
+            "features": [
+              "Age"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": null,
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "statistic",
+          "validated_action": "statistic",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "null",
+          "values": null,
+          "features": [
+            "Age"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": null,
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "statistic"
+        ],
+        "final_action": "statistic",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "According to the data, what is the mean age?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ]
+        },
+        "action": "statistic"
+      },
+      "actual": {
+        "generation": "parsed: statistic[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "statistic",
+          "entities": {
+            "filter_type": "null",
+            "values": null,
+            "features": [
+              "Age"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": null,
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "statistic",
+          "validated_action": "statistic",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "null",
+          "values": null,
+          "features": [
+            "Age"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": null,
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "statistic"
+        ],
+        "final_action": "statistic",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What's the mean age in the data?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ]
+        },
+        "action": "statistic"
+      },
+      "actual": {
+        "generation": "parsed: statistic[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "statistic",
+          "entities": {
+            "filter_type": "null",
+            "values": null,
+            "features": [
+              "Age"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": null,
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "statistic",
+          "validated_action": "statistic",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "null",
+          "values": null,
+          "features": [
+            "Age"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": null,
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "statistic"
+        ],
+        "final_action": "statistic",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What's the average age in the data?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ]
+        },
+        "action": "statistic"
+      },
+      "actual": {
+        "generation": "parsed: statistic[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "statistic",
+          "entities": {
+            "filter_type": "null",
+            "values": null,
+            "features": [
+              "Age"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": null,
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "statistic",
+          "validated_action": "statistic",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "null",
+          "values": null,
+          "features": [
+            "Age"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": null,
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "statistic"
+        ],
+        "final_action": "statistic",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "How old are average people who have bmi value greater than 35 and have more than 1 pregnancy",
+      "expected": {
+        "entities": {
+          "features": [
+            "pregnancies"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            1
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "null",
+            "values": [
+              35,
+              1
+            ],
+            "features": [
+              "Age",
+              "BMI",
+              "Pregnancies"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              ">",
+              ">"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "null",
+          "values": [
+            35,
+            1
+          ],
+          "features": [
+            "Age",
+            "BMI",
+            "Pregnancies"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            ">",
+            ">"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "Can you tell me the average age of folks whose bmi is over 35 and have had more than one pregnancy?",
+      "expected": {
+        "entities": {
+          "features": [
+            "pregnancies"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            1
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "null",
+            "values": [
+              35,
+              1
+            ],
+            "features": [
+              "Age",
+              "BMI",
+              "Pregnancies"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              ">",
+              ">"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "null",
+          "values": [
+            35,
+            1
+          ],
+          "features": [
+            "Age",
+            "BMI",
+            "Pregnancies"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            ">",
+            ">"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What labels are used for people with blood pressure under 100?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              100
+            ],
+            "features": [
+              "BloodPressure"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "<"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            100
+          ],
+          "features": [
+            "BloodPressure"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "<"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "If a person's blood pressure is lower than 100, what labels are used?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              100
+            ],
+            "features": [
+              "BloodPressure"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "<"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            100
+          ],
+          "features": [
+            "BloodPressure"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "<"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What labels apply to individuals with blood pressure under 100?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              100
+            ],
+            "features": [
+              "BloodPressure"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "<"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            100
+          ],
+          "features": [
+            "BloodPressure"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "<"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What labels get used for people with less than 100 for their blood pressure?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              100
+            ],
+            "features": [
+              "BloodPressure"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "<"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            100
+          ],
+          "features": [
+            "BloodPressure"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "<"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "People with a blood pressure lower than 100 can have what labels?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              100
+            ],
+            "features": [
+              "BloodPressure"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "<"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            100
+          ],
+          "features": [
+            "BloodPressure"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "<"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What are the labels if a person has a blood pressure lower than 100?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              100
+            ],
+            "features": [
+              "BloodPressure"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "<"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            100
+          ],
+          "features": [
+            "BloodPressure"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "<"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "IF a person's blood pressure is lower than 100, what are they labelled as?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              100
+            ],
+            "features": [
+              "BloodPressure"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "<"
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            100
+          ],
+          "features": [
+            "BloodPressure"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "<"
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What are the labels for the data points on insulin levels that equal 20?",
+      "expected": {
+        "entities": {},
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              20
+            ],
+            "features": [
+              "Insulin"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "="
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            20
+          ],
+          "features": [
+            "Insulin"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "="
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "What are the labels for the data points where the insulin levels are equivalent to 20?",
+      "expected": {
+        "entities": {},
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              20
+            ],
+            "features": [
+              "Insulin"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "="
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            20
+          ],
+          "features": [
+            "Insulin"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "="
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "Will you show me the labels on the data points where insulin levels equal 20?",
+      "expected": {
+        "entities": {},
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              20
+            ],
+            "features": [
+              "Insulin"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "="
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            20
+          ],
+          "features": [
+            "Insulin"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "="
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "Can you show me the labels for the data points where insulin levels are equal to 20",
+      "expected": {
+        "entities": {},
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "filter_type": "label",
+            "values": [
+              20
+            ],
+            "features": [
+              "Insulin"
+            ],
+            "label_values": null,
+            "patient_id": null,
+            "operators": [
+              "="
+            ],
+            "topk": null,
+            "prediction_values": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "filter_type": "label",
+          "values": [
+            20
+          ],
+          "features": [
+            "Insulin"
+          ],
+          "label_values": null,
+          "patient_id": null,
+          "operators": [
+            "="
+          ],
+          "topk": null,
+          "prediction_values": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    }
+  ]
+}

@@ -1,0 +1,1620 @@
+{
+  "report": {
+    "total_cases": 20,
+    "action_accuracy": 0.1,
+    "entity_accuracy": 0.95,
+    "overall_accuracy": 0.1,
+    "error_rate": 0.0,
+    "action_breakdown": {
+      "explain": {
+        "total": 5,
+        "correct": 1,
+        "accuracy": 0.2
+      },
+      "filter": {
+        "total": 15,
+        "correct": 1,
+        "accuracy": 0.06666666666666667
+      }
+    },
+    "action_mismatches": [
+      {
+        "question": "Can you show me instances of the mistakes you've made when predicting whether people have diabetes?",
+        "expected_action": "explain",
+        "actual_action": "filter",
+        "expected_entities": {},
+        "actual_entities": {
+          "features": null,
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null
+        }
+      },
+      {
+        "question": "How often are you right at predicting whether people have diabetes or not?",
+        "expected_action": "explain",
+        "actual_action": "score",
+        "expected_entities": {},
+        "actual_entities": {
+          "features": null,
+          "filter_type": null,
+          "topk": null,
+          "patient_id": null,
+          "values": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null
+        }
+      },
+      {
+        "question": "How accurate are your predictions regarding whether or not people have diabetes?",
+        "expected_action": "explain",
+        "actual_action": "score",
+        "expected_entities": {},
+        "actual_entities": {
+          "features": null,
+          "filter_type": null,
+          "topk": null,
+          "patient_id": null,
+          "values": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null
+        }
+      },
+      {
+        "question": "What are common mistakes that are often made when making predictions about people under 25 and their diabetes risk?",
+        "expected_action": "filter",
+        "actual_action": "explain",
+        "expected_entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            25
+          ]
+        },
+        "actual_entities": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            25
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ]
+        }
+      },
+      {
+        "question": "What are common mistakes you make when predicting if people younger than 25 have diabetes?",
+        "expected_action": "filter",
+        "actual_action": "explain",
+        "expected_entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            25
+          ]
+        },
+        "actual_entities": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            25
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ]
+        }
+      }
+    ],
+    "entity_mismatches": []
+  },
+  "detailed_results": [
+    {
+      "question": "Can you please explain the mistakes you've made predicting if people are diabetic?",
+      "expected": {
+        "entities": {},
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": null,
+            "filter_type": null,
+            "topk": null,
+            "patient_id": null,
+            "values": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": null,
+          "filter_type": null,
+          "topk": null,
+          "patient_id": null,
+          "values": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "Can you show me instances of the mistakes you've made when predicting whether people have diabetes?",
+      "expected": {
+        "entities": {},
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.9,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "features": null,
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null
+          },
+          "confidence": 0.9
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": null,
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "How often are you right at predicting whether people have diabetes or not?",
+      "expected": {
+        "entities": {},
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "features": null,
+            "filter_type": null,
+            "topk": null,
+            "patient_id": null,
+            "values": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "score",
+          "validated_action": "score",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": null,
+          "filter_type": null,
+          "topk": null,
+          "patient_id": null,
+          "values": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "How accurate are your predictions regarding whether or not people have diabetes?",
+      "expected": {
+        "entities": {},
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "features": null,
+            "filter_type": null,
+            "topk": null,
+            "patient_id": null,
+            "values": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "score",
+          "validated_action": "score",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": null,
+          "filter_type": null,
+          "topk": null,
+          "patient_id": null,
+          "values": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What are common mistakes that are often made when making predictions about people under 25 and their diabetes risk?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            25
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              25
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            25
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What are common mistakes you make when predicting if people younger than 25 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            25
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              25
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            25
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What common mistakes can you make when predicting if individuals under the age of 25 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            25
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              25
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            25
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "Can you tell me common mistakes you made predicting whether or not folks under 25 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            25
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              25
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            25
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "Could you describe some mistakes you have made predicting whether folks under 25 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            25
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              25
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            25
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "How correctly can you predict diabetes for people with BMI's over 40?",
+      "expected": {
+        "entities": {
+          "features": [
+            "bmi"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "features": [
+              "BMI"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              40
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "score",
+          "validated_action": "score",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "BMI"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            40
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ]
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What is the precision of your projection that those with BMI's over forty have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "bmi"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "features": [
+              "BMI"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              40
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "score",
+          "validated_action": "score",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "BMI"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            40
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ]
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "How on target, can you gauge, whether humans, with 40 plus, BMIs, have the condition of diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "bmi"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "features": [
+              "BMI"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              40
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">="
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "score",
+          "validated_action": "score",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "BMI"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            40
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">="
+          ]
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": false,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What are some of the mistakes most people make on individuals over 40?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              40
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            40
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What are some of the common mistakes we make regarding people over 40?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              40
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            40
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "Considering the mistakes you make on people whose ages are greater than 40, can you provide some examples?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              40
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            40
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ]
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
+      "error": ""
+    },
+    {
+      "question": "Can you tell me some mistakes you have made about people over 40?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              40
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            40
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What kinds of mistakes have you made about people above 40?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              40
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            40
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "On people over 40, what are some common mistakes that you make?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              40
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            40
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What mistakes are you inclined to make on people over the age of 40?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            40
+          ]
+        },
+        "action": "filter"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "features": [
+              "Age"
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              40
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Age"
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            40
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ]
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "If the bmi in the data set were increased by 5 points, what would the predictions for the data be?",
+      "expected": {
+        "entities": {},
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: whatif[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "whatif",
+          "entities": {
+            "features": [
+              "BMI"
+            ],
+            "filter_type": null,
+            "topk": null,
+            "patient_id": null,
+            "values": [
+              5
+            ],
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "+"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "whatif",
+          "validated_action": "whatif",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "BMI"
+          ],
+          "filter_type": null,
+          "topk": null,
+          "patient_id": null,
+          "values": [
+            5
+          ],
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "+"
+          ]
+        },
+        "action_list": [
+          "whatif"
+        ],
+        "final_action": "whatif",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    }
+  ]
+}

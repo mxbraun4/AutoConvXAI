@@ -43,7 +43,7 @@ This is the main chat interface for interacting with ML model explanations.
 
           <!-- User input form -->
           <form class="ttm-inputarea">
-            <input type="text" class="ttm-input" id="textInput" placeholder="Enter your command! Use the ↑ arrow and ↓ arrow to cycle previous commands.">
+            <input type="text" class="ttm-input" id="textInput" placeholder="Ask me about the data...">
             <button type="submit" class="ttm-send-btn">Send</button>
           </form>
           
@@ -66,7 +66,6 @@ This is the main chat interface for interacting with ML model explanations.
                       <h3 class="section-title">📊 Data & Exploration</h3>
                       <div class="section-buttons">
                           <button id="idea-data" class="idea-button" onclick="sampleData()">🎲 dataset overview</button>
-                          <button id="idea-show" class="idea-button" onclick="sampleShow()">🎲 show data</button>
                           <button id="idea-labels" class="idea-button" onclick="sampleLabels()">🎲 data labels</button>
                           <button id="idea-statistic" class="idea-button" onclick="sampleStatistic()">🎲 feature statistics</button>
                           <button id="idea-define" class="idea-button" onclick="sampleDefine()">🎲 feature definitions</button>
@@ -85,8 +84,7 @@ This is the main chat interface for interacting with ML model explanations.
                   <div class="button-section">
                       <h3 class="section-title">🤖 Predictions & Analysis</h3>
                       <div class="section-buttons">
-                          <button id="idea-predict" class="idea-button" onclick="samplePredict()">🎲 predictions</button>
-                          <button id="idea-likelihood" class="idea-button" onclick="sampleLikelihood()">🎲 prediction confidence</button>
+                          <button id="idea-predict" class="idea-button" onclick="sampleNewPred()">🎲 new predictions</button>
                           <button id="idea-why" class="idea-button" onclick="sampleWhy()">🎲 explanations</button>
                           <button id="idea-important" class="idea-button" onclick="sampleImportant()">🎲 important features</button>
                       </div>
@@ -97,7 +95,6 @@ This is the main chat interface for interacting with ML model explanations.
                       <h3 class="section-title">📈 Model Performance</h3>
                       <div class="section-buttons">
                           <button id="idea-performance" class="idea-button" onclick="samplePerformance()">🎲 model performance</button>
-                          <button id="idea-mistakes" class="idea-button" onclick="sampleMistakes()">🎲 model mistakes</button>
                           <button id="idea-model" class="idea-button" onclick="sampleModel()">🎲 model info</button>
                       </div>
                   </div>
@@ -108,7 +105,6 @@ This is the main chat interface for interacting with ML model explanations.
                       <div class="section-buttons">
                           <button id="idea-whatif" class="idea-button" onclick="sampleWhatIf()">🎲 what if scenarios</button>
                           <button id="idea-flip" class="idea-button" onclick="sampleFlip()">🎲 counterfactuals</button>
-                          <button id="idea-interaction" class="idea-button" onclick="sampleInteractions()">🎲 feature interactions</button>
                       </div>
                   </div>
                   
@@ -116,7 +112,6 @@ This is the main chat interface for interacting with ML model explanations.
                   <div class="button-section">
                       <h3 class="section-title">❓ System Help</h3>
                       <div class="section-buttons">
-                          <button id="idea-capabilities" class="idea-button" onclick="sampleCapabilities()">🎲 system capabilities</button>
                           <button id="idea-self" class="idea-button" onclick="sampleSelf()">🎲 about system</button>
                           <button id="idea-followup" class="idea-button" onclick="sampleFollowup()">🎲 follow-up questions</button>
                       </div>
@@ -176,7 +171,6 @@ This is the main chat interface for interacting with ML model explanations.
     // Data Exploration
     function sampleData() { doSample("data"); }
     function sampleStatistic() { doSample("statistic"); }
-    function sampleShow() { doSample("show"); }
     function sampleLabels() { doSample("label"); }
     function sampleDefine() { doSample("define"); }
     
@@ -184,23 +178,17 @@ This is the main chat interface for interacting with ML model explanations.
     function sampleFilter() { doSample("filter"); }
     
     // Model Analysis
-    function samplePredict() { doSample("predict"); }
-    function sampleLikelihood() { doSample("likelihood"); }
+    function sampleNewPred() { doSample("new_pred"); }
     function sampleWhy() { doSample("explain"); }
     function sampleImportant() { doSample("important"); }
     function samplePerformance() { doSample("score"); }
-    function sampleMistakes() { doSample("mistake"); }
     function sampleModel() { doSample("model"); }
     
     // What-If Analysis
-    function sampleWhatIf() { doSample("change"); }
+    function sampleWhatIf() { doSample("whatif"); }
     function sampleFlip() { doSample("counterfactual"); }
     
-    // Feature Analysis
-    function sampleInteractions() { doSample("interact"); }
-    
     // System Help
-    function sampleCapabilities() { doSample("function"); }
     function sampleSelf() { doSample("self"); }
     function sampleFollowup() { doSample("followup"); }
     

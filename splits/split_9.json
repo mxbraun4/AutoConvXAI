@@ -172,7 +172,7 @@
     "old_command": "likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 173
   },
@@ -181,7 +181,7 @@
     "old_command": "likelihood",
     "expected_json": {
       "entities": {},
-      "action": "predict"
+      "action": "new_pred"
     },
     "line_number": 174
   },
