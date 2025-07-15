@@ -1,15 +1,15 @@
 {
   "report": {
     "total_cases": 20,
-    "action_accuracy": 0.3,
-    "entity_accuracy": 0.35,
-    "overall_accuracy": 0.15,
+    "action_accuracy": 0.85,
+    "entity_accuracy": 1.0,
+    "overall_accuracy": 0.85,
     "error_rate": 0.0,
     "action_breakdown": {
       "explain": {
         "total": 12,
-        "correct": 6,
-        "accuracy": 0.5
+        "correct": 12,
+        "accuracy": 1.0
       },
       "data": {
         "total": 3,
@@ -18,15 +18,15 @@
       },
       "important": {
         "total": 5,
-        "correct": 0,
-        "accuracy": 0.0
+        "correct": 5,
+        "accuracy": 1.0
       }
     },
     "action_mismatches": [
       {
         "question": "How much do you predict people aged over 30 have diabetes?",
         "expected_action": "data",
-        "actual_action": "new_pred",
+        "actual_action": "filter",
         "expected_entities": {
           "features": [
             "age"
@@ -39,19 +39,21 @@
           ]
         },
         "actual_entities": {
-          "features": [
-            "Age"
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
           ],
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30
+          "features": [
+            "Age"
           ]
         }
       },
@@ -71,26 +73,28 @@
           ]
         },
         "actual_entities": {
-          "features": [
-            "Age"
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
           ],
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30
+          "features": [
+            "Age"
           ]
         }
       },
       {
         "question": "How often do you predict people aged more than 30 and have diabetes?",
         "expected_action": "data",
-        "actual_action": null,
+        "actual_action": "statistic",
         "expected_entities": {
           "features": [
             "age"
@@ -102,111 +106,27 @@
             30
           ]
         },
-        "actual_entities": {}
-      },
-      {
-        "question": "What are the top three features for the model's predictions in the data?",
-        "expected_action": "important",
-        "actual_action": null,
-        "expected_entities": {
-          "topk": 3
-        },
-        "actual_entities": {}
-      },
-      {
-        "question": "What are the three most important parts of the model's predictions?",
-        "expected_action": "important",
-        "actual_action": null,
-        "expected_entities": {
-          "topk": 3
-        },
-        "actual_entities": {}
+        "actual_entities": {
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
+          ],
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Age"
+          ]
+        }
       }
     ],
-    "entity_mismatches": [
-      {
-        "question": "If a person has a glucose level of higher than 120, why would you think that they will get diabetes?",
-        "expected_action": "explain",
-        "actual_action": "explain",
-        "expected_entities": {
-          "features": [
-            "glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            120
-          ]
-        },
-        "actual_entities": {
-          "features": null,
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            120
-          ]
-        }
-      },
-      {
-        "question": "How do you determine if people with glucose levels above 120 have diabetes?",
-        "expected_action": "explain",
-        "actual_action": "explain",
-        "expected_entities": {
-          "features": [
-            "glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            120
-          ]
-        },
-        "actual_entities": {
-          "features": null,
-          "operators": null,
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": null
-        }
-      },
-      {
-        "question": "What's your process for determining whether people with glucose levels over 120 have diabetes?",
-        "expected_action": "explain",
-        "actual_action": "explain",
-        "expected_entities": {
-          "features": [
-            "glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            120
-          ]
-        },
-        "actual_entities": {
-          "features": null,
-          "operators": null,
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": null
-        }
-      }
-    ]
+    "entity_mismatches": []
   },
   "detailed_results": [
     {
@@ -232,19 +152,19 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               120
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -261,19 +181,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             120
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -311,19 +231,19 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               120
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -340,19 +260,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             120
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -390,17 +310,19 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": null,
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               120
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -417,17 +339,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             120
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -438,8 +362,8 @@
         "identified_issues": []
       },
       "action_match": true,
-      "entities_match": false,
-      "overall_match": false,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -465,14 +389,20 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": null,
+            "values": [
+              120
+            ],
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Glucose"
+            ]
           },
           "confidence": 0.95
         },
@@ -488,14 +418,20 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": null,
+          "values": [
+            120
+          ],
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Glucose"
+          ]
         },
         "action_list": [
           "explain"
@@ -505,8 +441,8 @@
         "identified_issues": []
       },
       "action_match": true,
-      "entities_match": false,
-      "overall_match": false,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -532,14 +468,20 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": null,
+            "values": [
+              120
+            ],
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Glucose"
+            ]
           },
           "confidence": 0.95
         },
@@ -555,14 +497,20 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": null,
+          "values": [
+            120
+          ],
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Glucose"
+          ]
         },
         "action_list": [
           "explain"
@@ -572,8 +520,8 @@
         "identified_issues": []
       },
       "action_match": true,
-      "entities_match": false,
-      "overall_match": false,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -593,25 +541,27 @@
         "action": "data"
       },
       "actual": {
-        "generation": "parsed: new_pred[e]",
+        "generation": "parsed: filter[e]",
         "confidence": 0.95,
         "method": "autogen_2agent_discussion",
         "action_response": {
-          "action": "new_pred",
+          "action": "filter",
           "entities": {
-            "features": [
-              "Age"
+            "patient_id": null,
+            "values": [
+              30
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": [
+              1
             ],
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              30
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -622,31 +572,33 @@
           "alternative_interpretations": []
         },
         "agent_reasoning": {
-          "original_action": "new_pred",
-          "validated_action": "new_pred",
+          "original_action": "filter",
+          "validated_action": "filter",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
           ],
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
-          "new_pred"
+          "filter"
         ],
-        "final_action": "new_pred",
+        "final_action": "filter",
         "validation_passed": true,
         "identified_issues": []
       },
@@ -678,19 +630,21 @@
         "action_response": {
           "action": "statistic",
           "entities": {
-            "features": [
-              "Age"
+            "patient_id": null,
+            "values": [
+              30
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": [
+              1
             ],
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              30
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -707,19 +661,21 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
           ],
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -751,14 +707,69 @@
         "action": "data"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: statistic[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "statistic",
+          "entities": {
+            "patient_id": null,
+            "values": [
+              30
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": [
+              1
+            ],
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Age"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "statistic",
+          "validated_action": "statistic",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
+          ],
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Age"
+          ]
+        },
+        "action_list": [
+          "statistic"
+        ],
+        "final_action": "statistic",
+        "validation_passed": true,
+        "identified_issues": []
       },
       "action_match": false,
-      "entities_match": false,
+      "entities_match": true,
       "overall_match": false,
       "error": ""
     },
@@ -771,15 +782,54 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
+            "topk": 3,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
+          "topk": 3,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -791,15 +841,54 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
+            "topk": 3,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
+          "topk": 3,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -811,15 +900,54 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
+            "topk": 3,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
+          "topk": 3,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -837,14 +965,14 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": 100,
-            "values": null
+            "operators": null,
+            "features": null
           },
           "confidence": 0.95
         },
@@ -854,20 +982,20 @@
           "alternative_interpretations": []
         },
         "agent_reasoning": {
-          "original_action": "whatif",
+          "original_action": "explain",
           "validated_action": "explain",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": 100,
-          "values": null
+          "operators": null,
+          "features": null
         },
         "action_list": [
           "explain"
@@ -891,14 +1019,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -911,14 +1078,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -931,14 +1137,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -951,14 +1196,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -971,14 +1255,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -991,14 +1314,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -1008,15 +1370,60 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: important[e]",
+        "confidence": 0.9,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.9
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -1026,15 +1433,60 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: important[e]",
+        "confidence": 0.9,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.9
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     }
   ]

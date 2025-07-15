@@ -1,15 +1,15 @@
 {
   "report": {
     "total_cases": 80,
-    "action_accuracy": 0.65,
-    "entity_accuracy": 0.7375,
-    "overall_accuracy": 0.55,
+    "action_accuracy": 0.8625,
+    "entity_accuracy": 0.925,
+    "overall_accuracy": 0.825,
     "error_rate": 0.0,
     "action_breakdown": {
       "explain": {
         "total": 18,
-        "correct": 10,
-        "accuracy": 0.5555555555555556
+        "correct": 15,
+        "accuracy": 0.8333333333333334
       },
       "data": {
         "total": 12,
@@ -18,23 +18,23 @@
       },
       "important": {
         "total": 9,
-        "correct": 4,
-        "accuracy": 0.4444444444444444
+        "correct": 9,
+        "accuracy": 1.0
       },
       "whatif": {
         "total": 10,
         "correct": 8,
         "accuracy": 0.8
       },
-      "predict": {
+      "new_pred": {
         "total": 9,
-        "correct": 0,
-        "accuracy": 0.0
+        "correct": 9,
+        "accuracy": 1.0
       },
       "filter": {
         "total": 18,
-        "correct": 18,
-        "accuracy": 1.0
+        "correct": 16,
+        "accuracy": 0.8888888888888888
       },
       "statistic": {
         "total": 4,
@@ -46,7 +46,7 @@
       {
         "question": "How much do you predict people aged over 30 have diabetes?",
         "expected_action": "data",
-        "actual_action": "new_pred",
+        "actual_action": "filter",
         "expected_entities": {
           "features": [
             "age"
@@ -59,19 +59,21 @@
           ]
         },
         "actual_entities": {
-          "features": [
-            "Age"
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
           ],
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30
+          "features": [
+            "Age"
           ]
         }
       },
@@ -91,26 +93,28 @@
           ]
         },
         "actual_entities": {
-          "features": [
-            "Age"
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
           ],
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30
+          "features": [
+            "Age"
           ]
         }
       },
       {
         "question": "How often do you predict people aged more than 30 and have diabetes?",
         "expected_action": "data",
-        "actual_action": null,
+        "actual_action": "statistic",
         "expected_entities": {
           "features": [
             "age"
@@ -122,108 +126,144 @@
             30
           ]
         },
-        "actual_entities": {}
+        "actual_entities": {
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
+          ],
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Age"
+          ]
+        }
       },
       {
-        "question": "What are the top three features for the model's predictions in the data?",
-        "expected_action": "important",
+        "question": "What is the number of mothers with less than three pregnancies?",
+        "expected_action": "data",
         "actual_action": null,
         "expected_entities": {
-          "topk": 3
+          "features": [
+            "pregnancies"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            3
+          ]
         },
         "actual_entities": {}
       },
       {
-        "question": "What are the three most important parts of the model's predictions?",
-        "expected_action": "important",
-        "actual_action": null,
+        "question": "For the data point with id 33, predict the change in the likelihood of having diabetes if we increase glucose by 100.",
+        "expected_action": "whatif",
+        "actual_action": "new_pred",
         "expected_entities": {
-          "topk": 3
+          "patient_id": 33
         },
-        "actual_entities": {}
+        "actual_entities": {
+          "patient_id": 33,
+          "values": [
+            100
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "+"
+          ],
+          "features": [
+            "Glucose"
+          ]
+        }
       }
     ],
     "entity_mismatches": [
       {
-        "question": "If a person has a glucose level of higher than 120, why would you think that they will get diabetes?",
-        "expected_action": "explain",
-        "actual_action": "explain",
+        "question": "How likely is it for someone to have diabetes if they are between 20 and 30 or have had 2 pregnancies?",
+        "expected_action": "new_pred",
+        "actual_action": "new_pred",
         "expected_entities": {
           "features": [
-            "glucose"
+            "age"
           ],
           "operators": [
-            ">"
+            "<"
           ],
           "values": [
-            120
+            "30 or filter pregnancies equal to two"
           ]
         },
         "actual_entities": {
-          "features": null,
-          "operators": [
-            ">"
+          "values": [
+            20,
+            30,
+            2
           ],
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": [
-            120
+          "logical": [
+            "or"
+          ],
+          "operators": [
+            ">=",
+            "<=",
+            "="
+          ],
+          "features": [
+            "Age",
+            "Pregnancies"
           ]
         }
       },
       {
-        "question": "How do you determine if people with glucose levels above 120 have diabetes?",
-        "expected_action": "explain",
-        "actual_action": "explain",
+        "question": "What chances are for people that either (1) have had two pregnancies or (2) are older than 20 and younger than 30 to have diabetes?",
+        "expected_action": "new_pred",
+        "actual_action": "new_pred",
         "expected_entities": {
           "features": [
-            "glucose"
+            "age"
           ],
           "operators": [
-            ">"
+            "<"
           ],
           "values": [
-            120
+            "30 or filter pregnancies equal to two"
           ]
         },
         "actual_entities": {
-          "features": null,
-          "operators": null,
+          "values": [
+            2,
+            20,
+            30
+          ],
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
-        }
-      },
-      {
-        "question": "What's your process for determining whether people with glucose levels over 120 have diabetes?",
-        "expected_action": "explain",
-        "actual_action": "explain",
-        "expected_entities": {
-          "features": [
-            "glucose"
+          "logical": [
+            "or"
           ],
           "operators": [
-            ">"
+            "=",
+            ">",
+            "<"
           ],
-          "values": [
-            120
+          "features": [
+            "Pregnancies",
+            "Age"
           ]
-        },
-        "actual_entities": {
-          "features": null,
-          "operators": null,
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": null
         }
       },
       {
@@ -243,48 +283,18 @@
           "topk": 5
         },
         "actual_entities": {
-          "features": [],
+          "values": [
+            40
+          ],
+          "filter_type": null,
+          "topk": 5,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">="
           ],
-          "topk": 5,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            40
-          ]
-        }
-      },
-      {
-        "question": "If your bmi is over 40 than what are the five most important aspects of the model's prediction?",
-        "expected_action": "important",
-        "actual_action": "important",
-        "expected_entities": {
           "features": [
-            "bmi"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            40
-          ],
-          "topk": 5
-        },
-        "actual_entities": {
-          "features": [],
-          "operators": [
-            ">"
-          ],
-          "topk": 5,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            40
+            "BMI"
           ]
         }
       }
@@ -314,19 +324,19 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               120
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -343,19 +353,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             120
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -393,19 +403,19 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               120
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -422,19 +432,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             120
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -472,17 +482,19 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": null,
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               120
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -499,17 +511,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             120
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -520,8 +534,8 @@
         "identified_issues": []
       },
       "action_match": true,
-      "entities_match": false,
-      "overall_match": false,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -547,14 +561,20 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": null,
+            "values": [
+              120
+            ],
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Glucose"
+            ]
           },
           "confidence": 0.95
         },
@@ -570,14 +590,20 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": null,
+          "values": [
+            120
+          ],
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Glucose"
+          ]
         },
         "action_list": [
           "explain"
@@ -587,8 +613,8 @@
         "identified_issues": []
       },
       "action_match": true,
-      "entities_match": false,
-      "overall_match": false,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -614,14 +640,20 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": null,
+            "values": [
+              120
+            ],
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Glucose"
+            ]
           },
           "confidence": 0.95
         },
@@ -637,14 +669,20 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": null,
+          "values": [
+            120
+          ],
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Glucose"
+          ]
         },
         "action_list": [
           "explain"
@@ -654,8 +692,8 @@
         "identified_issues": []
       },
       "action_match": true,
-      "entities_match": false,
-      "overall_match": false,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -675,25 +713,27 @@
         "action": "data"
       },
       "actual": {
-        "generation": "parsed: new_pred[e]",
+        "generation": "parsed: filter[e]",
         "confidence": 0.95,
         "method": "autogen_2agent_discussion",
         "action_response": {
-          "action": "new_pred",
+          "action": "filter",
           "entities": {
-            "features": [
-              "Age"
+            "patient_id": null,
+            "values": [
+              30
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": [
+              1
             ],
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              30
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -704,31 +744,33 @@
           "alternative_interpretations": []
         },
         "agent_reasoning": {
-          "original_action": "new_pred",
-          "validated_action": "new_pred",
+          "original_action": "filter",
+          "validated_action": "filter",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
           ],
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
-          "new_pred"
+          "filter"
         ],
-        "final_action": "new_pred",
+        "final_action": "filter",
         "validation_passed": true,
         "identified_issues": []
       },
@@ -760,19 +802,21 @@
         "action_response": {
           "action": "statistic",
           "entities": {
-            "features": [
-              "Age"
+            "patient_id": null,
+            "values": [
+              30
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": [
+              1
             ],
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              30
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -789,19 +833,21 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
           ],
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -833,14 +879,69 @@
         "action": "data"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: statistic[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "statistic",
+          "entities": {
+            "patient_id": null,
+            "values": [
+              30
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": [
+              1
+            ],
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Age"
+            ]
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "statistic",
+          "validated_action": "statistic",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": [
+            30
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": [
+            1
+          ],
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Age"
+          ]
+        },
+        "action_list": [
+          "statistic"
+        ],
+        "final_action": "statistic",
+        "validation_passed": true,
+        "identified_issues": []
       },
       "action_match": false,
-      "entities_match": false,
+      "entities_match": true,
       "overall_match": false,
       "error": ""
     },
@@ -853,15 +954,54 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
+            "topk": 3,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
+          "topk": 3,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -873,15 +1013,54 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
+            "topk": 3,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
+          "topk": 3,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -893,15 +1072,54 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: important[e]",
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
+            "topk": 3,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
+          "topk": 3,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -919,14 +1137,14 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": 100,
-            "values": null
+            "operators": null,
+            "features": null
           },
           "confidence": 0.95
         },
@@ -936,20 +1154,20 @@
           "alternative_interpretations": []
         },
         "agent_reasoning": {
-          "original_action": "whatif",
+          "original_action": "explain",
           "validated_action": "explain",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": 100,
-          "values": null
+          "operators": null,
+          "features": null
         },
         "action_list": [
           "explain"
@@ -973,14 +1191,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -993,14 +1250,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -1013,14 +1309,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -1033,14 +1368,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -1053,14 +1427,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -1073,14 +1486,53 @@
       },
       "actual": {
         "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "confidence": 0.95,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "explain",
+          "entities": {
+            "patient_id": 100,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": null
+          },
+          "confidence": 0.95
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "explain",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": 100,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
-      "entities_match": false,
-      "overall_match": false,
+      "action_match": true,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -1090,15 +1542,60 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: important[e]",
+        "confidence": 0.9,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.9
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -1108,15 +1605,60 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "error": "AutoGen processing error: AutoGen failed to extract action - no fallback allowed",
-        "confidence": 0.1,
-        "method": "autogen_error_recovery",
-        "timestamp": "unknown"
+        "generation": "parsed: important[e]",
+        "confidence": 0.9,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "features": [
+              "Age",
+              "BMI"
+            ]
+          },
+          "confidence": 0.9
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "features": [
+            "Age",
+            "BMI"
+          ]
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -1132,21 +1674,20 @@
         "action_response": {
           "action": "whatif",
           "entities": {
+            "values": [
+              30,
+              -5
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
             "features": [
               "BMI",
               "Age"
-            ],
-            "operators": [
-              null
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              30,
-              5
             ]
           },
           "confidence": 0.95
@@ -1163,21 +1704,20 @@
           "alternative_interpretations": []
         },
         "command_structure": {
+          "values": [
+            30,
+            -5
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
           "features": [
             "BMI",
             "Age"
-          ],
-          "operators": [
-            null
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30,
-            5
           ]
         },
         "action_list": [
@@ -1205,21 +1745,18 @@
         "action_response": {
           "action": "whatif",
           "entities": {
+            "values": [
+              30,
+              -5
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
             "features": [
               "BMI",
               "Age"
-            ],
-            "operators": [
-              null
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              30,
-              5
             ]
           },
           "confidence": 0.95
@@ -1236,21 +1773,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
+          "values": [
+            30,
+            -5
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
           "features": [
             "BMI",
             "Age"
-          ],
-          "operators": [
-            null
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30,
-            5
           ]
         },
         "action_list": [
@@ -1278,21 +1812,18 @@
         "action_response": {
           "action": "whatif",
           "entities": {
+            "values": [
+              30,
+              -5
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
             "features": [
               "BMI",
               "Age"
-            ],
-            "operators": [
-              null
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              30,
-              5
             ]
           },
           "confidence": 0.95
@@ -1309,21 +1840,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
+          "values": [
+            30,
+            -5
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
           "features": [
             "BMI",
             "Age"
-          ],
-          "operators": [
-            null
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30,
-            5
           ]
         },
         "action_list": [
@@ -1351,21 +1879,18 @@
         "action_response": {
           "action": "whatif",
           "entities": {
+            "values": [
+              30,
+              -5
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
             "features": [
               "BMI",
               "Age"
-            ],
-            "operators": [
-              null
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              30,
-              5
             ]
           },
           "confidence": 0.95
@@ -1382,21 +1907,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
+          "values": [
+            30,
+            -5
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
           "features": [
             "BMI",
             "Age"
-          ],
-          "operators": [
-            null
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30,
-            5
           ]
         },
         "action_list": [
@@ -1434,19 +1956,18 @@
         "action_response": {
           "action": "data",
           "entities": {
-            "features": [
-              "Pregnancies"
+            "values": [
+              3
             ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               "<"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              3
+            "features": [
+              "Pregnancies"
             ]
           },
           "confidence": 0.95
@@ -1463,19 +1984,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Pregnancies"
+          "values": [
+            3
           ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             "<"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            3
+          "features": [
+            "Pregnancies"
           ]
         },
         "action_list": [
@@ -1513,19 +2033,18 @@
         "action_response": {
           "action": "data",
           "entities": {
-            "features": [
-              "Pregnancies"
+            "values": [
+              3
             ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               "<"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              3
+            "features": [
+              "Pregnancies"
             ]
           },
           "confidence": 0.95
@@ -1542,19 +2061,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Pregnancies"
+          "values": [
+            3
           ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             "<"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            3
+          "features": [
+            "Pregnancies"
           ]
         },
         "action_list": [
@@ -1592,19 +2110,18 @@
         "action_response": {
           "action": "data",
           "entities": {
-            "features": [
-              "Pregnancies"
+            "values": [
+              3
             ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               "<"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              3
+            "features": [
+              "Pregnancies"
             ]
           },
           "confidence": 0.95
@@ -1621,19 +2138,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Pregnancies"
+          "values": [
+            3
           ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             "<"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            3
+          "features": [
+            "Pregnancies"
           ]
         },
         "action_list": [
@@ -1699,19 +2215,18 @@
         "action_response": {
           "action": "data",
           "entities": {
-            "features": [
-              "BloodPressure"
+            "values": [
+              100
             ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              100
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -1728,19 +2243,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
+          "values": [
+            100
           ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            100
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -1778,19 +2292,18 @@
         "action_response": {
           "action": "data",
           "entities": {
-            "features": [
-              "BloodPressure"
+            "values": [
+              100
             ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              100
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -1807,19 +2320,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
+          "values": [
+            100
           ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            100
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -1857,19 +2369,18 @@
         "action_response": {
           "action": "data",
           "entities": {
-            "features": [
-              "BloodPressure"
+            "values": [
+              100
             ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              100
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -1886,19 +2397,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
+          "values": [
+            100
           ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            100
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -1936,19 +2446,18 @@
         "action_response": {
           "action": "data",
           "entities": {
-            "features": [
-              "BloodPressure"
+            "values": [
+              100
             ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              100
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -1965,19 +2474,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
+          "values": [
+            100
           ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            100
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -2015,19 +2523,18 @@
         "action_response": {
           "action": "data",
           "entities": {
-            "features": [
-              "BloodPressure"
+            "values": [
+              100
             ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              100
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -2044,19 +2551,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
+          "values": [
+            100
           ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            100
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -2085,7 +2591,7 @@
             30
           ]
         },
-        "action": "predict"
+        "action": "new_pred"
       },
       "actual": {
         "generation": "parsed: new_pred[e]",
@@ -2094,19 +2600,18 @@
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": [
-              "Age"
+            "values": [
+              30
             ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              30
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -2123,19 +2628,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
+          "values": [
+            30
           ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -2145,9 +2649,9 @@
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -2164,7 +2668,7 @@
             30
           ]
         },
-        "action": "predict"
+        "action": "new_pred"
       },
       "actual": {
         "generation": "parsed: new_pred[e]",
@@ -2173,19 +2677,18 @@
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": [
-              "Age"
+            "values": [
+              30
             ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               ">"
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              30
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -2202,19 +2705,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
+          "values": [
+            30
           ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">"
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            30
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -2224,9 +2726,9 @@
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -2243,7 +2745,7 @@
             "30 or filter pregnancies equal to two"
           ]
         },
-        "action": "predict"
+        "action": "new_pred"
       },
       "actual": {
         "generation": "parsed: new_pred[e]",
@@ -2252,24 +2754,26 @@
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": [
-              "Age",
-              "Pregnancies"
+            "values": [
+              20,
+              30,
+              2
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "logical": [
+              "or"
             ],
             "operators": [
               ">=",
               "<=",
               "="
             ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              20,
-              30,
-              2
+            "features": [
+              "Age",
+              "Pregnancies"
             ]
           },
           "confidence": 0.95
@@ -2286,24 +2790,26 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age",
-            "Pregnancies"
+          "values": [
+            20,
+            30,
+            2
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "logical": [
+            "or"
           ],
           "operators": [
             ">=",
             "<=",
             "="
           ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            20,
-            30,
-            2
+          "features": [
+            "Age",
+            "Pregnancies"
           ]
         },
         "action_list": [
@@ -2313,7 +2819,7 @@
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": false,
       "overall_match": false,
       "error": ""
@@ -2332,7 +2838,7 @@
             "30 or filter pregnancies equal to two"
           ]
         },
-        "action": "predict"
+        "action": "new_pred"
       },
       "actual": {
         "generation": "parsed: new_pred[e]",
@@ -2341,24 +2847,26 @@
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": [
-              "Age",
-              "Pregnancies"
+            "values": [
+              2,
+              20,
+              30
             ],
-            "operators": [
-              ">=",
-              "<=",
-              "="
-            ],
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": [
-              20,
-              30,
-              2
+            "logical": [
+              "or"
+            ],
+            "operators": [
+              "=",
+              ">",
+              "<"
+            ],
+            "features": [
+              "Pregnancies",
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -2375,24 +2883,26 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age",
-            "Pregnancies"
+          "values": [
+            2,
+            20,
+            30
           ],
-          "operators": [
-            ">=",
-            "<=",
-            "="
-          ],
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": [
-            20,
-            30,
-            2
+          "logical": [
+            "or"
+          ],
+          "operators": [
+            "=",
+            ">",
+            "<"
+          ],
+          "features": [
+            "Pregnancies",
+            "Age"
           ]
         },
         "action_list": [
@@ -2402,7 +2912,7 @@
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": false,
       "overall_match": false,
       "error": ""
@@ -2431,17 +2941,18 @@
         "action_response": {
           "action": "important",
           "entities": {
-            "features": [],
+            "values": [
+              40
+            ],
+            "filter_type": null,
+            "topk": 5,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               ">="
             ],
-            "topk": 5,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              40
+            "features": [
+              "BMI"
             ]
           },
           "confidence": 0.95
@@ -2458,17 +2969,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [],
+          "values": [
+            40
+          ],
+          "filter_type": null,
+          "topk": 5,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">="
           ],
-          "topk": 5,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            40
+          "features": [
+            "BMI"
           ]
         },
         "action_list": [
@@ -2507,17 +3019,18 @@
         "action_response": {
           "action": "important",
           "entities": {
-            "features": [],
+            "values": [
+              40
+            ],
+            "filter_type": null,
+            "topk": 5,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               ">"
             ],
-            "topk": 5,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              40
+            "features": [
+              "BMI"
             ]
           },
           "confidence": 0.95
@@ -2534,17 +3047,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [],
+          "values": [
+            40
+          ],
+          "filter_type": null,
+          "topk": 5,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">"
           ],
-          "topk": 5,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            40
+          "features": [
+            "BMI"
           ]
         },
         "action_list": [
@@ -2555,8 +3069,8 @@
         "identified_issues": []
       },
       "action_match": true,
-      "entities_match": false,
-      "overall_match": false,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -2583,17 +3097,18 @@
         "action_response": {
           "action": "important",
           "entities": {
-            "features": [],
+            "values": [
+              40
+            ],
+            "filter_type": null,
+            "topk": 5,
+            "prediction_values": null,
+            "label_values": null,
             "operators": [
               ">"
             ],
-            "topk": 5,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
-            "patient_id": null,
-            "values": [
-              40
+            "features": [
+              "BMI"
             ]
           },
           "confidence": 0.95
@@ -2610,17 +3125,18 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [],
+          "values": [
+            40
+          ],
+          "filter_type": null,
+          "topk": 5,
+          "prediction_values": null,
+          "label_values": null,
           "operators": [
             ">"
           ],
-          "topk": 5,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
-          "patient_id": null,
-          "values": [
-            40
+          "features": [
+            "BMI"
           ]
         },
         "action_list": [
@@ -2631,8 +3147,8 @@
         "identified_issues": []
       },
       "action_match": true,
-      "entities_match": false,
-      "overall_match": false,
+      "entities_match": true,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -2650,19 +3166,19 @@
         "action_response": {
           "action": "whatif",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              "+"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": 33,
             "values": [
               100
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "+"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -2679,19 +3195,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            "+"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": 33,
           "values": [
             100
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "+"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -2721,19 +3237,19 @@
         "action_response": {
           "action": "whatif",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              "+"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": 33,
             "values": [
               100
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "+"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -2750,19 +3266,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            "+"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": 33,
           "values": [
             100
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "+"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -2792,19 +3308,19 @@
         "action_response": {
           "action": "whatif",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              "+"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": 33,
             "values": [
               100
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "+"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -2821,19 +3337,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            "+"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": 33,
           "values": [
             100
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "+"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -2863,19 +3379,19 @@
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              "+"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": 33,
             "values": [
               100
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "+"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -2892,19 +3408,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            "+"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": 33,
           "values": [
             100
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "+"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -2934,19 +3450,19 @@
         "action_response": {
           "action": "whatif",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              "+"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": 33,
             "values": [
               100
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "+"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -2963,19 +3479,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            "+"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": 33,
           "values": [
             100
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "+"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -3005,19 +3521,19 @@
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              "+"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": 33,
             "values": [
               100
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "+"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -3034,19 +3550,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            "+"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": 33,
           "values": [
             100
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "+"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -3076,20 +3592,14 @@
         "action_response": {
           "action": "important",
           "entities": {
-            "features": [
-              "BMI"
-            ],
-            "operators": [
-              "-"
-            ],
+            "patient_id": null,
+            "values": null,
+            "filter_type": "feature",
             "topk": 3,
             "prediction_values": null,
-            "filter_type": "feature",
             "label_values": null,
-            "patient_id": null,
-            "values": [
-              10
-            ]
+            "operators": null,
+            "features": null
           },
           "confidence": 0.95
         },
@@ -3099,26 +3609,20 @@
           "alternative_interpretations": []
         },
         "agent_reasoning": {
-          "original_action": "filter",
+          "original_action": "important",
           "validated_action": "important",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BMI"
-          ],
-          "operators": [
-            "-"
-          ],
+          "patient_id": null,
+          "values": null,
+          "filter_type": "feature",
           "topk": 3,
           "prediction_values": null,
-          "filter_type": "feature",
           "label_values": null,
-          "patient_id": null,
-          "values": [
-            10
-          ]
+          "operators": null,
+          "features": null
         },
         "action_list": [
           "important"
@@ -3155,19 +3659,19 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              "<"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               80
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -3184,19 +3688,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            "<"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             80
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -3234,19 +3738,19 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              "<"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               80
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -3263,19 +3767,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            "<"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             80
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -3313,19 +3817,19 @@
         "action_response": {
           "action": "explain",
           "entities": {
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              "<"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               80
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
+            "features": [
+              "Glucose"
             ]
           },
           "confidence": 0.95
@@ -3342,19 +3846,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            "<"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             80
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
+          "features": [
+            "Glucose"
           ]
         },
         "action_list": [
@@ -3376,29 +3880,20 @@
         "action": "explain"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
+        "generation": "parsed: important[e]",
         "confidence": 0.95,
         "method": "autogen_2agent_discussion",
         "action_response": {
-          "action": "explain",
+          "action": "important",
           "entities": {
-            "features": [
-              "Pregnancies",
-              "Glucose",
-              "BloodPressure",
-              "SkinThickness",
-              "Insulin",
-              "BMI",
-              "DiabetesPedigreeFunction",
-              "Age"
-            ],
-            "operators": null,
+            "patient_id": null,
+            "values": null,
+            "filter_type": "feature",
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": null,
+            "features": null
           },
           "confidence": 0.95
         },
@@ -3408,40 +3903,31 @@
           "alternative_interpretations": []
         },
         "agent_reasoning": {
-          "original_action": "explain",
-          "validated_action": "explain",
+          "original_action": "important",
+          "validated_action": "important",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Pregnancies",
-            "Glucose",
-            "BloodPressure",
-            "SkinThickness",
-            "Insulin",
-            "BMI",
-            "DiabetesPedigreeFunction",
-            "Age"
-          ],
-          "operators": null,
+          "patient_id": null,
+          "values": null,
+          "filter_type": "feature",
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": null,
+          "features": null
         },
         "action_list": [
-          "explain"
+          "important"
         ],
-        "final_action": "explain",
+        "final_action": "important",
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": true,
+      "action_match": false,
       "entities_match": true,
-      "overall_match": true,
+      "overall_match": false,
       "error": ""
     },
     {
@@ -3457,19 +3943,19 @@
         "action_response": {
           "action": "whatif",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": [
-              "+"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               20
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "+"
+            ],
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -3486,19 +3972,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": [
-            "+"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             20
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "+"
+          ],
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -3526,19 +4012,19 @@
         "action_response": {
           "action": "whatif",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": [
-              "+"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": null,
-            "label_values": null,
             "patient_id": null,
             "values": [
               20
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "+"
+            ],
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -3555,19 +4041,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": [
-            "+"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": null,
-          "label_values": null,
           "patient_id": null,
           "values": [
             20
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "+"
+          ],
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -3586,25 +4072,25 @@
       "question": "What are the chances they have diabetes?",
       "expected": {
         "entities": {},
-        "action": "predict"
+        "action": "new_pred"
       },
       "actual": {
         "generation": "parsed: new_pred[e]",
-        "confidence": 0.85,
+        "confidence": 0.95,
         "method": "autogen_2agent_discussion",
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": null,
+            "values": null,
+            "filter_type": "prediction",
             "topk": null,
             "prediction_values": null,
-            "filter_type": "prediction",
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": null,
+            "features": null
           },
-          "confidence": 0.85
+          "confidence": 0.95
         },
         "validation_response": {
           "requires_full_dataset": false,
@@ -3618,14 +4104,14 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": null,
+          "values": null,
+          "filter_type": "prediction",
           "topk": null,
           "prediction_values": null,
-          "filter_type": "prediction",
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": null,
+          "features": null
         },
         "action_list": [
           "new_pred"
@@ -3634,16 +4120,16 @@
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     },
     {
       "question": "What are the odds they have diabetes?",
       "expected": {
         "entities": {},
-        "action": "predict"
+        "action": "new_pred"
       },
       "actual": {
         "generation": "parsed: new_pred[e]",
@@ -3652,14 +4138,14 @@
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": null,
+            "features": null
           },
           "confidence": 0.95
         },
@@ -3675,14 +4161,14 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": null,
+          "features": null
         },
         "action_list": [
           "new_pred"
@@ -3691,16 +4177,16 @@
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     },
     {
       "question": "Can you let me know the odds that they have diabetes?",
       "expected": {
         "entities": {},
-        "action": "predict"
+        "action": "new_pred"
       },
       "actual": {
         "generation": "parsed: new_pred[e]",
@@ -3709,14 +4195,14 @@
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": null,
+            "features": null
           },
           "confidence": 0.95
         },
@@ -3732,14 +4218,14 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": null,
+          "features": null
         },
         "action_list": [
           "new_pred"
@@ -3748,16 +4234,16 @@
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     },
     {
       "question": "What are the actual chances that they have diabetes?",
       "expected": {
         "entities": {},
-        "action": "predict"
+        "action": "new_pred"
       },
       "actual": {
         "generation": "parsed: new_pred[e]",
@@ -3766,14 +4252,14 @@
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": null,
+            "features": null
           },
           "confidence": 0.95
         },
@@ -3789,14 +4275,14 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": null,
+          "features": null
         },
         "action_list": [
           "new_pred"
@@ -3805,16 +4291,16 @@
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     },
     {
       "question": "How high is the likelihood of them having diabetes?",
       "expected": {
         "entities": {},
-        "action": "predict"
+        "action": "new_pred"
       },
       "actual": {
         "generation": "parsed: new_pred[e]",
@@ -3823,14 +4309,14 @@
         "action_response": {
           "action": "new_pred",
           "entities": {
-            "features": null,
-            "operators": null,
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": null,
+            "features": null
           },
           "confidence": 0.95
         },
@@ -3846,14 +4332,14 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": null,
-          "operators": null,
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": null,
+          "features": null
         },
         "action_list": [
           "new_pred"
@@ -3862,9 +4348,9 @@
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": false,
+      "action_match": true,
       "entities_match": true,
-      "overall_match": false,
+      "overall_match": true,
       "error": ""
     },
     {
@@ -3890,19 +4376,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "feature",
-            "label_values": null,
             "patient_id": null,
             "values": [
               45
+            ],
+            "filter_type": "data",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -3919,19 +4405,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "feature",
-          "label_values": null,
           "patient_id": null,
           "values": [
             45
+          ],
+          "filter_type": "data",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -3969,19 +4455,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "feature",
-            "label_values": null,
             "patient_id": null,
             "values": [
               45
+            ],
+            "filter_type": "data",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -3998,19 +4484,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "feature",
-          "label_values": null,
           "patient_id": null,
           "values": [
             45
+          ],
+          "filter_type": "data",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -4048,19 +4534,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "feature",
-            "label_values": null,
             "patient_id": null,
             "values": [
               45
+            ],
+            "filter_type": "prediction",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -4077,19 +4563,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "feature",
-          "label_values": null,
           "patient_id": null,
           "values": [
             45
+          ],
+          "filter_type": "prediction",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -4127,19 +4613,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "feature",
-            "label_values": null,
             "patient_id": null,
             "values": [
               45
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -4156,19 +4642,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "feature",
-          "label_values": null,
           "patient_id": null,
           "values": [
             45
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -4206,19 +4692,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": [
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "feature",
-            "label_values": null,
             "patient_id": null,
             "values": [
               45
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">"
+            ],
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -4235,19 +4721,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": [
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "feature",
-          "label_values": null,
           "patient_id": null,
           "values": [
             45
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">"
+          ],
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
@@ -4279,16 +4765,16 @@
         "action_response": {
           "action": "statistic",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": null,
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": null,
+            "features": [
+              "Age"
+            ]
           },
           "confidence": 0.95
         },
@@ -4304,16 +4790,16 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": null,
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": null,
+          "features": [
+            "Age"
+          ]
         },
         "action_list": [
           "statistic"
@@ -4344,16 +4830,16 @@
         "action_response": {
           "action": "statistic",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": null,
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": null,
+            "features": [
+              "Age"
+            ]
           },
           "confidence": 0.95
         },
@@ -4369,16 +4855,16 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": null,
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": null,
+          "features": [
+            "Age"
+          ]
         },
         "action_list": [
           "statistic"
@@ -4409,16 +4895,16 @@
         "action_response": {
           "action": "statistic",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": null,
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": null,
+            "features": [
+              "Age"
+            ]
           },
           "confidence": 0.95
         },
@@ -4434,16 +4920,16 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": null,
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": null,
+          "features": [
+            "Age"
+          ]
         },
         "action_list": [
           "statistic"
@@ -4474,16 +4960,16 @@
         "action_response": {
           "action": "statistic",
           "entities": {
-            "features": [
-              "Age"
-            ],
-            "operators": null,
+            "patient_id": null,
+            "values": null,
+            "filter_type": null,
             "topk": null,
             "prediction_values": null,
-            "filter_type": null,
             "label_values": null,
-            "patient_id": null,
-            "values": null
+            "operators": null,
+            "features": [
+              "Age"
+            ]
           },
           "confidence": 0.95
         },
@@ -4499,16 +4985,16 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Age"
-          ],
-          "operators": null,
+          "patient_id": null,
+          "values": null,
+          "filter_type": null,
           "topk": null,
           "prediction_values": null,
-          "filter_type": null,
           "label_values": null,
-          "patient_id": null,
-          "values": null
+          "operators": null,
+          "features": [
+            "Age"
+          ]
         },
         "action_list": [
           "statistic"
@@ -4539,28 +5025,27 @@
         "action": "filter"
       },
       "actual": {
-        "generation": "parsed: filter[e]",
+        "generation": "parsed: whatif[e]",
         "confidence": 0.95,
         "method": "autogen_2agent_discussion",
         "action_response": {
-          "action": "filter",
+          "action": "whatif",
           "entities": {
-            "features": [
-              "BMI",
-              "Pregnancies"
-            ],
-            "operators": [
-              ">",
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "feature",
-            "label_values": null,
             "patient_id": null,
             "values": [
               35,
               1
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">",
+              ">"
+            ],
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -4572,37 +5057,36 @@
         },
         "agent_reasoning": {
           "original_action": "filter",
-          "validated_action": "filter",
+          "validated_action": "whatif",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BMI",
-            "Pregnancies"
-          ],
-          "operators": [
-            ">",
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "feature",
-          "label_values": null,
           "patient_id": null,
           "values": [
             35,
             1
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">",
+            ">"
+          ],
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
-          "filter"
+          "whatif"
         ],
-        "final_action": "filter",
+        "final_action": "whatif",
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": true,
+      "action_match": false,
       "entities_match": false,
       "overall_match": false,
       "error": ""
@@ -4624,28 +5108,27 @@
         "action": "filter"
       },
       "actual": {
-        "generation": "parsed: filter[e]",
+        "generation": "parsed: statistic[e]",
         "confidence": 0.95,
         "method": "autogen_2agent_discussion",
         "action_response": {
-          "action": "filter",
+          "action": "statistic",
           "entities": {
-            "features": [
-              "BMI",
-              "Pregnancies"
-            ],
-            "operators": [
-              ">",
-              ">"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "feature",
-            "label_values": null,
             "patient_id": null,
             "values": [
               35,
               1
+            ],
+            "filter_type": null,
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              ">",
+              ">"
+            ],
+            "features": [
+              "Age"
             ]
           },
           "confidence": 0.95
@@ -4657,37 +5140,36 @@
         },
         "agent_reasoning": {
           "original_action": "filter",
-          "validated_action": "filter",
+          "validated_action": "statistic",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BMI",
-            "Pregnancies"
-          ],
-          "operators": [
-            ">",
-            ">"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "feature",
-          "label_values": null,
           "patient_id": null,
           "values": [
             35,
             1
+          ],
+          "filter_type": null,
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            ">",
+            ">"
+          ],
+          "features": [
+            "Age"
           ]
         },
         "action_list": [
-          "filter"
+          "statistic"
         ],
-        "final_action": "filter",
+        "final_action": "statistic",
         "validation_passed": true,
         "identified_issues": []
       },
-      "action_match": true,
+      "action_match": false,
       "entities_match": false,
       "overall_match": false,
       "error": ""
@@ -4715,19 +5197,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "BloodPressure"
-            ],
-            "operators": [
-              "<"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               100
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -4744,19 +5226,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            "<"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             100
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -4794,19 +5276,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "BloodPressure"
-            ],
-            "operators": [
-              "<"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               100
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -4823,19 +5305,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            "<"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             100
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -4873,19 +5355,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "BloodPressure"
-            ],
-            "operators": [
-              "<"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               100
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -4902,19 +5384,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            "<"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             100
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -4952,19 +5434,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "BloodPressure"
-            ],
-            "operators": [
-              "<"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               100
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -4981,19 +5463,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            "<"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             100
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -5031,19 +5513,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "BloodPressure"
-            ],
-            "operators": [
-              "<"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               100
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -5060,19 +5542,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            "<"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             100
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -5110,19 +5592,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "BloodPressure"
-            ],
-            "operators": [
-              "<"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               100
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -5139,19 +5621,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            "<"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             100
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -5189,19 +5671,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "BloodPressure"
-            ],
-            "operators": [
-              "<"
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               100
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "<"
+            ],
+            "features": [
+              "BloodPressure"
             ]
           },
           "confidence": 0.95
@@ -5218,19 +5700,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            "<"
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             100
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "<"
+          ],
+          "features": [
+            "BloodPressure"
           ]
         },
         "action_list": [
@@ -5258,19 +5740,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "Insulin"
-            ],
-            "operators": [
-              "="
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               20
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "="
+            ],
+            "features": [
+              "Insulin"
             ]
           },
           "confidence": 0.95
@@ -5287,19 +5769,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Insulin"
-          ],
-          "operators": [
-            "="
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             20
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "="
+          ],
+          "features": [
+            "Insulin"
           ]
         },
         "action_list": [
@@ -5327,19 +5809,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "Insulin"
-            ],
-            "operators": [
-              "="
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               20
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "="
+            ],
+            "features": [
+              "Insulin"
             ]
           },
           "confidence": 0.95
@@ -5356,19 +5838,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Insulin"
-          ],
-          "operators": [
-            "="
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             20
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "="
+          ],
+          "features": [
+            "Insulin"
           ]
         },
         "action_list": [
@@ -5396,19 +5878,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "Insulin"
-            ],
-            "operators": [
-              "="
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               20
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "="
+            ],
+            "features": [
+              "Insulin"
             ]
           },
           "confidence": 0.95
@@ -5425,19 +5907,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Insulin"
-          ],
-          "operators": [
-            "="
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             20
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "="
+          ],
+          "features": [
+            "Insulin"
           ]
         },
         "action_list": [
@@ -5465,19 +5947,19 @@
         "action_response": {
           "action": "filter",
           "entities": {
-            "features": [
-              "Insulin"
-            ],
-            "operators": [
-              "="
-            ],
-            "topk": null,
-            "prediction_values": null,
-            "filter_type": "label",
-            "label_values": null,
             "patient_id": null,
             "values": [
               20
+            ],
+            "filter_type": "label",
+            "topk": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": [
+              "="
+            ],
+            "features": [
+              "Insulin"
             ]
           },
           "confidence": 0.95
@@ -5494,19 +5976,19 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Insulin"
-          ],
-          "operators": [
-            "="
-          ],
-          "topk": null,
-          "prediction_values": null,
-          "filter_type": "label",
-          "label_values": null,
           "patient_id": null,
           "values": [
             20
+          ],
+          "filter_type": "label",
+          "topk": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "="
+          ],
+          "features": [
+            "Insulin"
           ]
         },
         "action_list": [
