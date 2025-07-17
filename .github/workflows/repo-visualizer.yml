@@ -22,11 +22,11 @@ jobs:
         with:
           output_file: "images/diagram.svg"
           excluded_paths: "dist,node_modules"
-          artifact_name: "repo-diagram"
+          artifact_name: "repodiagram"
           should_push: false
 
       - name: Save artifact
         uses: actions/upload-artifact@v4
         with:
-          name: repo-diagram
+          name: repodiagram
           path: images/diagram.svg
