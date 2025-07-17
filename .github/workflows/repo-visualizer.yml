@@ -1,0 +1,29 @@
+name: Generate Repo Diagram
+
+on:
+  push:
+    branches: [main] # or your default branch
+  workflow_dispatch: # allows manual trigger
+
+jobs:
+  generate-diagram:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate diagram
+        id: make_diagram
+        uses: githubocto/repo-visualizer@0.7.1
+        with:
+          output_file: "images/diagram.svg"
+          excluded_paths: "dist,node_modules"
+          artifact_name: "repo-diagram"
+          should_push: false
+      
+      - name: Save artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: repo-diagram
+          path: images/diagram.svg
