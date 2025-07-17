@@ -861,7 +861,29 @@ def process_user_query(user_query):
     
     # Extract intent from the nested intent_response for filter reset logic
     intent_response = autogen_response.get('intent_response', {})
-    intent = intent_response.get('intent', 'data')
+    
+    # Map action to intent for LLM formatting
+    action_to_intent_map = {
+        'new_pred': 'predict',
+        'predict': 'predict',
+        'important': 'important',
+        'explain': 'explain',
+        'score': 'performance',
+        'filter': 'data',
+        'data': 'data',
+        'statistic': 'statistics',
+        'define': 'define',
+        'model': 'about',
+        'self': 'about',
+        'followup': 'followup',
+        'whatif': 'whatif',
+        'counterfactual': 'counterfactual',
+        'mistakes': 'mistakes',
+        'interact': 'interactions',
+        'label': 'data'
+    }
+    
+    intent = action_to_intent_map.get(final_action, final_action)
     
     # CRITICAL THINKING FILTER RESET: Check if validation agent determined this query needs full dataset
     validation_response = autogen_response.get('validation_response', {})
@@ -885,9 +907,10 @@ def process_user_query(user_query):
     # - 'change': what-if scenarios should modify current context, not filter to existing data
     # - 'define': definition queries explain general concepts, not specific instances
     # - 'model': model information queries are independent of patient data
+    # - 'new_pred': new instance predictions should create hypothetical instances, not filter existing data
     filter_result = None
     should_filter = (entities.get('filter_type') or entities.get('features') or entities.get('patient_id') is not None)
-    skip_filtering = final_action in ['score', 'predict', 'change', 'define', 'model']
+    skip_filtering = final_action in ['score', 'predict', 'new_pred', 'change', 'define', 'model']
     
     if should_filter and not skip_filtering:
         # Auto-apply filtering based on AutoGen entities
