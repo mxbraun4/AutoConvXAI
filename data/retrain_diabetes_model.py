@@ -53,7 +53,7 @@ y_pred = model_pipeline.predict(X_test)
 print(f"✅ Validation accuracy: {accuracy_score(y_test, y_pred):.3f}")
 
 # Save the model with the correct filename
-model_path = "diabetes_model_logistic_regression.pkl"
+model_path = "../models/diabetes_model_logistic_regression.pkl"
 with open(model_path, "wb") as f:
     pkl.dump(model_pipeline, f)
 

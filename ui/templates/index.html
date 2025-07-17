@@ -1,0 +1,137 @@
+<!--
+TalkToModel Chat Interface
+Original design modified from: https://studygyaan.com/python/create-web-based-chatbot-in-python-django-flask
+This is the main chat interface for interacting with ML model explanations.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TalkToModel</title>
+  <!-- Responsive design and browser compatibility -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <!-- External dependencies -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <messagebody>
+        <!-- Main chat interface container -->
+        <section class="ttm">
+          <!-- Header with branding -->
+          <header class="ttm-header">
+            <h1 class="app-title">AutoConvXAI</h1>
+            <p class="app-subtitle">Conversational Explainable AI</p>
+          </header>
+          
+          <!-- Chat message display area -->
+          <main class="ttm-chat">
+            <!-- Initial welcome message -->
+            <div class="msg left-msg">
+              <div class="msg-bubble">
+                <div class="msg-text">
+                  Hello 😊, I'm a machine learning model trained to {{ datasetObjective }}.
+                  <br><br>
+                  Let's get started. Ask me something!
+                </div>
+              </div>
+            </div>
+          </main>
+
+          <!-- User input form -->
+          <form class="ttm-inputarea">
+            <input type="text" class="ttm-input" id="textInput" placeholder="Ask me about the data...">
+            <button type="submit" class="ttm-send-btn">Send</button>
+          </form>
+          
+          <!-- Help section toggle -->
+          <span class="genOptions">👇Help me generate a question about...👇</span>
+
+          <!-- Collapsible help section with suggestion buttons -->
+          <div class="slideDown">
+              <!-- Loading animation (shown during sample generation) -->
+              <div class="dots-cont" id="generation-loading"> 
+                <span class="dot dot-1"></span> 
+                <span class="dot dot-2"></span> 
+                <span class="dot dot-3"></span> 
+              </div>
+              
+              <!-- Sample question buttons organized by category -->
+              <div class="generation-sections" id="generation-buttons">
+                  <!-- 📊 Data & Exploration Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">📊 Data & Exploration</h3>
+                      <div class="section-buttons">
+                          <button id="idea-data" class="idea-button" onclick="sampleData()">🎲 dataset overview</button>
+                          <button id="idea-labels" class="idea-button" onclick="sampleLabels()">🎲 data labels</button>
+                          <button id="idea-statistic" class="idea-button" onclick="sampleStatistic()">🎲 feature statistics</button>
+                          <button id="idea-define" class="idea-button" onclick="sampleDefine()">🎲 feature definitions</button>
+                      </div>
+                  </div>
+                  
+                  <!-- 🔍 Filtering Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">🔍 Filtering</h3>
+                      <div class="section-buttons">
+                          <button id="idea-filter" class="idea-button" onclick="sampleFilter()">🎲 filter data</button>
+                      </div>
+                  </div>
+                  
+                  <!-- 🤖 Predictions & Analysis Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">🤖 Predictions & Analysis</h3>
+                      <div class="section-buttons">
+                          <button id="idea-predict" class="idea-button" onclick="sampleNewPred()">🎲 new predictions</button>
+                          <button id="idea-why" class="idea-button" onclick="sampleWhy()">🎲 explanations</button>
+                          <button id="idea-important" class="idea-button" onclick="sampleImportant()">🎲 important features</button>
+                      </div>
+                  </div>
+                  
+                  <!-- 📈 Model Performance Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">📈 Model Performance</h3>
+                      <div class="section-buttons">
+                          <button id="idea-performance" class="idea-button" onclick="samplePerformance()">🎲 model performance</button>
+                          <button id="idea-model" class="idea-button" onclick="sampleModel()">🎲 model info</button>
+                      </div>
+                  </div>
+                  
+                  <!-- 🔄 What-If Analysis Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">🔄 What-If Analysis</h3>
+                      <div class="section-buttons">
+                          <button id="idea-whatif" class="idea-button" onclick="sampleWhatIf()">🎲 what if scenarios</button>
+                          <button id="idea-flip" class="idea-button" onclick="sampleFlip()">🎲 counterfactuals</button>
+                      </div>
+                  </div>
+                  
+                  <!-- ❓ System Help Section -->
+                  <div class="button-section">
+                      <h3 class="section-title">❓ System Help</h3>
+                      <div class="section-buttons">
+                          <button id="idea-self" class="idea-button" onclick="sampleSelf()">🎲 about system</button>
+                          <button id="idea-followup" class="idea-button" onclick="sampleFollowup()">🎲 follow-up questions</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+        </section>
+    </messagebody>
+    <!-- Template variables for JavaScript -->
+    <script>
+        // Pass Flask template variables to JavaScript
+        const currentUserId = '{{ currentUserId }}';
+        const samplePromptUrl = "{{ url_for('.sample_prompt') }}";
+        const botResponseUrl = "{{ url_for('.get_bot_response') }}";
+    </script>
+    
+    <!-- External JavaScript files -->
+    <script src="/static/js/help-section.js"></script>
+    <script src="/static/js/sample-questions.js"></script>
+    <script src="/static/js/chat.js"></script>
+    <script src="/static/js/keyboard-nav.js"></script>
+</body>
+</html>

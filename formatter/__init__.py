@@ -1,0 +1,1 @@
+"""Response formatting components for converting structured results to natural language."""

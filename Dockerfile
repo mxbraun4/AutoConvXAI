@@ -31,11 +31,15 @@ FROM base AS light
 
 # Copy data files (these change less frequently)
 COPY data/ data/
-COPY templates/ templates/
-COPY static/ static/
+COPY models/ models/
 
-# Copy source code (copy most stable parts first for better caching)
-COPY explain/ explain/
+# Copy source code with new directory structure
+COPY ui/ ui/
+COPY nlu/ nlu/
+COPY explainability/ explainability/
+COPY formatter/ formatter/
+COPY app/ app/
+COPY config/ config/
 COPY main.py .
 
 # Create non-root user for security
@@ -54,11 +58,15 @@ FROM base AS full
 
 # Copy data files (these change less frequently)
 COPY data/ data/
-COPY templates/ templates/
-COPY static/ static/
+COPY models/ models/
 
-# Copy source code (copy most stable parts first for better caching)
-COPY explain/ explain/
+# Copy source code with new directory structure
+COPY ui/ ui/
+COPY nlu/ nlu/
+COPY explainability/ explainability/
+COPY formatter/ formatter/
+COPY app/ app/
+COPY config/ config/
 COPY main.py .
 
 # Create non-root user for security

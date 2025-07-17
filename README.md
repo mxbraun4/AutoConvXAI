@@ -56,7 +56,7 @@ python3 tests/autogen_example.py
 ### Programmatic Usage
 
 ```python
-from explain.autogen_decoder import AutoGenDecoder
+from nlu.autogen_decoder import AutoGenDecoder
 
 # Initialize decoder
 decoder = AutoGenDecoder(
@@ -80,7 +80,7 @@ The system uses a three-agent architecture:
 
 ## Files Structure
 
-- `explain/autogen_decoder.py` - Main AutoGen decoder implementation
+- `nlu/autogen_decoder.py` - Main AutoGen decoder implementation
 - `simple_autogen_app.py` - Simple Flask app for testing
 - `tests/autogen_example.py` - Example usage
 - `requirements.txt` - Python dependencies
