@@ -132,10 +132,8 @@ KEY DISTINCTIONS:
 - Do NOT use "mistake" or "show" actions - these should map to "explain" or "filter"
 
 PREDICTION QUERIES - Simple Rule:
-- Hypothetical (would predict) → new_pred
-- Question about actual (does predict) → filter
-- "what would the model predict for a person/someone" → new_pred (hypothetical case)
-- "what does the model predict for people/patients" → filter (shows existing data)
+- Questions about GROUPS/POPULATIONS → data (analyze existing patterns)
+- Questions about INDIVIDUALS → new_pred (generate hypothetical prediction)
 
 ENTITY EXTRACTION RULES:
 - ALWAYS extract features, operators, values when mentioned in any context
@@ -224,10 +222,8 @@ VALIDATION RULES:
 - NEVER validate to actions not in the above list
 
 PREDICTION QUERIES - Simple Rule:
-- Hypothetical (would predict) → new_pred
-- Question about actual (does predict) → filter
-- "what would the model predict for a person/someone" → new_pred (hypothetical case)
-- "what does the model predict for people/patients" → filter (shows existing data)
+- Questions about GROUPS/POPULATIONS → data (analyze existing patterns)
+- Questions about INDIVIDUALS → new_pred (generate hypothetical prediction)
 
 COMPOUND QUERY GUIDANCE: When multiple actions seem relevant, prioritize the primary intent, look for what actually is doable with given info and then choose ONE action.
 
@@ -253,9 +249,14 @@ First provide your critical analysis, then output your final JSON in a code bloc
     "prediction_values": [numbers_for_prediction_filtering_or_null],
     "label_values": [numbers_for_label_filtering_or_null]
   },
-  "confidence": 0.95
+  "confidence": 0.95,
+  "requires_full_dataset": true_or_false
 }
-```"""
+```
+
+IMPORTANT: Set "requires_full_dataset" to true when the query needs analysis of the full dataset (e.g., "show me patients with age > 50" when there are existing filters should reset to full dataset first).
+
+CONSENSUS MECHANISM: After providing your validation analysis and JSON, if your validated result matches the ActionExtractor's output exactly (same action and entities), end your response with "CONSENSUS_REACHED" to terminate the conversation early."""
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
         """
@@ -436,9 +437,22 @@ First provide your critical analysis, then output your final JSON in a code bloc
             return self._create_minimal_response(user_query, collaboration_result)
 
     def _configure_termination_condition(self):
-        """Configure Agent Team Termination Conditions - direct and simple."""
-        from autogen_agentchat.conditions import MaxMessageTermination
-        return MaxMessageTermination(self.max_rounds)
+        """Configure Agent Team Termination Conditions with consensus detection."""
+        from autogen_agentchat.conditions import MaxMessageTermination, TextMentionTermination
+        
+        # Create termination for consensus detection
+        consensus_termination = TextMentionTermination("CONSENSUS_REACHED")
+        logger.info("Configuring TextMentionTermination for consensus detection")
+        
+        # Create max message termination as fallback
+        max_message_termination = MaxMessageTermination(self.max_rounds)
+        logger.info(f"Configuring MaxMessageTermination with max_rounds={self.max_rounds}")
+        
+        # Combine conditions - terminate on consensus OR max messages
+        combined_termination = consensus_termination | max_message_termination
+        logger.info("Combined termination conditions: consensus detection OR max rounds")
+        
+        return combined_termination
 
     def _create_agent_team(self, termination_handler):
         """
@@ -469,10 +483,15 @@ First provide your critical analysis, then output your final JSON in a code bloc
             signature = inspect.signature(RoundRobinGroupChat)
             if "termination_condition" in signature.parameters:
                 team_parameters["termination_condition"] = termination_handler
+                logger.info("Termination condition attached using 'termination_condition' parameter")
             elif "termination" in signature.parameters:
                 team_parameters["termination"] = termination_handler
+                logger.info("Termination condition attached using 'termination' parameter")
             elif "termination_checker" in signature.parameters:
                 team_parameters["termination_checker"] = termination_handler
+                logger.info("Termination condition attached using 'termination_checker' parameter")
+            else:
+                logger.warning("Could not attach termination condition - no supported parameter found")
         
         return RoundRobinGroupChat(**team_parameters)
 
@@ -499,6 +518,9 @@ First provide your critical analysis, then output your final JSON in a code bloc
             # Debug: Log agent message content
             if hasattr(message, 'content') and message.content:
                 logger.debug(f"Message {message_index} from {getattr(message, 'source', 'unknown')}: {message.content[:500]}...")
+                # Check for consensus marker in message
+                if "CONSENSUS_REACHED" in message.content:
+                    logger.info(f"Found CONSENSUS_REACHED marker in message {message_index} - consensus should have triggered termination")
             else:
                 logger.debug(f"Message {message_index}: No content")
             
@@ -897,13 +919,13 @@ First provide your critical analysis, then output your final JSON in a code bloc
             logger.info("Executing AutoGen processing in isolated thread...")
             with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 future = executor.submit(run_in_isolated_thread)
-                result = future.result(timeout=30)  # Increased back to 30 seconds to handle complex agent discussions
+                result = future.result(timeout=60)  # Increased to 60 seconds for reliable AutoGen processing
                 logger.info("Thread execution completed successfully")
                 return result
                 
         except concurrent.futures.TimeoutError:
-            logger.error("Thread execution timed out after 30 seconds")
-            return self._create_error_response("System timeout after 30 seconds - agents need more focus")
+            logger.error("Thread execution timed out after 60 seconds")
+            return self._create_error_response("System timeout after 60 seconds - agents need more focus")
         except Exception as e:
             logger.error(f"Thread execution failed: {e}")
             return self._create_error_response(f"Thread execution error: {str(e)}")

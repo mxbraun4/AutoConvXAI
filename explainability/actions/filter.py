@@ -61,26 +61,22 @@ def label_filter(temp_dataset, conversation, feature_name):
     return updated_dset, interpretable_parse_text
 
 
-def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
+def filter_operation(conversation, parse_text, i, **kwargs):
     """The filtering operation.
 
     This function performs filtering on a data set using ONLY AutoGen-parsed entities.
     It updates the temp_dataset attribute in the conversation object.
     
     NO FALLBACKS - AutoGen must provide structured entities for all filtering operations.
+    Note: OR operations are not supported - only AND operations between multiple conditions.
 
     Arguments:
-        is_or: Whether this is an OR operation
         conversation: The conversation object
         parse_text: Legacy parameter (ignored in clean architecture)
         i: Legacy parameter (ignored in clean architecture)
         **kwargs: Must contain AutoGen entities (features, operators, values)
     """
-    if is_or:
-        # construct a new temp data set to or with
-        temp_dataset = conversation.build_temp_dataset(save=False).contents
-    else:
-        temp_dataset = conversation.temp_dataset.contents
+    temp_dataset = conversation.temp_dataset.contents
 
     # Extract AutoGen entities - these are REQUIRED in clean architecture
     ent_features = kwargs.get('features', []) if kwargs else []
@@ -182,13 +178,8 @@ def filter_operation(conversation, parse_text, i, is_or=False, **kwargs):
             "The AutoGen decoder needs to be improved to handle this query type."
         )
 
-    if is_or:
-        current_dataset = conversation.temp_dataset.contents
-        updated_dset['X'] = pd.concat([updated_dset['X'], current_dataset['X']]).drop_duplicates()
-        updated_dset['y'] = pd.concat([updated_dset['y'], current_dataset['y']]).drop_duplicates()
-        conversation.add_interpretable_parse_op("or")
-    else:
-        conversation.add_interpretable_parse_op("and")
+    # Only AND operations are supported
+    conversation.add_interpretable_parse_op("and")
 
     conversation.add_interpretable_parse_op(interp_parse_text)
     conversation.temp_dataset.contents = updated_dset

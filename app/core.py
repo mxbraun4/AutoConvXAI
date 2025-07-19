@@ -61,14 +61,14 @@ def _safe_model_predict(model, data):
         # Fallback to numpy array if DataFrame fails
         return model.predict(data.values)
 
-def _should_reset_filter_context(intent, entities, user_query, conversation):
+def _should_reset_filter_context(action_name, entities, user_query, conversation):
     """Determine if we should reset the filter context for a new query."""
     
-    # Never reset for these intents that explicitly want to work with current context
-    context_dependent_intents = {
+    # Never reset for these actions that explicitly want to work with current context
+    context_dependent_actions = {
         'followup'
     }
-    if intent in context_dependent_intents:
+    if action_name in context_dependent_actions:
         return False
     
     # Reset if there's no current filtering (nothing to lose)
@@ -109,14 +109,14 @@ def _should_reset_filter_context(intent, entities, user_query, conversation):
     if any(keyword in query_lower for keyword in context_keywords):
         return False
     
-    # Reset for new analysis intents when we have existing filters
-    new_analysis_intents = {
-        'performance', 'data', 'statistics', 'count', 'important', 'mistakes', 
-        'confidence', 'interactions', 'predict', 'whatif'
+    # Reset for new analysis actions when we have existing filters
+    new_analysis_actions = {
+        'score', 'data', 'statistic', 'important', 'mistakes', 
+        'interact', 'predict', 'whatif', 'filter'
     }
     
-    # Reset if it's a new analysis intent with new filtering criteria
-    if intent in new_analysis_intents:
+    # Reset if it's a new analysis action with new filtering criteria
+    if action_name in new_analysis_actions:
         # Check if this query introduces its own filtering
         has_new_filters = (
             entities.get('features') or 
@@ -127,7 +127,7 @@ def _should_reset_filter_context(intent, entities, user_query, conversation):
         )
         
         # Reset if we have new filtering criteria or if it's a general question
-        return has_new_filters or intent in {'performance', 'data', 'count', 'mistakes'}
+        return has_new_filters or action_name in {'score', 'data', 'mistakes'}
     
     return False
 
@@ -154,28 +154,6 @@ def process_user_query(user_query, conversation, action_dispatcher, formatter):
     # Extract intent from the nested intent_response for filter reset logic
     intent_response = autogen_response.get('intent_response', {})
     
-    # Map action to intent for LLM formatting
-    action_to_intent_map = {
-        'new_pred': 'predict',
-        'predict': 'predict',
-        'important': 'important',
-        'explain': 'explain',
-        'score': 'performance',
-        'filter': 'data',
-        'data': 'data',
-        'statistic': 'statistics',
-        'define': 'define',
-        'model': 'about',
-        'self': 'about',
-        'followup': 'followup',
-        'whatif': 'whatif',
-        'counterfactual': 'counterfactual',
-        'mistakes': 'mistakes',
-        'interact': 'interactions',
-        'label': 'data'
-    }
-    
-    intent = action_to_intent_map.get(final_action, final_action)
     
     # CRITICAL THINKING FILTER RESET: Check if validation agent determined this query needs full dataset
     validation_response = autogen_response.get('validation_response', {})
@@ -183,13 +161,13 @@ def process_user_query(user_query, conversation, action_dispatcher, formatter):
     
     if requires_full_dataset:
         conversation.reset_temp_dataset()
-        logger.info(f"Critical thinking agent determined query requires full dataset - reset filter for: {intent}")
+        logger.info(f"Critical thinking agent determined query requires full dataset - reset filter for: {final_action}")
     else:
         # SMART FILTER RESET: Reset filters when starting a new analysis that doesn't reference previous context
-        should_reset_filter = _should_reset_filter_context(intent, entities, user_query, conversation)
+        should_reset_filter = _should_reset_filter_context(final_action, entities, user_query, conversation)
         if should_reset_filter:
             conversation.reset_temp_dataset()
-            logger.info(f"Auto-reset filter context for new analysis: {intent}")
+            logger.info(f"Auto-reset filter context for new analysis: {final_action}")
     
     # Component 2: Action dispatcher executes explainability functions  
     # Apply filtering if AutoGen detected filtering entities
@@ -202,7 +180,7 @@ def process_user_query(user_query, conversation, action_dispatcher, formatter):
     # - 'new_pred': new instance predictions should create hypothetical instances, not filter existing data
     filter_result = None
     should_filter = (entities.get('filter_type') or entities.get('features') or entities.get('patient_id') is not None)
-    skip_filtering = final_action in ['score', 'predict', 'new_pred', 'change', 'define', 'model']
+    skip_filtering = final_action in ['score', 'predict', 'new_pred', 'change', 'define', 'model', 'whatif']
     
     if should_filter and not skip_filtering:
         # Auto-apply filtering based on AutoGen entities
@@ -221,9 +199,9 @@ def process_user_query(user_query, conversation, action_dispatcher, formatter):
     else:
         action_result = filter_result
     
-    # Component 3: Format with LLM (pass AutoGen intent and conversation for context)
+    # Component 3: Format with LLM (pass action and conversation for context)
     logger.info(f"Action result before formatting: {action_result}")
-    formatted_response = formatter.format_response(user_query, final_action, action_result, intent, conversation)
+    formatted_response = formatter.format_response(user_query, final_action, action_result, conversation)
     
     # Add to conversation history with full context
     conversation.add_turn(user_query, formatted_response, final_action, entities, action_result)

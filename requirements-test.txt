@@ -2,9 +2,9 @@
 # This file contains only the dependencies needed to run the parsing accuracy tests
 
 # AutoGen Framework - for the decoder
-autogen-agentchat>=0.4.0,<0.7.0
-autogen-core>=0.4.0,<0.7.0
-autogen-ext>=0.4.0,<0.7.0
+autogen-agentchat==0.6.4
+autogen-core==0.6.4
+autogen-ext==0.6.4
 
 # OpenAI API client
 openai>=1.0.0

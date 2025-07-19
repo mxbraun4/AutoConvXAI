@@ -387,8 +387,8 @@ def evaluate_all_cases():
         return
     
     # Initialize evaluator with smart rate limiting
-    test_cases_file = '/app/parsing_accuracy/converted_test_cases.json'
-    evaluator = AutoGenEvaluator(test_cases_file, api_key, delay_between_calls=0.5)
+    test_cases_file = '/app/evaluation/parsing_accuracy/converted_test_cases.json'
+    evaluator = AutoGenEvaluator(test_cases_file, api_key, delay_between_calls=0.1)
     
     total_cases = len(evaluator.test_cases)
     batch_size = 20
@@ -396,10 +396,10 @@ def evaluate_all_cases():
     
     print(f"Starting AutoGen evaluation on all {total_cases} test cases...")
     print(f"Processing in {num_batches} batches of {batch_size} cases each")
-    print("Using sequential processing with 0.5s rate limiting and 10s breaks between batches")
+    print("Using sequential processing with 0.1s rate limiting and 10s breaks between batches")
     
     # Estimate time including batch breaks
-    test_time = total_cases * 0.5  # 0.5s per call, sequential
+    test_time = total_cases * 0.1  # 0.1s per call, sequential
     break_time = (num_batches - 1) * 10  # 10s break between batches
     estimated_time = test_time + break_time
     print(f"Estimated time: {estimated_time:.0f} seconds ({estimated_time/60:.1f} minutes)\n")
@@ -482,7 +482,7 @@ def main():
         return
     
     # Initialize evaluator
-    test_cases_file = '/app/parsing_accuracy/converted_test_cases.json'
+    test_cases_file = '/app/evaluation/parsing_accuracy/converted_test_cases.json'
     evaluator = AutoGenEvaluator(test_cases_file, api_key)
     
     # Run evaluation on subset (for speed)

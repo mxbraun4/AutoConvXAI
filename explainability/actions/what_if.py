@@ -106,7 +106,15 @@ def what_if_operation(conversation, parse_text, i, **kwargs):
         return {'type': 'error', 'message': f'Unknown feature: {feature_name}'}, 0
     
     feature_name = actual_feature
-    update_value = values[0]
+    
+    # Handle value selection intelligently
+    # If we have multiple values (e.g., [null, 2] for contextual what-if), use the last non-null value
+    if len(values) > 1 and values[-1] is not None:
+        update_value = values[-1]  # Use the last (new) value
+    elif len(values) == 1 and values[0] is not None:
+        update_value = values[0]
+    else:
+        return {'type': 'error', 'message': 'No valid value specified for what-if analysis!'}, 0
     
     # Determine the operation type from operators or infer from context
     if operators and operators[0] == '+':
