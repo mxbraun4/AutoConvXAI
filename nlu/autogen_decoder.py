@@ -105,54 +105,60 @@ class AutoGenDecoder:
 
 TASK: Extract action and entities from user queries about machine learning models.
 
-APPROACH: First explain your reasoning, then provide JSON output.
+CRITICAL THINKING INSTRUCTION:
+- Don't just match keywords - understand the underlying INTENT
+- Surface words can be misleading: "predict people" might sound like new_estimate but asking about existing population patterns = data
+- "X more than Y" might sound like comparison but could be entity filtering condition
+- Always ask: "What is the user actually trying to accomplish?"
+- When in doubt, prioritize the ANALYTICAL INTENT over surface word matching
 
-ACTION DEFINITIONS:
-- data: Analyze groups/populations in the dataset ("people", "patients", "those who"). Returns counts, percentages, or statistics about existing data
-- new_pred: Generate NEW probability score for an individual case ("someone", "a person", "a patient"). Returns a single prediction probability for a new instance
-- explain: Reasoning and methodology behind model decisions, including data descriptions and mistake analysis. Use for "describe the data", "how does X work", "what mistakes", etc.
-- important: Feature importance rankings
-- score: Model performance metrics
-- filter: Display/show specific data points that match criteria (returns actual instances, not counts). Use for "show labels", "show data points", "what predictions for people/patients with X", "predictions for those with X"
-- whatif: Explore how changes to existing data points affect predictions
-- counterfactual: Find specific changes needed to achieve desired outcomes
-- statistic: Distribution analysis of a single feature (mean, std, etc) without conditions
-- label: Ground truth values
-- define: Feature definitions
-- self: System information
-- followup: Analysis based on previous results
-- model: Model architecture details
-- interact: Feature interaction analysis - how features work together to influence predictions
+APPROACH: Express your interpretation with confidence level and any uncertainties. If confident, provide JSON. If uncertain, explain concerns and invite discussion.
 
-KEY DISTINCTIONS:
-- Use "filter" for queries asking to "show" or "display" specific data points or labels
-- Use "explain" for ANY question about model reasoning, data descriptions, or mistake analysis
-- Use "interact" for questions about how features work together or feature interactions
-- Use "explain" NOT "data" for general data description questions like "describe the data"
-- Do NOT use "mistake" or "show" actions - these should map to "explain" or "filter"
+ACTION RECOGNITION PATTERNS:
+- data: "How many people", "What percentage of patients", "Likelihood of [GROUP] having"
+- new_estimate: "What would you predict for someone", "If a person has X, probability"
+- important: "X more important than Y", "which feature matters most", "rank features"
+- explain: "How does the model work", "Why does it predict", "model's reasoning"
+- whatif: "predict changes if we modify", "how would predictions change if"
+- filter: "show me data points", "display patients with", "what labels for people"
+- mistake: "model errors", "incorrect predictions", "where model fails"
+- statistic: "average age of", "mean BMI for", distribution analysis
 
-PREDICTION QUERIES - Simple Rule:
-- Questions about GROUPS/POPULATIONS → data (analyze existing patterns)
-- Questions about INDIVIDUALS → new_pred (generate hypothetical prediction)
+UNCERTAINTY AREAS (Express concerns about these):
+- "predict people" - could be new_estimate (prediction) or data (population analysis)
+- "X more than Y" - could be important (comparison) or filtering condition
+- "changes if we modify" - could be whatif (modification) or new_estimate (prediction)
+- Complex entities - multiple features, operators, unclear references
 
-ENTITY EXTRACTION RULES:
-- ALWAYS extract features, operators, values when mentioned in any context
-- Entity extraction is independent of intent type - extract whenever present
+CONFIDENCE GUIDANCE:
+- High confidence (0.9+): Clear single interpretation
+- Medium confidence (0.7-0.8): Some uncertainty, explain concerns
+- Low confidence (<0.7): Multiple valid interpretations, seek discussion
+
+ENTITY EXTRACTION (MANDATORY):
+- Always extract features, operators, values when mentioned
+- Applies to ALL actions - don't skip for explain/important/interact
+- Examples: "glucose over 120" → features:["Glucose"], operators:[">"], values:[120]
+
+ENTITY EXTRACTION RULES - MANDATORY:
+- ALWAYS extract features, operators, values when mentioned - NO EXCEPTIONS
+- Entity extraction is INDEPENDENT of action type (extract even for explain/important/interact)
+- Never skip entity extraction regardless of the chosen action
+- Extract entities even if action seems unrelated to filtering/conditions
 
 FEATURE RECOGNITION PATTERNS:
 - Direct mention: "BMI", "age", "glucose" → feature names
 - Natural language: "people with high BMI" → features: ["BMI"]
 - Compound phrases: "patients over 40 years old" → features: ["Age"]
 
-OPERATOR RECOGNITION PATTERNS:
-- "over", "above", "more than", "greater than" → ">"
-- "under", "below", "less than", "fewer than" → "<"
-- "at least", "minimum of" → ">="
-- "at most", "maximum of" → "<="
-- "equal to", "exactly", "is" → "="
-- "not equal", "different from" → "!="
-- "increase by", "increased by", "add", "plus" → "+"
-- "decrease by", "decreased by", "subtract", "eliminate", "remove" → "-"
+OPERATORS:
+- "over/above/more than 30" → ">"
+- "30+/at least 30" → ">="  
+- "under/below/less than 30" → "<"
+- "30 or less/up to 30" → "<="
+- "equal to/exactly 30" → "="
+- "increase by 5" → "+"
+- "decrease by 5" → "-"
 
 VALUE EXTRACTION:
 - Numbers with units: "40 years old" → values: [40], features: ["Age"]  
@@ -168,25 +174,50 @@ FOCUS: Determine if the query seeks information about existing data or creation 
 
 COMPOUND QUESTIONS: Choose the PRIMARY action when multiple actions seem relevant. For questions asking both "why" and "how to change", prioritize the explanation aspect.
 
+COLLABORATIVE DISCUSSION:
+- Express confidence level: "I'm confident this is X" vs "I'm uncertain between X and Y"
+- Share specific concerns: "This could be data vs new_estimate because..."
+- Engage with validator feedback: "Your point about Z makes me reconsider..."
+- Continue discussion if valuable, max 4 rounds
+- Use phrases like: "I see your reasoning, but...", "That's a good point, however..."
+
 OUTPUT FORMAT:
-First provide a brief explanation of your interpretation, then output your JSON in a code block:
+First provide a brief explanation of your interpretation, then ALWAYS output your JSON in a code block with this EXACT format:
 
 ```json
 {
   "action": "single_detected_action",
   "entities": {
-    "patient_id": number_or_null,
-    "features": ["feature_names_or_null"],
-    "operators": ["operators_or_null"], 
-    "values": [numbers_or_null],
-    "topk": number_or_null,
-    "filter_type": "prediction|feature|label|null",
-    "prediction_values": [numbers_for_prediction_filtering_or_null],
-    "label_values": [numbers_for_label_filtering_or_null]
-  },
-  "confidence": 0.95
+    "patient_id": null,
+    "features": null,
+    "operators": null,
+    "values": null,
+    "topk": null,
+    "filter_type": null,
+    "prediction_values": null,
+    "label_values": null
+  }
 }
-```"""
+```
+
+FIELD DEFINITIONS:
+- action: One of the valid actions (data, new_estimate, explain, mistake, important, score, filter, whatif, counterfactual, statistic, label, define, self, followup, model, interact)
+- patient_id: Specific patient/data point number if mentioned (e.g., "patient 21" → 21), otherwise null
+- features: Array of feature names mentioned (e.g., ["age", "bmi"]), or null if none
+- operators: Array of operators for conditions (e.g., [">", "<=", "="]), must match features length, or null
+- values: Array of numeric values for conditions (e.g., [40, 30.5]), must match features length, or null  
+- topk: Number for "top X", "best X" requests (e.g., "top 5" → 5), otherwise null
+- filter_type: "label" for filtering by ground truth, "prediction" for filtering by model output, "feature" for feature-based, or null
+- prediction_values: Array of prediction values when filter_type is "prediction" (e.g., [0.8] for "prediction > 0.8"), otherwise null
+- label_values: Array of label values when filter_type is "label" (e.g., [1] for diabetic, [0] for non-diabetic), otherwise null
+
+CRITICAL: 
+- ALWAYS use the ```json code block format
+- Set unused entity fields to null (not empty arrays or strings)
+- Arrays must have matching lengths for features/operators/values
+- The JSON must be valid and parseable
+- DO NOT include comments (// or /* */) in the JSON - they break parsing
+- NO explanatory text inside the JSON structure"""
 
     def _create_action_validation_prompt(self) -> str:
         """Generate discussion-focused validation prompt for action analysis."""
@@ -194,69 +225,86 @@ First provide a brief explanation of your interpretation, then output your JSON 
 
 TASK: Validate and refine the action extraction agent's interpretation.
 
-APPROACH: Review the extraction, provide critical analysis, then output your validated JSON.
+CRITICAL THINKING INSTRUCTION:
+- Don't just match keywords - understand the underlying INTENT
+- Surface words can be misleading: "predict people" might sound like new_estimate but asking about existing population patterns = data
+- "X more than Y" might sound like comparison but could be entity filtering condition
+- Always ask: "What is the user actually trying to accomplish?"
+- When in doubt, prioritize the ANALYTICAL INTENT over surface word matching
 
-ACTION DEFINITIONS FOR VALIDATION:
-- data: Analyze groups/populations in the dataset ("people", "patients", "those who"). Returns counts, percentages, or statistics about existing data
-- new_pred: Generate NEW probability score for an individual case ("someone", "a person", "a patient"). Returns a single prediction probability for a new instance
-- explain: Reasoning and methodology behind model decisions, including data descriptions and mistake analysis. Use for "describe the data", "how does X work", "what mistakes", etc.
-- important: Feature importance rankings
-- score: Model performance metrics
-- filter: Display/show specific data points that match criteria (returns actual instances, not counts). Use for "show labels", "show data points", "what predictions for people/patients with X", "predictions for those with X"
-- whatif: Explore how changes to existing data points affect predictions (requires specific features to change, not just patient_id)
-- counterfactual: Find specific changes needed to achieve desired outcomes
-- statistic: Distribution analysis of a single feature (mean, std, etc) without conditions
-- label: Ground truth values
-- define: Feature definitions
-- self: System information
-- followup: Analysis based on previous results
-- model: Model architecture details
-- interact: Feature interaction analysis - how features work together to influence predictions
+APPROACH: Engage collaboratively with ActionExtractor. Question interpretations, propose alternatives, build on their reasoning. Discuss uncertainties rather than just correcting.
 
-VALIDATION RULES:
-- If the extraction agent used "interact", "mistake", or "show", validate to use "explain" or "filter" instead
-- Use "filter" for queries asking to "show" or "display" specific data points or labels
-- Use "explain" for ANY question about model reasoning, data descriptions, or mistake analysis
-- Use "interact" for questions about how features work together or feature interactions
-- Use "explain" NOT "data" for general data description questions like "describe the data"
-- NEVER validate to actions not in the above list
+COLLABORATIVE VALIDATION:
+Instead of just correcting, engage in discussion:
+- "I see why you chose X, but have you considered Y because..."
+- "Your interpretation of Z makes sense, but what about this aspect..."
+- "I agree with your action choice, but let's discuss the entity extraction..."
+- "That's an interesting point about A, here's another perspective..."
 
-PREDICTION QUERIES - Simple Rule:
-- Questions about GROUPS/POPULATIONS → data (analyze existing patterns)
-- Questions about INDIVIDUALS → new_pred (generate hypothetical prediction)
+DISCUSSION TRIGGERS:
+- ActionExtractor expresses uncertainty or low confidence
+- Multiple valid interpretations exist
+- Complex entity extraction scenarios
+- Ambiguous query wording
 
-COMPOUND QUERY GUIDANCE: When multiple actions seem relevant, prioritize the primary intent, look for what actually is doable with given info and then choose ONE action.
+WHEN TO CONTINUE DISCUSSION:
+- Genuine disagreement on action classification
+- Uncertainty about entity extraction
+- Competing valid interpretations
+- Complex edge cases worth exploring
 
-ENTITY VALIDATION CHECKLIST:
-- Are features correctly identified from natural language?
-- Are operators and values properly extracted from conditions?
-- Is topk captured for ranking requests?
-- Are filter types and values appropriate?
+ACTION CORRECTIONS:
+- data: Population patterns, existing data analysis
+- new_estimate: Individual case predictions
+- important: Feature rankings/comparisons  
+- explain: Model methodology
+- whatif: Changes to existing data points
+- filter: Show specific matching data points
+
 
 OUTPUT FORMAT:
-First provide your critical analysis, then output your final JSON in a code block:
+First provide your critical analysis, then ALWAYS output your final JSON in a code block with this EXACT format:
 
 ```json
 {
-  "validated_action": "single_final_action",
+  "action": "single_final_action",
   "entities": {
-    "patient_id": number_or_null,
-    "features": ["feature_names_or_null"],
-    "operators": ["operators_or_null"], 
-    "values": [numbers_or_null],
-    "topk": number_or_null,
-    "filter_type": "prediction|feature|label|null",
-    "prediction_values": [numbers_for_prediction_filtering_or_null],
-    "label_values": [numbers_for_label_filtering_or_null]
-  },
-  "confidence": 0.95,
-  "requires_full_dataset": true_or_false
+    "patient_id": null,
+    "features": null,
+    "operators": null,
+    "values": null,
+    "topk": null,
+    "filter_type": null,
+    "prediction_values": null,
+    "label_values": null
+  }
 }
 ```
 
-IMPORTANT: Set "requires_full_dataset" to true when the query needs analysis of the full dataset (e.g., "show me patients with age > 50" when there are existing filters should reset to full dataset first).
+FIELD DEFINITIONS:
+- action: One of the valid actions (data, new_estimate, explain, mistake, important, score, filter, whatif, counterfactual, statistic, label, define, self, followup, model, interact)
+- patient_id: Specific patient/data point number if mentioned (e.g., "patient 21" → 21), otherwise null
+- features: Array of feature names mentioned (e.g., ["age", "bmi"]), or null if none
+- operators: Array of operators for conditions (e.g., [">", "<=", "="]), must match features length, or null
+- values: Array of numeric values for conditions (e.g., [40, 30.5]), must match features length, or null  
+- topk: Number for "top X", "best X" requests (e.g., "top 5" → 5), otherwise null
+- filter_type: "label" for filtering by ground truth, "prediction" for filtering by model output, "feature" for feature-based, or null
+- prediction_values: Array of prediction values when filter_type is "prediction" (e.g., [0.8] for "prediction > 0.8"), otherwise null
+- label_values: Array of label values when filter_type is "label" (e.g., [1] for diabetic, [0] for non-diabetic), otherwise null
 
-CONSENSUS MECHANISM: After providing your validation analysis and JSON, if your validated result matches the ActionExtractor's output exactly (same action and entities), end your response with "CONSENSUS_REACHED" to terminate the conversation early."""
+CRITICAL: 
+- ALWAYS use the ```json code block format
+- Use "action" (not "validated_action") to match the extraction agent
+- Set unused entity fields to null (not empty arrays or strings)
+- Arrays must have matching lengths for features/operators/values
+- The JSON must be valid and parseable
+
+DISCUSSION & CONSENSUS:
+- If ActionExtractor is confident and correct: "I agree with your interpretation" + same JSON + "CONSENSUS_REACHED"
+- If uncertainty or disagreement: Engage in collaborative discussion
+- Use collaborative language: "What do you think about...", "Have you considered...", "Your point about X is valid, but..."
+- After productive discussion: Provide final agreed JSON + "CONSENSUS_REACHED"
+- Maximum 4 rounds, focus on genuine interpretive challenges"""
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
         """
@@ -517,27 +565,38 @@ CONSENSUS MECHANISM: After providing your validation analysis and JSON, if your 
         for message_index, message in enumerate(collaboration_result.messages):
             # Debug: Log agent message content
             if hasattr(message, 'content') and message.content:
-                logger.debug(f"Message {message_index} from {getattr(message, 'source', 'unknown')}: {message.content[:500]}...")
+                logger.warning(f"=== MESSAGE {message_index} FULL CONTENT ===")
+                logger.warning(f"Source: {getattr(message, 'source', 'unknown')}")
+                logger.warning(f"Length: {len(message.content)}")
+                logger.warning(f"Content: {message.content}")
+                logger.warning(f"=== END MESSAGE {message_index} ===")
                 # Check for consensus marker in message
                 if "CONSENSUS_REACHED" in message.content:
                     logger.info(f"Found CONSENSUS_REACHED marker in message {message_index} - consensus should have triggered termination")
             else:
-                logger.debug(f"Message {message_index}: No content")
+                logger.warning(f"Message {message_index}: No content")
             
             extracted_response = self._extract_json_response(message, message_index)
             
             if extracted_response and isinstance(extracted_response, dict):
+                logger.info(f"Message {message_index}: Successfully extracted JSON: {extracted_response}")
                 # Classify response by content structure
                 response_type = self._classify_response_type(extracted_response)
+                logger.info(f"Message {message_index}: Classified as response type: {response_type}")
                 
-                if response_type == "action" and not intent_response:
-                    intent_response = extracted_response
-                    # Handle casual conversation early termination
-                    if intent_response.get('action') == 'self':
-                        return self._create_casual_response()
-                        
-                elif response_type == "action_validation" and not intent_validation_response:
-                    intent_validation_response = extracted_response
+                # Since both agents now use "action", assign by order: first = extraction, second = validation
+                if response_type == "action":
+                    if not intent_response:
+                        intent_response = extracted_response
+                        logger.info(f"Message {message_index}: Set as intent_response (first action response)")
+                        # Handle casual conversation early termination
+                        if intent_response.get('action') == 'self':
+                            return self._create_casual_response()
+                    elif not intent_validation_response:
+                        intent_validation_response = extracted_response
+                        logger.info(f"Message {message_index}: Set as intent_validation_response (second action response)")
+            else:
+                logger.warning(f"Message {message_index}: Failed to extract valid JSON response")
         
         # Log what we found from agents for debugging
         logger.info(f"Agent responses found: Intent={bool(intent_response)}, IntentValidation={bool(intent_validation_response)}")
@@ -558,32 +617,57 @@ CONSENSUS MECHANISM: After providing your validation analysis and JSON, if your 
         content = message.content
         
         try:
-            # Pattern 1: JSON code block
             import re
+            
+            # Pattern 1: JSON code block (most common and reliable)
             json_block_match = re.search(r'```json\s*(\{.*?\})\s*```', content, re.DOTALL)
             if json_block_match:
-                result = json.loads(json_block_match.group(1))
-                # Ensure we only return dict objects
+                json_str = json_block_match.group(1).strip()
+                logger.debug(f"Message {message_index}: Found JSON code block: {json_str[:100]}...")
+                result = json.loads(json_str)
                 return result if isinstance(result, dict) else None
             
-            # Pattern 2: Direct JSON
+            # Pattern 2: JSON code block without 'json' label
+            json_block_match = re.search(r'```\s*(\{.*?\})\s*```', content, re.DOTALL)
+            if json_block_match:
+                json_str = json_block_match.group(1).strip()
+                logger.debug(f"Message {message_index}: Found generic code block: {json_str[:100]}...")
+                result = json.loads(json_str)
+                return result if isinstance(result, dict) else None
+            
+            # Pattern 3: Direct JSON (entire content is JSON)
             if content.strip().startswith('{') and content.strip().endswith('}'):
-                result = json.loads(content.strip())
-                # Ensure we only return dict objects
+                json_str = content.strip()
+                logger.debug(f"Message {message_index}: Found direct JSON: {json_str[:100]}...")
+                result = json.loads(json_str)
                 return result if isinstance(result, dict) else None
                 
-            # Pattern 3: Embedded JSON
-            json_pattern = r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}'
-            json_matches = re.findall(json_pattern, content)
-            for match in json_matches:
-                result = json.loads(match)
-                # Ensure we only return dict objects
-                if isinstance(result, dict):
-                    return result
+            # Pattern 4: Enhanced embedded JSON with balanced braces
+            # Find JSON objects with proper brace balancing
+            brace_count = 0
+            start_pos = -1
+            
+            for i, char in enumerate(content):
+                if char == '{':
+                    if brace_count == 0:
+                        start_pos = i
+                    brace_count += 1
+                elif char == '}':
+                    brace_count -= 1
+                    if brace_count == 0 and start_pos != -1:
+                        json_candidate = content[start_pos:i+1]
+                        try:
+                            result = json.loads(json_candidate)
+                            if isinstance(result, dict):
+                                logger.debug(f"Message {message_index}: Found embedded JSON: {json_candidate[:100]}...")
+                                return result
+                        except json.JSONDecodeError:
+                            continue  # Try next potential JSON object
+                        
         except json.JSONDecodeError as e:
-            logger.debug(f"Message {message_index}: JSON decode error in embedded pattern: {e}")
+            logger.warning(f"Message {message_index}: JSON decode error: {e}")
         
-        logger.debug(f"Message {message_index}: No valid JSON found after trying all patterns")
+        logger.warning(f"Message {message_index}: No valid JSON found after trying all patterns. Content preview: {content[:200]}...")
         return None
 
     def _classify_response_type(self, response: Dict) -> str:
@@ -604,10 +688,10 @@ CONSENSUS MECHANISM: After providing your validation analysis and JSON, if your 
         if response is None:
             return "unknown"
             
+        # Since both agents now use "action", classify by response order/context
+        # The first agent response is extraction, subsequent ones are validation
         if 'action' in response:
-            return "action"
-        elif 'validated_action' in response:
-            return "action_validation"
+            return "action"  # Will handle ordering in the caller
         elif 'valid' in response:
             return "validation"
         else:

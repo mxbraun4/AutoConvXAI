@@ -359,16 +359,18 @@ class AutoGenEvaluator:
             'detailed_results': []
         }
         
+        # Only save mismatches (cases where overall_match is False)
         for result in results:
-            output_data['detailed_results'].append({
-                'question': result.question,
-                'expected': result.expected_json,
-                'actual': result.autogen_output,
-                'action_match': result.action_match,
-                'entities_match': result.entities_match,
-                'overall_match': result.overall_match,
-                'error': result.error_message
-            })
+            if not result.overall_match:  # Only include mismatches
+                output_data['detailed_results'].append({
+                    'question': result.question,
+                    'expected': result.expected_json,
+                    'actual': result.autogen_output,
+                    'action_match': result.action_match,
+                    'entities_match': result.entities_match,
+                    'overall_match': result.overall_match,
+                    'error': result.error_message
+                })
         
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)

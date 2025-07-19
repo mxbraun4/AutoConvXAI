@@ -32,7 +32,7 @@ def get_all_action_functions_map():
         'interact': measure_interaction_effects,
         'filter': filter_operation,
         'explain': explain_operation,
-        'new_pred': predict_operation,
+        'new_estimate': predict_operation,
         'self': self_operation,
         'data': data_operation,
         'followup': followup_operation,

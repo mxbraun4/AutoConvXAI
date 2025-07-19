@@ -177,10 +177,10 @@ def process_user_query(user_query, conversation, action_dispatcher, formatter):
     # - 'change': what-if scenarios should modify current context, not filter to existing data
     # - 'define': definition queries explain general concepts, not specific instances
     # - 'model': model information queries are independent of patient data
-    # - 'new_pred': new instance predictions should create hypothetical instances, not filter existing data
+    # - 'new_estimate': new instance predictions should create hypothetical instances, not filter existing data
     filter_result = None
     should_filter = (entities.get('filter_type') or entities.get('features') or entities.get('patient_id') is not None)
-    skip_filtering = final_action in ['score', 'predict', 'new_pred', 'change', 'define', 'model', 'whatif']
+    skip_filtering = final_action in ['score', 'predict', 'new_estimate', 'change', 'define', 'model', 'whatif']
     
     if should_filter and not skip_filtering:
         # Auto-apply filtering based on AutoGen entities

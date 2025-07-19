@@ -201,7 +201,7 @@ def sample_prompt():
                 "What model are we using?",
                 "Model information"
             ],
-            'new_pred': [
+            'new_estimate': [
                 "Predict for a new patient with BMI=35",
                 "Make a prediction for new values",
                 "What's the prediction for a 60 year old with glucose=150?"

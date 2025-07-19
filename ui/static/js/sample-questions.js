@@ -45,7 +45,7 @@ function sampleDefine() { doSample("define"); }
 function sampleFilter() { doSample("filter"); }
 
 // Model Analysis
-function sampleNewPred() { doSample("new_pred"); }
+function sampleNewPred() { doSample("new_estimate"); }
 function sampleWhy() { doSample("explain"); }
 function sampleImportant() { doSample("important"); }
 function samplePerformance() { doSample("score"); }

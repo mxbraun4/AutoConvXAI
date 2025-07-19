@@ -10,7 +10,7 @@ class LLMFormatter:
     # Configuration constants
     MAX_TOKENS = 150
     TEMPERATURE = 0.3
-    CONCEPTUAL_ACTIONS = {'predict', 'whatif', 'define', 'model', 'self', 'new_pred'}
+    CONCEPTUAL_ACTIONS = {'predict', 'whatif', 'define', 'model', 'self', 'new_estimate'}
     
     def __init__(self, api_key, model='gpt-4o-mini'):
         self.client = openai.OpenAI(api_key=api_key)
