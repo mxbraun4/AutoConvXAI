@@ -158,7 +158,7 @@ class AutoGenEvaluator:
         return expected_action == actual_action
     
     def evaluate_entities_match(self, expected: Dict[str, Any], actual: Dict[str, Any]) -> bool:
-        """Check if entities match (with proper handling of template structure)."""
+        """Check if entities match with proper validation of empty expected entities."""
         expected_entities = expected.get('entities', {})
         
         # Get entities from AutoGen output
@@ -170,8 +170,16 @@ class AutoGenEvaluator:
         elif 'entities' in actual:
             actual_entities = actual['entities']
         
-        # FIXED: Only check entities that are expected to have non-null values
-        # This handles the template structure properly where agents output all fields
+        # FIXED: Proper handling of empty expected entities
+        # If expected entities is empty {}, then actual entities should have all null/empty values
+        if not expected_entities:
+            # Check that actual entities don't have meaningful non-null values
+            for key, actual_val in actual_entities.items():
+                if actual_val is not None and actual_val != [] and actual_val != "":
+                    return False
+            return True
+        
+        # Check entities that are expected to have specific non-null values
         for key, expected_val in expected_entities.items():
             # Skip null expected values - they're not requirements
             if expected_val is None:
@@ -306,6 +314,19 @@ class AutoGenEvaluator:
             'total_entity_changes': 0
         }
         
+        # Track validation agent impact (before vs after accuracy)
+        validation_impact = {
+            'cases_improved': 0,
+            'cases_worsened': 0, 
+            'no_change': 0,
+            'action_improvements': 0,
+            'entity_improvements': 0,
+            'overall_improvements': 0,
+            'action_degradations': 0,
+            'entity_degradations': 0,
+            'overall_degradations': 0
+        }
+        
         for r in results:
             if hasattr(r, 'autogen_output') and r.autogen_output:
                 agent_reasoning = r.autogen_output.get('agent_reasoning', {})
@@ -386,6 +407,41 @@ class AutoGenEvaluator:
                         'entity_change_types': entity_change_types,
                         'correct': r.overall_match  # Use overall match since we're tracking entity changes too
                     })
+                
+                # Calculate validation impact (before vs after accuracy)
+                if original_entities and final_entities:
+                    # Check if extraction agent output would have been correct
+                    before_action_correct = (original_action == r.expected_json.get('action'))
+                    before_entities_correct = self.evaluate_entities_match(r.expected_json, {'action_response': {'entities': original_entities}})
+                    before_overall_correct = before_action_correct and before_entities_correct
+                    
+                    # Final results (we already have these)
+                    after_action_correct = r.action_match
+                    after_entities_correct = r.entities_match
+                    after_overall_correct = r.overall_match
+                    
+                    # Track improvements/degradations
+                    if before_action_correct != after_action_correct:
+                        if after_action_correct:
+                            validation_impact['action_improvements'] += 1
+                        else:
+                            validation_impact['action_degradations'] += 1
+                    
+                    if before_entities_correct != after_entities_correct:
+                        if after_entities_correct:
+                            validation_impact['entity_improvements'] += 1
+                        else:
+                            validation_impact['entity_degradations'] += 1
+                    
+                    if before_overall_correct != after_overall_correct:
+                        if after_overall_correct:
+                            validation_impact['overall_improvements'] += 1
+                            validation_impact['cases_improved'] += 1
+                        else:
+                            validation_impact['overall_degradations'] += 1
+                            validation_impact['cases_worsened'] += 1
+                    else:
+                        validation_impact['no_change'] += 1
         
         # Action distribution analysis
         action_accuracy = {}
@@ -415,6 +471,7 @@ class AutoGenEvaluator:
             'action_only_changes': sum(1 for d in validation_change_details if d.get('action_changed') and not d.get('entity_changed')),
             'entity_only_changes': sum(1 for d in validation_change_details if d.get('entity_changed') and not d.get('action_changed')),
             'both_changed': sum(1 for d in validation_change_details if d.get('action_changed') and d.get('entity_changed')),
+            'validation_impact': validation_impact,
             'action_breakdown': action_accuracy,
             'action_mismatches': [],
             'entity_mismatches': [],
@@ -562,6 +619,19 @@ def evaluate_all_cases():
     print(f"  - Entity-only changes: {report['entity_only_changes']}")
     print(f"  - Both changed: {report['both_changed']}")
     print(f"  Validation Improved Accuracy: {report['validation_improved_accuracy']:.1%} of changes were correct")
+    
+    print(f"\nValidation Agent Impact (Before vs After):")
+    print(f"  Cases improved: {report['validation_impact']['cases_improved']}")
+    print(f"  Cases worsened: {report['validation_impact']['cases_worsened']}")
+    print(f"  No change: {report['validation_impact']['no_change']}")
+    print(f"  Net improvement: {report['validation_impact']['cases_improved'] - report['validation_impact']['cases_worsened']}")
+    if total_cases > 0:
+        improvement_rate = (report['validation_impact']['cases_improved'] - report['validation_impact']['cases_worsened']) / total_cases
+        print(f"  Net improvement rate: {improvement_rate:.1%}")
+    print(f"    Action improvements: {report['validation_impact']['action_improvements']}")
+    print(f"    Entity improvements: {report['validation_impact']['entity_improvements']}")
+    print(f"    Action degradations: {report['validation_impact']['action_degradations']}")
+    print(f"    Entity degradations: {report['validation_impact']['entity_degradations']}")
     
     if report['entity_validation_changes']['total_entity_changes'] > 0:
         print(f"\nEntity Validation Details:")

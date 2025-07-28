@@ -101,77 +101,89 @@ class AutoGenDecoder:
 
     def _create_action_extraction_prompt(self) -> str:
         """Generate clean and generalizable action extraction prompt."""
-        return """You are an action extraction agent for ML model queries.
+        return """
+# Action Extraction Agent
 
-ACTIONS:
-- predict: Generate NEW predictions for specified feature values, calculating what the model would output for a completely new data point
-- filter: Select and display complete data RECORDS (all features and values) for patients matching specified criteria, showing full data rows
-- label: Show the ACTUAL/TRUE outcomes from the dataset (not predictions), displaying what really happened to patients with specified conditions
-- important: Identify and rank WHICH features matter most for predictions, showing feature importance scores or rankings without explaining the reasoning
-- explain: Describe HOW and WHY the model arrived at specific predictions, showing the decision-making process and reasoning behind particular outputs
-- whatif: Show how EXISTING predictions would CHANGE if we modify current feature values by specific amounts (requires baseline data)
-- counterfactual: Find the SMALLEST possible changes needed to flip a prediction to a different outcome (e.g., from diabetic to non-diabetic)
-- mistake: Identify and display cases where the model made incorrect predictions or common error patterns
-- score: Evaluate and report model performance metrics like accuracy, precision, recall
-- statistic: Compute numerical summaries, counts, averages, or distributions of data
-- interact: Analyze how two or more specific features combine or influence each other in making predictions (requires multiple feature names)
-- define: Explain DOMAIN terminology, medical concepts, or feature meanings - educational content about the problem domain (not about models or predictions)
-- model: Describe the MODEL'S technical specifications - what type of algorithm, architecture details, training process, or implementation specifics
-- followup: Continue analysis from previous results or expand on prior output
-- self: Describe THIS ASSISTANT'S capabilities - what actions I can perform, how to interact with me, or my limitations (not about the ML model)
+## Actions
+- predict: Generate NEW model predictions/likelihood for conditions (e.g., "how often diabetes", "prediction rate", "likely to have", "project")
+- filter: RETRIEVE specific patient data by ID/number (e.g., "show patient 32", "get record 15", "display data point 100") - NOT for general questions
+- label: Show GROUND TRUTH/actual outcomes (e.g., "true labels", "actual diabetes status", "real outcomes")
+- important: Feature IMPORTANCE/ranking (e.g., "top features", "most important", "which features matter", "critical for predictions")
+- explain: WHY/reasoning behind predictions (e.g., "why diagnosed", "reasoning for", "what led to", "explain decision")
+- whatif: HYPOTHETICAL changes to features (e.g., "if BMI increased", "what would happen if", "impact of changing values")
+- counterfactual: MINIMAL changes to flip prediction (e.g., "what needs to change", "how to reduce risk", "flip outcome")
+- mistake: Show INCORRECT model predictions/errors (e.g., "mistakes you made", "wrong predictions", "errors when predicting", "misclassified cases")
+- score: Model PERFORMANCE metrics (e.g., "accuracy", "how often correct", "precision", "recall")
+- statistic: Data STATISTICS/summaries of features (e.g., "average BMI", "mean glucose", "distribution", "count of")
+- interact: Feature INTERACTIONS/combinations (e.g., "how features work together", "combined effect of features")
+- define: DEFINITIONS of terms (e.g., "what is BMI", "what does glucose mean", "define diabetes")
+- model: SYSTEM/MODEL questions - ALL meta-questions about the system, ML model, or assistant capabilities (e.g., "what type of model", "what algorithm", "how was model trained", "what can you help with", "your capabilities", "what questions can you answer", "your analysis functions") - Any question about the system itself
+- followup: Continue PREVIOUS analysis (contextual follow-up questions)
 
-ENTITY EXTRACTION RULES:
-- ONLY extract features explicitly mentioned in the query
-- Do not extract all 8 features unless user asks about "all features"
-- If query mentions "BMI > 40", extract features: ["BMI"] not all features
-- Multiple features/operators/values: Use parallel arrays when query involves multiple conditions
-  Example: "For age > 50, what if BMI decreased by 5" → features: ["age", "BMI"], operators: [">", "-"], values: [50, 5]
+## Entity Extraction Rules
+**CRITICAL: Always extract explicitly mentioned features and conditions, regardless of question type**
+- Extract features when specific conditions are stated ("glucose over 120", "BMI above 30", "age below 50")
+- Extract even in conceptual questions if specific conditions mentioned ("reasoning for glucose > 120")
+- Don't extract for vague mentions ("diabetes diagnosis", "these predictions") 
+- Don't extract label_values for conceptual mentions ("diabetes", "inaccurate predictions")
+- Use parallel arrays for multiple conditions
 
-FEATURE PATTERNS:
-- Direct: "BMI/age/glucose" → exact names
-- Natural: "high BMI" → ["BMI"]
-- Compound: "over 40 years old" → ["Age"]
-- Examples: "BMI > 40" → ["BMI"], "high glucose" → ["Glucose"]
+## Patterns
+- Features:
+  - Direct (BMI, age, glucose)
+  - Natural (high BMI → BMI)
+  - Compound (over 40 years → Age)
 
-OPERATOR PATTERNS:
-- Greater: "over/above/more than" → ">"
-- Less: "under/below/less than" → "<" 
-- At least: "minimum/at least" → ">="
-- At most: "maximum/at most" → "<="
-- Equal: "equal/exactly/is" → "="
-- Not equal: "not equal/different" → "!="
-- Increase: "increase/add/plus" → "+"
-- Decrease: "decrease/subtract/remove" → "-"
+- Operators:
+  - ">": over, above
+  - "<": under, below
+  - ">=": minimum
+  - "<=": maximum
+  - "=": exactly, equal
+  - "!=": not equal
+  - "+": increase, add
+  - "-": decrease, remove
 
-VALID OPERATORS ONLY: Use only: >, <, >=, <=, =, !=, +, -
+- Values:
+  - Units: "40 years old" → Age:40
+  - Simple: "BMI over 30" → BMI:30
+  - Ranges: "between 30 and 50" → Feature:[">=", "<="]:[30,50]
 
-VALUE PATTERNS:
-- With units: "40 years old" → [40], ["Age"]
-- Simple: "BMI over 30" → [30]
-- Ranges: "between 30 and 50" → [30, 50], [">=", "<="]
+- Special:
+  - Rankings: "top X" → topk:X
+  - IDs: "patient X" → patient_id:X
+  - Labels: "diabetic patients" → label_values:[1]
+  - Label values only for filtering data by labels, NOT for conceptual questions
 
-SPECIAL PATTERNS:
-- Rankings: "top X/best X" → topk: X
-- IDs: "patient/case/point X" → patient_id: X
-- Labels: "diabetic patients" → label_values: [1]
+## Query Focus
+- Differentiate between existing data and new predictions.
 
-FOCUS: Determine if the query seeks information about existing data or creation of new predictions
+## Extraction Examples
+**EXTRACT features/operators/values:**
+- "reasoning for glucose over 120" → features: ["Glucose"], operators: [">"], values: [120]
+- "method for BMI above 30" → features: ["BMI"], operators: [">"], values: [30] 
+- "how determine age below 50" → features: ["Age"], operators: ["<"], values: [50]
 
-COMPOUND QUESTIONS: Choose the PRIMARY action when multiple actions seem relevant. For questions asking both "why" and "how to change", prioritize the explanation aspect.
+**DON'T EXTRACT:**
+- "why these predictions" → features: null (no specific conditions)
+- "diabetes diagnosis process" → features: null (conceptual only)
+- "model accuracy" → features: null (no conditions mentioned)
 
-IMPORTANT: Use ONLY the actions listed above. Do not invent new actions.
+## Compound Questions
+- Prioritize primary action ("why" before "how").
 
-OUTPUT FORMAT:
-Share your reasoning and invite discussion BEFORE the JSON. Then provide valid JSON:
+## Discussion Guidelines
+- Clearly justify extractions.
+- Only accept explicitly stated features.
 
-CRITICAL JSON RULES:
-- JSON must be valid - NO comments allowed inside JSON blocks
-- filter_type must be one of: "prediction", "feature", "label", or null
-- Do not use feature names (like "BMI") as filter_type values
+## Response Structure
+Provide reasoning clearly, then valid JSON:
+
+**CRITICAL: NO COMMENTS IN JSON - JSON must be valid without // comments**
 
 ```json
 {
-  "action": "single_detected_action",
+  "action": "detected_action_name",
   "entities": {
     "patient_id": "number_or_null",
     "features": ["feature_names_or_null"],
@@ -179,60 +191,63 @@ CRITICAL JSON RULES:
     "values": ["numbers_or_null"],
     "topk": "number_or_null",
     "filter_type": "prediction|feature|label|null",
-    "prediction_values": ["numbers_for_prediction_filtering_or_null"],
-    "label_values": ["numbers_for_label_filtering_or_null"]
+    "prediction_values": ["numbers_or_null"],
+    "label_values": ["numbers_or_null"]
   }
 }
-```"""
+```
+
+Ensure JSON validity without internal comments.
+"""
 
     def _create_action_validation_prompt(self) -> str:
-        """Generate clean validation prompt."""
-        return """You are a validation agent. Review the extraction and improve it.
+        """Generate focused JSON validation prompt."""
+        return """You are a JSON validation agent. Your job is to help the extraction agent produce perfect JSON output through critical discussion.
 
-VALIDATION FOCUS:
-1. Entity extraction accuracy (primary)
-2. Data format compliance (secondary)
-3. Trust extraction agent's action choices
+# JSON Validation Agent
 
-ENTITY IMPROVEMENTS:
-- Extract only explicitly mentioned features (not all 8 features)
-- Remove custom fields not in template
-- Ensure parallel arrays have matching lengths
-- Convert single-item arrays to appropriate types
-- Check operators are valid: >, <, >=, <=, =, !=, +, -
-- Multiple conditions: Maintain parallel arrays for compound queries
-  Example: "For age > 50, what if BMI decreased by 5" → features: ["age", "BMI"], operators: [">", "-"], values: [50, 5]
+## Role
+- Validate JSON output from extraction agent.
+- Engage in critical discussion for precise JSON accuracy.
 
-FIELD VALIDATION RULE:
-- ONLY use fields that exist in the JSON template. Never create custom field names. If uncertain which field to use, check the template.
+## Validation Checklist
+- **Action Field:** Ensure action is one of the valid actions (predict, filter, label, important, explain, whatif, counterfactual, mistake, score, statistic, interact, define, model, followup).
+- **Entity Fields:** Validate: patient_id, features, operators, values, topk, filter_type, prediction_values, label_values.
+- **Feature Matching:** Ensure features match dataset columns (Pregnancies, Glucose, BloodPressure, SkinThickness, Insulin, BMI, DiabetesPedigreeFunction, Age).
+- **Operator Format:** Convert natural language to mathematical operators:
+  - "over", "above", "greater than" → ">"
+  - "under", "below", "less than" → "<"  
+  - "minimum", "at least" → ">="
+  - "maximum", "at most" → "<="
+  - "exactly", "equal", "equals" → "="
+  - "not equal" → "!="
+  - "increase", "add", "increased by" → "+"
+  - "decrease", "subtract", "reduced by" → "-"
+- **Parallel Arrays:** Confirm features/operators/values arrays align correctly.
+- **Explicitness:** Confirm only explicitly mentioned features are extracted.
+- **Precision:** Validate precise extraction (e.g., specific features requested).
 
-ACTION APPROACH:
-- Generally trust the extraction agent's action classification
-- Focus discussion on entity extraction quality
-- Suggest action changes only when completely certain
-- VALID ACTIONS ONLY: predict, filter, label, important, explain, whatif, counterfactual, mistake, score, statistic, interact, define, model, followup, self
-- Never suggest non-existent actions like 'single_final_action'
+## Rules
+- The "action" field should be one of the valid actions (predict, filter, label, important, explain, whatif, counterfactual, mistake, score, statistic, interact, define, model, followup). Do not change valid action names.
+- Do not propose adding unmentioned features.
+- Maintain precision; no assumptions.
 
-USE SAME EXTRACTION RULES:
-- Apply same feature/operator/value patterns as extraction agent
-- Focus on user intent, not just keywords
+## Discussion Protocol
+- ACTIVELY validate and correct entity extraction - this is your primary job.
+- MUST convert natural language operators to symbols ("over 120" → operators: [">"], values: [120]).
+- MUST ensure proper feature name capitalization (glucose → Glucose).
+- Always provide the complete corrected JSON, even if only minor corrections needed.
+- Only conclude with `CONSENSUS_REACHED` AFTER providing your corrected JSON.
+- Do NOT change valid actions unless there's a clear error in action classification.
 
-DISCUSSION APPROACH:
-- Question interpretations when uncertain
-- Suggest improvements collaboratively  
-- Build consensus through reasoning
-- End with "CONSENSUS_REACHED" when aligned
-- Use ONLY actions from the defined list - never invent new ones
+## Final JSON Output
+After discussion, finalize structured JSON clearly:
 
-CRITICAL JSON RULES:
-- JSON must be valid - NO comments allowed inside JSON blocks
-- filter_type must be one of: "prediction", "feature", "label", or null
-- Do not use feature names (like "BMI") as filter_type values
-- Remove any custom fields not in the template
+**CRITICAL: NO COMMENTS IN JSON - JSON must be valid without // comments or explanations inside**
 
 ```json
 {
-  "action": "single_final_action",
+  "action": "detected_action_name",
   "entities": {
     "patient_id": "number_or_null",
     "features": ["feature_names_or_null"],
@@ -240,12 +255,15 @@ CRITICAL JSON RULES:
     "values": ["numbers_or_null"],
     "topk": "number_or_null",
     "filter_type": "prediction|feature|label|null",
-    "prediction_values": ["numbers_for_prediction_filtering_or_null"],
-    "label_values": ["numbers_for_label_filtering_or_null"]
-  },
-  "reasoning": "brief_explanation"
+    "prediction_values": ["numbers_or_null"],
+    "label_values": ["numbers_or_null"]
+  }
 }
-```"""
+```
+
+- Ensure JSON validity without internal comments.
+- Mark completion with `CONSENSUS_REACHED`.
+"""
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
         """
@@ -403,16 +421,32 @@ CRITICAL JSON RULES:
         # Stage 3: Execute Collaborative Processing Pipeline
         processing_prompt = (
             f"{contextual_prompt}\n\n"
-            f"Execute the collaborative natural language understanding pipeline:\n"
-            f"1. Action Extraction Agent: Analyze the query, share your reasoning, and provide JSON output\n"
-            f"2. Action Validation Agent: Engage with the analysis, explore interpretations, and validate\n"
-            f"3. Both agents: Use disambiguation rules as discussion points, not just rigid rules\n"
-            f"4. Reach consensus through meaningful dialogue (max 4 rounds)"
+            f"Collaborative pipeline:\n"
+            f"1. Extractor: Analyze query, reason, provide JSON\n"
+            f"2. Validator: Review, discuss issues, provide validated JSON\n"
+            f"3. Extractor: Confirm or adjust\n"
+            f"4. Consensus via dialogue (max 4 rounds); Validator finalizes JSON and says CONSENSUS_REACHED"
         )
         
         logger.info("Stage 3: Starting agent collaboration...")
-        collaboration_result = await team_configuration.run(task=processing_prompt)
-        logger.info(f"Stage 3: Agent collaboration completed with {len(collaboration_result.messages) if hasattr(collaboration_result, 'messages') else 0} messages")
+        logger.info(f"Processing prompt: {processing_prompt[:200]}...")
+        try:
+            collaboration_result = await team_configuration.run(task=processing_prompt)
+            logger.info(f"Stage 3: Agent collaboration completed with {len(collaboration_result.messages) if hasattr(collaboration_result, 'messages') else 0} messages")
+            logger.info(f"Collaboration result type: {type(collaboration_result)}")
+            if hasattr(collaboration_result, 'messages'):
+                logger.info(f"Messages attribute exists, length: {len(collaboration_result.messages)}")
+                for i, msg in enumerate(collaboration_result.messages):
+                    logger.info(f"Message {i}: source={getattr(msg, 'source', 'unknown')}, content_length={len(getattr(msg, 'content', ''))}")
+            else:
+                logger.warning("collaboration_result has no 'messages' attribute")
+                logger.info(f"Available attributes: {dir(collaboration_result)}")
+        except Exception as e:
+            logger.error(f"Exception during agent collaboration: {e}")
+            logger.error(f"Exception type: {type(e)}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise
         
         # Stage 4: Response Processing and Integration
         logger.info("Stage 4: Processing agent responses...")
@@ -429,19 +463,16 @@ CRITICAL JSON RULES:
         """Configure Agent Team Termination Conditions with consensus detection."""
         from autogen_agentchat.conditions import MaxMessageTermination, TextMentionTermination
         
-        # Create termination for consensus detection
-        consensus_termination = TextMentionTermination("CONSENSUS_REACHED")
-        logger.info("Configuring TextMentionTermination for consensus detection")
-        
-        # Create max message termination as fallback
+        # For debugging: Use only max message termination to avoid premature exits
         max_message_termination = MaxMessageTermination(self.max_rounds)
-        logger.info(f"Configuring MaxMessageTermination with max_rounds={self.max_rounds}")
+        logger.info(f"Using only MaxMessageTermination with max_rounds={self.max_rounds}")
         
-        # Combine conditions - terminate on consensus OR max messages
-        combined_termination = consensus_termination | max_message_termination
-        logger.info("Combined termination conditions: consensus detection OR max rounds")
+        return max_message_termination
         
-        return combined_termination
+        # DISABLED FOR DEBUGGING: Combined termination was causing immediate exits
+        # consensus_termination = TextMentionTermination("CONSENSUS_REACHED")
+        # combined_termination = consensus_termination | max_message_termination
+        # return combined_termination
 
     def _create_agent_team(self, termination_handler):
         """
@@ -482,6 +513,9 @@ CRITICAL JSON RULES:
             else:
                 logger.warning("Could not attach termination condition - no supported parameter found")
         
+        # Use only max message termination for debugging
+        # termination_handler = None
+        
         return RoundRobinGroupChat(**team_parameters)
 
     def _process_agent_responses(self, collaboration_result) -> Optional[Dict[str, Any]]:
@@ -502,6 +536,10 @@ CRITICAL JSON RULES:
         
         logger.info(f"Processing {len(collaboration_result.messages)} agent messages")
         
+        if len(collaboration_result.messages) <= 1:
+            logger.warning("No agent responses generated - falling back to default")
+            return self._create_error_response("No agent responses")
+
         # Extract structured responses from agent communications
         for message_index, message in enumerate(collaboration_result.messages):
             # Debug: Log agent message content
@@ -727,17 +765,13 @@ CRITICAL JSON RULES:
         if 'feature' in validated_entities and 'features' not in validated_entities:
             validated_entities['features'] = [validated_entities.pop('feature')]
         
-        # Smart entity merging - preserve non-null values from both sources
-        command_structure = {}
-        for key in set(original_entities.keys()) | set(validated_entities.keys()):
-            validated_val = validated_entities.get(key)
-            original_val = original_entities.get(key)
-            
-            # Use validated value if it's not null, otherwise use original
-            if validated_val is not None:
-                command_structure[key] = validated_val
-            else:
-                command_structure[key] = original_val
+        # Smart entity merging - use validation agent's complete entity structure
+        # The validation agent should provide the complete corrected entities
+        if validated_entities:
+            command_structure = validated_entities.copy()
+        else:
+            # Fallback to original entities if validation agent didn't provide entities
+            command_structure = original_entities.copy()
         
         # Create action list for backward compatibility
         action_list = [validated_action] if validated_action else ["explain"]
@@ -753,8 +787,8 @@ CRITICAL JSON RULES:
             "confidence": confidence_score,
             "method": "autogen_2agent_discussion",
             "action_response": {
-                "action": validated_action,
-                "entities": command_structure,
+                "action": intent_response.get('action', 'explain'),
+                "entities": original_entities,
                 "confidence": confidence_score
             },
             "validation_response": {

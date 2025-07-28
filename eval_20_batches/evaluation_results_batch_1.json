@@ -1,13 +1,13 @@
 {
   "report": {
     "total_cases": 20,
-    "action_accuracy": 0.95,
+    "action_accuracy": 0.85,
     "entity_accuracy": 1.0,
-    "overall_accuracy": 0.95,
+    "overall_accuracy": 0.85,
     "error_rate": 0.0,
-    "validation_changes": 0,
-    "validation_change_rate": 0.0,
-    "validation_improved_accuracy": 0,
+    "validation_changes": 1,
+    "validation_change_rate": 0.05,
+    "validation_improved_accuracy": 0.0,
     "entity_validation_changes": {
       "features_corrected": 0,
       "operators_corrected": 0,
@@ -16,14 +16,25 @@
       "custom_fields_removed": 0,
       "total_entity_changes": 0
     },
-    "action_only_changes": 0,
+    "action_only_changes": 1,
     "entity_only_changes": 0,
     "both_changed": 0,
+    "validation_impact": {
+      "cases_improved": 0,
+      "cases_worsened": 0,
+      "no_change": 20,
+      "action_improvements": 0,
+      "entity_improvements": 0,
+      "overall_improvements": 0,
+      "action_degradations": 0,
+      "entity_degradations": 0,
+      "overall_degradations": 0
+    },
     "action_breakdown": {
       "explain": {
         "total": 14,
-        "correct": 13,
-        "accuracy": 0.9285714285714286
+        "correct": 11,
+        "accuracy": 0.7857142857142857
       },
       "mistake": {
         "total": 1,
@@ -38,37 +49,222 @@
     },
     "action_mismatches": [
       {
+        "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
+        "expected_action": "explain",
+        "actual_action": "explain",
+        "expected_entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        },
+        "actual_entities": {
+          "patient_id": null,
+          "features": [
+            "Glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ],
+          "topk": null,
+          "filter_type": null,
+          "prediction_values": null,
+          "label_values": null
+        }
+      },
+      {
         "question": "What effect do the features have those predictions made by the model on the training information?",
+        "expected_action": "explain",
+        "actual_action": "interact",
+        "expected_entities": {},
+        "actual_entities": {
+          "patient_id": null,
+          "features": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "filter_type": null,
+          "prediction_values": null,
+          "label_values": null
+        }
+      },
+      {
+        "question": "Can you explain which features influenced these predictions?",
         "expected_action": "explain",
         "actual_action": "important",
         "expected_entities": {},
         "actual_entities": {
-          "features": [
-            "Pregnancies",
-            "Glucose",
-            "BloodPressure",
-            "SkinThickness",
-            "Insulin",
-            "BMI",
-            "DiabetesPedigreeFunction",
-            "Age"
-          ],
+          "patient_id": null,
+          "features": null,
+          "operators": null,
           "values": null,
+          "topk": null,
           "filter_type": null,
           "prediction_values": null,
-          "label_values": null,
-          "operators": null,
-          "patient_id": null,
-          "topk": null
+          "label_values": null
         }
       }
     ],
     "entity_mismatches": [],
-    "validation_change_examples": []
+    "validation_change_examples": [
+      {
+        "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
+        "original_action": "whatif",
+        "validated_action": "explain",
+        "action_changed": true,
+        "entity_changed": false,
+        "entity_change_types": [],
+        "correct": false
+      }
+    ]
   },
   "detailed_results": [
     {
+      "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "confidence": 0.8,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "whatif",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              ">"
+            ],
+            "values": [
+              120
+            ],
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.8
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "whatif",
+          "validated_action": "explain",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "features": [
+            "Glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ],
+          "topk": null,
+          "filter_type": null,
+          "prediction_values": null,
+          "label_values": null
+        },
+        "action_list": [
+          "explain"
+        ],
+        "final_action": "explain",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
       "question": "What effect do the features have those predictions made by the model on the training information?",
+      "expected": {
+        "entities": {},
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: interact[e]",
+        "confidence": 0.8,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "interact",
+          "entities": {
+            "patient_id": null,
+            "features": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null
+          },
+          "confidence": 0.8
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "interact",
+          "validated_action": "interact",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "patient_id": null,
+          "features": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "filter_type": null,
+          "prediction_values": null,
+          "label_values": null
+        },
+        "action_list": [
+          "interact"
+        ],
+        "final_action": "interact",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "Can you explain which features influenced these predictions?",
       "expected": {
         "entities": {},
         "action": "explain"
@@ -80,23 +276,14 @@
         "action_response": {
           "action": "important",
           "entities": {
-            "features": [
-              "Pregnancies",
-              "Glucose",
-              "BloodPressure",
-              "SkinThickness",
-              "Insulin",
-              "BMI",
-              "DiabetesPedigreeFunction",
-              "Age"
-            ],
+            "patient_id": null,
+            "features": null,
+            "operators": null,
             "values": null,
+            "topk": null,
             "filter_type": null,
             "prediction_values": null,
-            "label_values": null,
-            "operators": null,
-            "patient_id": null,
-            "topk": null
+            "label_values": null
           },
           "confidence": 0.8
         },
@@ -112,23 +299,14 @@
           "alternative_interpretations": []
         },
         "command_structure": {
-          "features": [
-            "Pregnancies",
-            "Glucose",
-            "BloodPressure",
-            "SkinThickness",
-            "Insulin",
-            "BMI",
-            "DiabetesPedigreeFunction",
-            "Age"
-          ],
+          "patient_id": null,
+          "features": null,
+          "operators": null,
           "values": null,
+          "topk": null,
           "filter_type": null,
           "prediction_values": null,
-          "label_values": null,
-          "operators": null,
-          "patient_id": null,
-          "topk": null
+          "label_values": null
         },
         "action_list": [
           "important"

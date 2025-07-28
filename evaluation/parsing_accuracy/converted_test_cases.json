@@ -1874,7 +1874,7 @@
     "question": "What are your capabilities?",
     "expected_json": {
       "entities": {},
-      "action": "self"
+      "action": "model"
     },
     "line_number": 156
   },
@@ -1882,7 +1882,7 @@
     "question": "Can you describe what you can do?",
     "expected_json": {
       "entities": {},
-      "action": "self"
+      "action": "model"
     },
     "line_number": 157
   },
@@ -1890,7 +1890,7 @@
     "question": "What questions can you answer?",
     "expected_json": {
       "entities": {},
-      "action": "self"
+      "action": "model"
     },
     "line_number": 158
   },
@@ -1898,7 +1898,7 @@
     "question": "Tell me about your functions.",
     "expected_json": {
       "entities": {},
-      "action": "self"
+      "action": "model"
     },
     "line_number": 159
   },
@@ -1906,7 +1906,7 @@
     "question": "What kind of analysis can you perform?",
     "expected_json": {
       "entities": {},
-      "action": "self"
+      "action": "model"
     },
     "line_number": 160
   },
@@ -1914,7 +1914,7 @@
     "question": "How can you help me understand diabetes predictions?",
     "expected_json": {
       "entities": {},
-      "action": "self"
+      "action": "model"
     },
     "line_number": 161
   },
@@ -1922,7 +1922,7 @@
     "question": "What are your limitations in analysis?",
     "expected_json": {
       "entities": {},
-      "action": "self"
+      "action": "model"
     },
     "line_number": 162
   },
@@ -1930,7 +1930,7 @@
     "question": "Describe your role in this diabetes prediction system.",
     "expected_json": {
       "entities": {},
-      "action": "self"
+      "action": "model"
     },
     "line_number": 163
   },
@@ -1938,7 +1938,7 @@
     "question": "What makes you different from other AI systems?",
     "expected_json": {
       "entities": {},
-      "action": "self"
+      "action": "model"
     },
     "line_number": 164
   },
@@ -1946,7 +1946,7 @@
     "question": "How do you provide explanations for your answers?",
     "expected_json": {
       "entities": {},
-      "action": "self"
+      "action": "model"
     },
     "line_number": 165
   }

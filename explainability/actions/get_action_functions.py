@@ -20,7 +20,6 @@ from explainability.actions.model import model_operation
 from explainability.actions.predict import predict_operation
 from explainability.actions.prediction_likelihood import predict_likelihood
 from explainability.actions.score import score_operation
-from explainability.actions.self import self_operation
 from explainability.actions.show_data import show_operation
 from explainability.actions.what_if import what_if_operation
 from explainability.actions.counterfactual import counterfactual_operation, alternatives_operation, scenarios_operation
@@ -33,7 +32,6 @@ def get_all_action_functions_map():
         'filter': filter_operation,
         'explain': explain_operation,
         'predict': predict_operation,
-        'self': self_operation,
         'followup': followup_operation,
         'important': important_operation,
         'model': model_operation,
