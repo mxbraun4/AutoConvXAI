@@ -16,7 +16,7 @@ from explainability.actions.function import function_operation
 from explainability.actions.interaction_effects import measure_interaction_effects
 from explainability.actions.labels import show_labels_operation
 from explainability.actions.mistakes import show_mistakes_operation
-from explainability.actions.model import model_operation
+from explainability.actions.self import self_operation
 from explainability.actions.predict import predict_operation
 from explainability.actions.prediction_likelihood import predict_likelihood
 from explainability.actions.score import score_operation
@@ -34,7 +34,7 @@ def get_all_action_functions_map():
         'predict': predict_operation,
         'followup': followup_operation,
         'important': important_operation,
-        'model': model_operation,
+        'self': self_operation,
         'score': score_operation,
         'label': show_labels_operation,
         'mistake': show_mistakes_operation,

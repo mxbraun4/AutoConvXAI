@@ -1794,7 +1794,7 @@
     "question": "What type of model are you?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 146
   },
@@ -1802,7 +1802,7 @@
     "question": "Can you describe your model architecture?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 147
   },
@@ -1810,7 +1810,7 @@
     "question": "What algorithm do you use for predictions?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 148
   },
@@ -1818,7 +1818,7 @@
     "question": "How was your model trained?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 149
   },
@@ -1826,7 +1826,7 @@
     "question": "What are your model's hyperparameters?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 150
   },
@@ -1834,7 +1834,7 @@
     "question": "Describe your model's training process.",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 151
   },
@@ -1842,7 +1842,7 @@
     "question": "What features does your model use?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 152
   },
@@ -1850,7 +1850,7 @@
     "question": "How does your model make decisions?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 153
   },
@@ -1858,7 +1858,7 @@
     "question": "What is your model's performance on the test set?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 154
   },
@@ -1866,7 +1866,7 @@
     "question": "Explain your model's limitations.",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 155
   },
@@ -1874,7 +1874,7 @@
     "question": "What are your capabilities?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 156
   },
@@ -1882,7 +1882,7 @@
     "question": "Can you describe what you can do?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 157
   },
@@ -1890,7 +1890,7 @@
     "question": "What questions can you answer?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 158
   },
@@ -1898,7 +1898,7 @@
     "question": "Tell me about your functions.",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 159
   },
@@ -1906,7 +1906,7 @@
     "question": "What kind of analysis can you perform?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 160
   },
@@ -1914,7 +1914,7 @@
     "question": "How can you help me understand diabetes predictions?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 161
   },
@@ -1922,7 +1922,7 @@
     "question": "What are your limitations in analysis?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 162
   },
@@ -1930,7 +1930,7 @@
     "question": "Describe your role in this diabetes prediction system.",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 163
   },
@@ -1938,7 +1938,7 @@
     "question": "What makes you different from other AI systems?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 164
   },
@@ -1946,7 +1946,7 @@
     "question": "How do you provide explanations for your answers?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "self"
     },
     "line_number": 165
   }
