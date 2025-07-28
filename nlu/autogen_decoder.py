@@ -4,7 +4,7 @@ This module uses a 2-agent discussion system to convert user queries into execut
 1. Intent Extraction Agent - Identifies user intent and extracts entities
 2. Intent Validation Agent - Validates and refines the extracted intent through critical discussion
 
-The agents collaborate through 4 rounds of discussion to reach consensus, with direct action mapping.
+The agents collaborate through 2 rounds of discussion to reach consensus, with direct action mapping.
 """
 
 import os
@@ -100,211 +100,152 @@ class AutoGenDecoder:
         logger.info("Successfully initialized two-agent architecture")
 
     def _create_action_extraction_prompt(self) -> str:
-        """Generate discussion-focused intent extraction prompt for collaborative analysis."""
+        """Generate clean and generalizable action extraction prompt."""
         return """You are an action extraction agent for ML model queries.
 
-TASK: Extract action and entities from user queries about machine learning models.
+ACTIONS:
+- predict: Generate NEW predictions for specified feature values, calculating what the model would output for a completely new data point
+- filter: Select and display complete data RECORDS (all features and values) for patients matching specified criteria, showing full data rows
+- label: Show the ACTUAL/TRUE outcomes from the dataset (not predictions), displaying what really happened to patients with specified conditions
+- important: Identify and rank WHICH features matter most for predictions, showing feature importance scores or rankings without explaining the reasoning
+- explain: Describe HOW and WHY the model arrived at specific predictions, showing the decision-making process and reasoning behind particular outputs
+- whatif: Show how EXISTING predictions would CHANGE if we modify current feature values by specific amounts (requires baseline data)
+- counterfactual: Find the SMALLEST possible changes needed to flip a prediction to a different outcome (e.g., from diabetic to non-diabetic)
+- mistake: Identify and display cases where the model made incorrect predictions or common error patterns
+- score: Evaluate and report model performance metrics like accuracy, precision, recall
+- statistic: Compute numerical summaries, counts, averages, or distributions of data
+- interact: Analyze how two or more specific features combine or influence each other in making predictions (requires multiple feature names)
+- define: Explain DOMAIN terminology, medical concepts, or feature meanings - educational content about the problem domain (not about models or predictions)
+- model: Describe the MODEL'S technical specifications - what type of algorithm, architecture details, training process, or implementation specifics
+- followup: Continue analysis from previous results or expand on prior output
+- self: Describe THIS ASSISTANT'S capabilities - what actions I can perform, how to interact with me, or my limitations (not about the ML model)
 
-CRITICAL THINKING INSTRUCTION:
-- Don't just match keywords - understand the underlying INTENT
-- Surface words can be misleading: "predict people" might sound like new_estimate but asking about existing population patterns = data
-- "X more than Y" might sound like comparison but could be entity filtering condition
-- Always ask: "What is the user actually trying to accomplish?"
-- When in doubt, prioritize the ANALYTICAL INTENT over surface word matching
+ENTITY EXTRACTION RULES:
+- ONLY extract features explicitly mentioned in the query
+- Do not extract all 8 features unless user asks about "all features"
+- If query mentions "BMI > 40", extract features: ["BMI"] not all features
+- Multiple features/operators/values: Use parallel arrays when query involves multiple conditions
+  Example: "For age > 50, what if BMI decreased by 5" → features: ["age", "BMI"], operators: [">", "-"], values: [50, 5]
 
-APPROACH: Express your interpretation with confidence level and any uncertainties. If confident, provide JSON. If uncertain, explain concerns and invite discussion.
+FEATURE PATTERNS:
+- Direct: "BMI/age/glucose" → exact names
+- Natural: "high BMI" → ["BMI"]
+- Compound: "over 40 years old" → ["Age"]
+- Examples: "BMI > 40" → ["BMI"], "high glucose" → ["Glucose"]
 
-ACTION RECOGNITION PATTERNS:
-- data: "How many people", "What percentage of patients", "Likelihood of [GROUP] having"
-- new_estimate: "What would you predict for someone", "If a person has X, probability"
-- important: "X more important than Y", "which feature matters most", "rank features"
-- explain: "How does the model work", "Why does it predict", "model's reasoning"
-- whatif: "predict changes if we modify", "how would predictions change if"
-- filter: "show me data points", "display patients with", "what labels for people"
-- mistake: "model errors", "incorrect predictions", "where model fails"
-- statistic: "average age of", "mean BMI for", distribution analysis
+OPERATOR PATTERNS:
+- Greater: "over/above/more than" → ">"
+- Less: "under/below/less than" → "<" 
+- At least: "minimum/at least" → ">="
+- At most: "maximum/at most" → "<="
+- Equal: "equal/exactly/is" → "="
+- Not equal: "not equal/different" → "!="
+- Increase: "increase/add/plus" → "+"
+- Decrease: "decrease/subtract/remove" → "-"
 
-UNCERTAINTY AREAS (Express concerns about these):
-- "predict people" - could be new_estimate (prediction) or data (population analysis)
-- "X more than Y" - could be important (comparison) or filtering condition
-- "changes if we modify" - could be whatif (modification) or new_estimate (prediction)
-- Complex entities - multiple features, operators, unclear references
+VALID OPERATORS ONLY: Use only: >, <, >=, <=, =, !=, +, -
 
-CONFIDENCE GUIDANCE:
-- High confidence (0.9+): Clear single interpretation
-- Medium confidence (0.7-0.8): Some uncertainty, explain concerns
-- Low confidence (<0.7): Multiple valid interpretations, seek discussion
-
-ENTITY EXTRACTION (MANDATORY):
-- Always extract features, operators, values when mentioned
-- Applies to ALL actions - don't skip for explain/important/interact
-- Examples: "glucose over 120" → features:["Glucose"], operators:[">"], values:[120]
-
-ENTITY EXTRACTION RULES - MANDATORY:
-- ALWAYS extract features, operators, values when mentioned - NO EXCEPTIONS
-- Entity extraction is INDEPENDENT of action type (extract even for explain/important/interact)
-- Never skip entity extraction regardless of the chosen action
-- Extract entities even if action seems unrelated to filtering/conditions
-
-FEATURE RECOGNITION PATTERNS:
-- Direct mention: "BMI", "age", "glucose" → feature names
-- Natural language: "people with high BMI" → features: ["BMI"]
-- Compound phrases: "patients over 40 years old" → features: ["Age"]
-
-OPERATORS:
-- "over/above/more than 30" → ">"
-- "30+/at least 30" → ">="  
-- "under/below/less than 30" → "<"
-- "30 or less/up to 30" → "<="
-- "equal to/exactly 30" → "="
-- "increase by 5" → "+"
-- "decrease by 5" → "-"
-
-VALUE EXTRACTION:
-- Numbers with units: "40 years old" → values: [40], features: ["Age"]  
-- Simple numbers: "BMI over 30" → values: [30]
-- Multiple values: "age between 30 and 50" → values: [30, 50], operators: [">=", "<="]
+VALUE PATTERNS:
+- With units: "40 years old" → [40], ["Age"]
+- Simple: "BMI over 30" → [30]
+- Ranges: "between 30 and 50" → [30, 50], [">=", "<="]
 
 SPECIAL PATTERNS:
-- "top X", "best X", "highest X" → topk: X
-- "patient ID X", "data point X", "case X", "point number X" → patient_id: X
-- Filtering: "show diabetic patients" → filter_type: "label", label_values: [1]
+- Rankings: "top X/best X" → topk: X
+- IDs: "patient/case/point X" → patient_id: X
+- Labels: "diabetic patients" → label_values: [1]
 
 FOCUS: Determine if the query seeks information about existing data or creation of new predictions
 
 COMPOUND QUESTIONS: Choose the PRIMARY action when multiple actions seem relevant. For questions asking both "why" and "how to change", prioritize the explanation aspect.
 
-COLLABORATIVE DISCUSSION:
-- Express confidence level: "I'm confident this is X" vs "I'm uncertain between X and Y"
-- Share specific concerns: "This could be data vs new_estimate because..."
-- Engage with validator feedback: "Your point about Z makes me reconsider..."
-- Continue discussion if valuable, max 4 rounds
-- Use phrases like: "I see your reasoning, but...", "That's a good point, however..."
+IMPORTANT: Use ONLY the actions listed above. Do not invent new actions.
 
 OUTPUT FORMAT:
-First provide a brief explanation of your interpretation, then ALWAYS output your JSON in a code block with this EXACT format:
+Share your reasoning and invite discussion BEFORE the JSON. Then provide valid JSON:
+
+CRITICAL JSON RULES:
+- JSON must be valid - NO comments allowed inside JSON blocks
+- filter_type must be one of: "prediction", "feature", "label", or null
+- Do not use feature names (like "BMI") as filter_type values
 
 ```json
 {
   "action": "single_detected_action",
   "entities": {
-    "patient_id": null,
-    "features": null,
-    "operators": null,
-    "values": null,
-    "topk": null,
-    "filter_type": null,
-    "prediction_values": null,
-    "label_values": null
+    "patient_id": "number_or_null",
+    "features": ["feature_names_or_null"],
+    "operators": ["operators_or_null"],
+    "values": ["numbers_or_null"],
+    "topk": "number_or_null",
+    "filter_type": "prediction|feature|label|null",
+    "prediction_values": ["numbers_for_prediction_filtering_or_null"],
+    "label_values": ["numbers_for_label_filtering_or_null"]
   }
 }
-```
-
-FIELD DEFINITIONS:
-- action: One of the valid actions (data, new_estimate, explain, mistake, important, score, filter, whatif, counterfactual, statistic, label, define, self, followup, model, interact)
-- patient_id: Specific patient/data point number if mentioned (e.g., "patient 21" → 21), otherwise null
-- features: Array of feature names mentioned (e.g., ["age", "bmi"]), or null if none
-- operators: Array of operators for conditions (e.g., [">", "<=", "="]), must match features length, or null
-- values: Array of numeric values for conditions (e.g., [40, 30.5]), must match features length, or null  
-- topk: Number for "top X", "best X" requests (e.g., "top 5" → 5), otherwise null
-- filter_type: "label" for filtering by ground truth, "prediction" for filtering by model output, "feature" for feature-based, or null
-- prediction_values: Array of prediction values when filter_type is "prediction" (e.g., [0.8] for "prediction > 0.8"), otherwise null
-- label_values: Array of label values when filter_type is "label" (e.g., [1] for diabetic, [0] for non-diabetic), otherwise null
-
-CRITICAL: 
-- ALWAYS use the ```json code block format
-- Set unused entity fields to null (not empty arrays or strings)
-- Arrays must have matching lengths for features/operators/values
-- The JSON must be valid and parseable
-- DO NOT include comments (// or /* */) in the JSON - they break parsing
-- NO explanatory text inside the JSON structure"""
+```"""
 
     def _create_action_validation_prompt(self) -> str:
-        """Generate discussion-focused validation prompt for action analysis."""
-        return """You are an action validation agent.
+        """Generate clean validation prompt."""
+        return """You are a validation agent. Review the extraction and improve it.
 
-TASK: Validate and refine the action extraction agent's interpretation.
+VALIDATION FOCUS:
+1. Entity extraction accuracy (primary)
+2. Data format compliance (secondary)
+3. Trust extraction agent's action choices
 
-CRITICAL THINKING INSTRUCTION:
-- Don't just match keywords - understand the underlying INTENT
-- Surface words can be misleading: "predict people" might sound like new_estimate but asking about existing population patterns = data
-- "X more than Y" might sound like comparison but could be entity filtering condition
-- Always ask: "What is the user actually trying to accomplish?"
-- When in doubt, prioritize the ANALYTICAL INTENT over surface word matching
+ENTITY IMPROVEMENTS:
+- Extract only explicitly mentioned features (not all 8 features)
+- Remove custom fields not in template
+- Ensure parallel arrays have matching lengths
+- Convert single-item arrays to appropriate types
+- Check operators are valid: >, <, >=, <=, =, !=, +, -
+- Multiple conditions: Maintain parallel arrays for compound queries
+  Example: "For age > 50, what if BMI decreased by 5" → features: ["age", "BMI"], operators: [">", "-"], values: [50, 5]
 
-APPROACH: Engage collaboratively with ActionExtractor. Question interpretations, propose alternatives, build on their reasoning. Discuss uncertainties rather than just correcting.
+FIELD VALIDATION RULE:
+- ONLY use fields that exist in the JSON template. Never create custom field names. If uncertain which field to use, check the template.
 
-COLLABORATIVE VALIDATION:
-Instead of just correcting, engage in discussion:
-- "I see why you chose X, but have you considered Y because..."
-- "Your interpretation of Z makes sense, but what about this aspect..."
-- "I agree with your action choice, but let's discuss the entity extraction..."
-- "That's an interesting point about A, here's another perspective..."
+ACTION APPROACH:
+- Generally trust the extraction agent's action classification
+- Focus discussion on entity extraction quality
+- Suggest action changes only when completely certain
+- VALID ACTIONS ONLY: predict, filter, label, important, explain, whatif, counterfactual, mistake, score, statistic, interact, define, model, followup, self
+- Never suggest non-existent actions like 'single_final_action'
 
-DISCUSSION TRIGGERS:
-- ActionExtractor expresses uncertainty or low confidence
-- Multiple valid interpretations exist
-- Complex entity extraction scenarios
-- Ambiguous query wording
+USE SAME EXTRACTION RULES:
+- Apply same feature/operator/value patterns as extraction agent
+- Focus on user intent, not just keywords
 
-WHEN TO CONTINUE DISCUSSION:
-- Genuine disagreement on action classification
-- Uncertainty about entity extraction
-- Competing valid interpretations
-- Complex edge cases worth exploring
+DISCUSSION APPROACH:
+- Question interpretations when uncertain
+- Suggest improvements collaboratively  
+- Build consensus through reasoning
+- End with "CONSENSUS_REACHED" when aligned
+- Use ONLY actions from the defined list - never invent new ones
 
-ACTION CORRECTIONS:
-- data: Population patterns, existing data analysis
-- new_estimate: Individual case predictions
-- important: Feature rankings/comparisons  
-- explain: Model methodology
-- whatif: Changes to existing data points
-- filter: Show specific matching data points
-
-
-OUTPUT FORMAT:
-First provide your critical analysis, then ALWAYS output your final JSON in a code block with this EXACT format:
+CRITICAL JSON RULES:
+- JSON must be valid - NO comments allowed inside JSON blocks
+- filter_type must be one of: "prediction", "feature", "label", or null
+- Do not use feature names (like "BMI") as filter_type values
+- Remove any custom fields not in the template
 
 ```json
 {
   "action": "single_final_action",
   "entities": {
-    "patient_id": null,
-    "features": null,
-    "operators": null,
-    "values": null,
-    "topk": null,
-    "filter_type": null,
-    "prediction_values": null,
-    "label_values": null
-  }
+    "patient_id": "number_or_null",
+    "features": ["feature_names_or_null"],
+    "operators": ["operators_or_null"],
+    "values": ["numbers_or_null"],
+    "topk": "number_or_null",
+    "filter_type": "prediction|feature|label|null",
+    "prediction_values": ["numbers_for_prediction_filtering_or_null"],
+    "label_values": ["numbers_for_label_filtering_or_null"]
+  },
+  "reasoning": "brief_explanation"
 }
-```
-
-FIELD DEFINITIONS:
-- action: One of the valid actions (data, new_estimate, explain, mistake, important, score, filter, whatif, counterfactual, statistic, label, define, self, followup, model, interact)
-- patient_id: Specific patient/data point number if mentioned (e.g., "patient 21" → 21), otherwise null
-- features: Array of feature names mentioned (e.g., ["age", "bmi"]), or null if none
-- operators: Array of operators for conditions (e.g., [">", "<=", "="]), must match features length, or null
-- values: Array of numeric values for conditions (e.g., [40, 30.5]), must match features length, or null  
-- topk: Number for "top X", "best X" requests (e.g., "top 5" → 5), otherwise null
-- filter_type: "label" for filtering by ground truth, "prediction" for filtering by model output, "feature" for feature-based, or null
-- prediction_values: Array of prediction values when filter_type is "prediction" (e.g., [0.8] for "prediction > 0.8"), otherwise null
-- label_values: Array of label values when filter_type is "label" (e.g., [1] for diabetic, [0] for non-diabetic), otherwise null
-
-CRITICAL: 
-- ALWAYS use the ```json code block format
-- Use "action" (not "validated_action") to match the extraction agent
-- Set unused entity fields to null (not empty arrays or strings)
-- Arrays must have matching lengths for features/operators/values
-- The JSON must be valid and parseable
-
-DISCUSSION & CONSENSUS:
-- If ActionExtractor is confident and correct: "I agree with your interpretation" + same JSON + "CONSENSUS_REACHED"
-- If uncertainty or disagreement: Engage in collaborative discussion
-- Use collaborative language: "What do you think about...", "Have you considered...", "Your point about X is valid, but..."
-- After productive discussion: Provide final agreed JSON + "CONSENSUS_REACHED"
-- Maximum 4 rounds, focus on genuine interpretive challenges"""
+```"""
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
         """
@@ -463,10 +404,10 @@ DISCUSSION & CONSENSUS:
         processing_prompt = (
             f"{contextual_prompt}\n\n"
             f"Execute the collaborative natural language understanding pipeline:\n"
-            f"1. Action Extraction Agent: Analyze the query and provide your interpretation with JSON output\n"
-            f"2. Action Validation Agent: Review, validate, and refine the interpretation with your JSON output\n"
-            f"3. Both agents should explain their reasoning before outputting JSON\n"
-            f"4. Focus on accuracy and consider the dataset context"
+            f"1. Action Extraction Agent: Analyze the query, share your reasoning, and provide JSON output\n"
+            f"2. Action Validation Agent: Engage with the analysis, explore interpretations, and validate\n"
+            f"3. Both agents: Use disambiguation rules as discussion points, not just rigid rules\n"
+            f"4. Reach consensus through meaningful dialogue (max 4 rounds)"
         )
         
         logger.info("Stage 3: Starting agent collaboration...")
@@ -776,7 +717,7 @@ DISCUSSION & CONSENSUS:
             Complete integrated response from 2-agent collaboration
         """
         # Use validated action directly from the critical thinking agent
-        validated_action = intent_validation_response.get('validated_action', intent_response.get('action', 'data'))
+        validated_action = intent_validation_response.get('action', intent_response.get('action', 'explain'))
         
         # Use validated entities from intent validation, falling back to original entities
         validated_entities = intent_validation_response.get('entities', {})
@@ -822,7 +763,7 @@ DISCUSSION & CONSENSUS:
                 "alternative_interpretations": intent_validation_response.get('alternative_interpretations', [])
             },
             "agent_reasoning": {
-                "original_action": intent_response.get('action', 'data'),
+                "original_action": intent_response.get('action', 'explain'),
                 "validated_action": validated_action,
                 "critical_analysis": intent_validation_response.get('critical_analysis', ''),
                 "alternative_interpretations": intent_validation_response.get('alternative_interpretations', [])

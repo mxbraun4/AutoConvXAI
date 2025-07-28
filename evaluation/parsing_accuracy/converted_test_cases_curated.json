@@ -98,7 +98,7 @@
     "line_number": 6
   },
   {
-    "question": "Can you describe the data?",
+    "question": "Can you explain which features influenced these predictions?",
     "expected_json": {
       "entities": {},
       "action": "explain"
@@ -106,7 +106,7 @@
     "line_number": 7
   },
   {
-    "question": "Which slip-ups are you prone to making?",
+    "question": "Why does the model make these particular predictions?",
     "expected_json": {
       "entities": {},
       "action": "explain"
@@ -117,7 +117,7 @@
     "question": "Will you show me examples of inaccurate predictions on whether people have diabetes?",
     "expected_json": {
       "entities": {},
-      "action": "explain"
+      "action": "mistake"
     },
     "line_number": 9
   },
@@ -206,7 +206,7 @@
     "line_number": 17
   },
   {
-    "question": "What amount of people have less than three pregnancies?",
+    "question": "What is the predicted diabetes rate for people with less than three pregnancies?",
     "expected_json": {
       "entities": {
         "features": [
@@ -224,7 +224,7 @@
     "line_number": 18
   },
   {
-    "question": "What's the number of people that have been pregnant less than three times?",
+    "question": "What's the diabetes prediction likelihood for people pregnant less than three times?",
     "expected_json": {
       "entities": {
         "features": [
@@ -242,7 +242,7 @@
     "line_number": 19
   },
   {
-    "question": "According to the data provided, how many instance of greater than 100 blood pressure can be counted?",
+    "question": "According to the data, what is the diabetes prediction rate for blood pressure greater than 100?",
     "expected_json": {
       "entities": {
         "features": [
@@ -260,7 +260,7 @@
     "line_number": 20
   },
   {
-    "question": "How many times was the blood pressure from the data greater than 100?",
+    "question": "How likely is diabetes when blood pressure from the data is greater than 100?",
     "expected_json": {
       "entities": {
         "features": [
@@ -278,7 +278,7 @@
     "line_number": 21
   },
   {
-    "question": "What is the number of occurrences in the data of blood pressure over 100?",
+    "question": "What is the predicted diabetes likelihood in the data for blood pressure over 100?",
     "expected_json": {
       "entities": {
         "features": [
@@ -332,7 +332,7 @@
     "line_number": 24
   },
   {
-    "question": "What labels are used for people with blood pressure under 100?",
+    "question": "What does the model predict for people with blood pressure under 100?",
     "expected_json": {
       "entities": {
         "features": [
@@ -350,7 +350,7 @@
     "line_number": 25
   },
   {
-    "question": "If a person's blood pressure is lower than 100, what labels are used?",
+    "question": "If a person's blood pressure is lower than 100, what does the model predict?",
     "expected_json": {
       "entities": {
         "features": [
@@ -368,7 +368,7 @@
     "line_number": 26
   },
   {
-    "question": "What labels apply to individuals with blood pressure under 100?",
+    "question": "What are the model's predictions for individuals with blood pressure under 100?",
     "expected_json": {
       "entities": {
         "features": [
@@ -386,7 +386,7 @@
     "line_number": 27
   },
   {
-    "question": "What are the labels for the data points on insulin levels that equal 20?",
+    "question": "What does the model predict for data points where insulin levels equal 20?",
     "expected_json": {
       "entities": {
         "features": [
@@ -404,7 +404,7 @@
     "line_number": 28
   },
   {
-    "question": "What are the labels for the data points where the insulin levels are equivalent to 20?",
+    "question": "What predictions does the model make when insulin levels are equivalent to 20?",
     "expected_json": {
       "entities": {
         "features": [
@@ -422,7 +422,7 @@
     "line_number": 29
   },
   {
-    "question": "What are the labels for the data points where insulin levels are equal to 20?",
+    "question": "How does the model predict diabetes when insulin levels are equal to 20?",
     "expected_json": {
       "entities": {
         "features": [
@@ -530,7 +530,7 @@
     "line_number": 35
   },
   {
-    "question": "For data point number 32, how likely is diabetes?",
+    "question": "Can you show me data point number 32?",
     "expected_json": {
       "entities": {
         "patient_id": 32
@@ -540,7 +540,7 @@
     "line_number": 36
   },
   {
-    "question": "How likely is diabetes in data point number 32?",
+    "question": "Show me the data for patient number 32.",
     "expected_json": {
       "entities": {
         "patient_id": 32
@@ -550,7 +550,7 @@
     "line_number": 37
   },
   {
-    "question": "What are the chances of diabetes for data point 32?",
+    "question": "Display the information for data point 32.",
     "expected_json": {
       "entities": {
         "patient_id": 32
@@ -560,7 +560,7 @@
     "line_number": 38
   },
   {
-    "question": "What is the possibility that the thirty-second data point has diabetes?",
+    "question": "What data do you have for the thirty-second data point?",
     "expected_json": {
       "entities": {
         "patient_id": 32
@@ -570,7 +570,7 @@
     "line_number": 39
   },
   {
-    "question": "what is the chance that number 32 has diabetes?",
+    "question": "Can you filter and show me data for patient number 32?",
     "expected_json": {
       "entities": {
         "patient_id": 32
@@ -580,7 +580,7 @@
     "line_number": 40
   },
   {
-    "question": "What is the likely chance that data point 32 has diabetes?",
+    "question": "Please display the data values for patient 32.",
     "expected_json": {
       "entities": {
         "patient_id": 32
@@ -590,7 +590,7 @@
     "line_number": 41
   },
   {
-    "question": "What is the likelihood that data point number 32 has diabetes?",
+    "question": "Show me the filtered data for patient number 32.",
     "expected_json": {
       "entities": {
         "patient_id": 32
@@ -1060,10 +1060,10 @@
     "line_number": 78
   },
   {
-    "question": "Can you please explain the mistakes you've made predicting if people are diabetic?",
+    "question": "Can you explain why the model predicted diabetes for these patients?",
     "expected_json": {
       "entities": {},
-      "action": "mistake"
+      "action": "explain"
     },
     "line_number": 79
   },
@@ -1258,10 +1258,10 @@
     "line_number": 94
   },
   {
-    "question": "What is the overall model performance?",
+    "question": "What is the overall model architecture?",
     "expected_json": {
       "entities": {},
-      "action": "score"
+      "action": "model"
     },
     "line_number": 95
   },
@@ -1858,7 +1858,7 @@
     "question": "What is your model's performance on the test set?",
     "expected_json": {
       "entities": {},
-      "action": "model"
+      "action": "score"
     },
     "line_number": 154
   },

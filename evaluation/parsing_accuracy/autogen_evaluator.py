@@ -294,6 +294,99 @@ class AutoGenEvaluator:
         overall_matches = sum(1 for r in results if r.overall_match)
         errors = sum(1 for r in results if r.error_message)
         
+        # Track validation agent changes (both action and entity changes)
+        validation_changes = 0
+        validation_change_details = []
+        entity_validation_changes = {
+            'features_corrected': 0,
+            'operators_corrected': 0,
+            'values_corrected': 0,
+            'filter_type_corrected': 0,
+            'custom_fields_removed': 0,
+            'total_entity_changes': 0
+        }
+        
+        for r in results:
+            if hasattr(r, 'autogen_output') and r.autogen_output:
+                agent_reasoning = r.autogen_output.get('agent_reasoning', {})
+                original_action = agent_reasoning.get('original_action')
+                validated_action = agent_reasoning.get('validated_action')
+                
+                # Track action changes
+                action_changed = original_action and validated_action and original_action != validated_action
+                
+                # Track entity changes by comparing original vs final entities
+                entity_changed = False
+                entity_change_types = []
+                
+                # Get original entities from action_response (first agent)
+                action_response = r.autogen_output.get('action_response', {})
+                original_entities = action_response.get('entities', {})
+                
+                # Get final entities from command_structure (after validation)
+                final_entities = r.autogen_output.get('command_structure', {})
+                
+                # Compare entities if both exist
+                if original_entities and final_entities:
+                    # Check features
+                    orig_features = original_entities.get('features', [])
+                    final_features = final_entities.get('features', [])
+                    if orig_features != final_features:
+                        entity_changed = True
+                        entity_change_types.append('features')
+                        entity_validation_changes['features_corrected'] += 1
+                    
+                    # Check operators
+                    orig_ops = original_entities.get('operators', [])
+                    final_ops = final_entities.get('operators', [])
+                    if orig_ops != final_ops:
+                        entity_changed = True
+                        entity_change_types.append('operators')
+                        entity_validation_changes['operators_corrected'] += 1
+                    
+                    # Check values
+                    orig_vals = original_entities.get('values', [])
+                    final_vals = final_entities.get('values', [])
+                    if orig_vals != final_vals:
+                        entity_changed = True
+                        entity_change_types.append('values')
+                        entity_validation_changes['values_corrected'] += 1
+                    
+                    # Check filter_type
+                    orig_filter = original_entities.get('filter_type')
+                    final_filter = final_entities.get('filter_type')
+                    if orig_filter != final_filter:
+                        entity_changed = True
+                        entity_change_types.append('filter_type')
+                        entity_validation_changes['filter_type_corrected'] += 1
+                    
+                    # Check for removed custom fields
+                    orig_keys = set(original_entities.keys())
+                    final_keys = set(final_entities.keys())
+                    allowed_keys = {'patient_id', 'features', 'operators', 'values', 'topk', 
+                                   'filter_type', 'prediction_values', 'label_values'}
+                    custom_removed = orig_keys - final_keys - allowed_keys
+                    if custom_removed:
+                        entity_changed = True
+                        entity_change_types.append('custom_fields_removed')
+                        entity_validation_changes['custom_fields_removed'] += 1
+                
+                # Record if any change occurred (action or entity)
+                if action_changed or entity_changed:
+                    validation_changes += 1
+                    if entity_changed:
+                        entity_validation_changes['total_entity_changes'] += 1
+                    
+                    validation_change_details.append({
+                        'question': r.question,
+                        'original_action': original_action,
+                        'validated_action': validated_action,
+                        'action_changed': action_changed,
+                        'entity_changed': entity_changed,
+                        'entity_change_types': entity_change_types,
+                        'correct': r.overall_match  # Use overall match since we're tracking entity changes too
+                    })
+        
         # Action distribution analysis
         action_accuracy = {}
         for result in results:
@@ -315,9 +408,17 @@ class AutoGenEvaluator:
             'entity_accuracy': entity_matches / total_cases if total_cases > 0 else 0,
             'overall_accuracy': overall_matches / total_cases if total_cases > 0 else 0,
             'error_rate': errors / total_cases if total_cases > 0 else 0,
+            'validation_changes': validation_changes,
+            'validation_change_rate': validation_changes / total_cases if total_cases > 0 else 0,
+            'validation_improved_accuracy': sum(1 for d in validation_change_details if d['correct']) / validation_changes if validation_changes > 0 else 0,
+            'entity_validation_changes': entity_validation_changes,
+            'action_only_changes': sum(1 for d in validation_change_details if d.get('action_changed') and not d.get('entity_changed')),
+            'entity_only_changes': sum(1 for d in validation_change_details if d.get('entity_changed') and not d.get('action_changed')),
+            'both_changed': sum(1 for d in validation_change_details if d.get('action_changed') and d.get('entity_changed')),
             'action_breakdown': action_accuracy,
             'action_mismatches': [],
-            'entity_mismatches': []
+            'entity_mismatches': [],
+            'validation_change_examples': validation_change_details[:5]  # Show first 5 examples
         }
         
         # Separate action and entity mismatches
@@ -389,7 +490,7 @@ def evaluate_all_cases():
         return
     
     # Initialize evaluator with smart rate limiting
-    test_cases_file = '/app/evaluation/parsing_accuracy/converted_test_cases.json'
+    test_cases_file = '/app/evaluation/parsing_accuracy/converted_test_cases_curated.json'
     evaluator = AutoGenEvaluator(test_cases_file, api_key, delay_between_calls=0.1)
     
     total_cases = len(evaluator.test_cases)
@@ -455,12 +556,40 @@ def evaluate_all_cases():
     print(f"Entity Accuracy: {report['entity_accuracy']:.2%}")
     print(f"Overall Accuracy: {report['overall_accuracy']:.2%}")
     print(f"Error Rate: {report['error_rate']:.2%}")
+    print(f"\nValidation Agent Impact:")
+    print(f"  Total Changes: {report['validation_changes']} ({report['validation_change_rate']:.1%} of cases)")
+    print(f"  - Action-only changes: {report['action_only_changes']}")
+    print(f"  - Entity-only changes: {report['entity_only_changes']}")
+    print(f"  - Both changed: {report['both_changed']}")
+    print(f"  Validation Improved Accuracy: {report['validation_improved_accuracy']:.1%} of changes were correct")
+    
+    if report['entity_validation_changes']['total_entity_changes'] > 0:
+        print(f"\nEntity Validation Details:")
+        print(f"  Total entity changes: {report['entity_validation_changes']['total_entity_changes']}")
+        print(f"  - Features corrected: {report['entity_validation_changes']['features_corrected']}")
+        print(f"  - Operators corrected: {report['entity_validation_changes']['operators_corrected']}")
+        print(f"  - Values corrected: {report['entity_validation_changes']['values_corrected']}")
+        print(f"  - Filter types corrected: {report['entity_validation_changes']['filter_type_corrected']}")
+        print(f"  - Custom fields removed: {report['entity_validation_changes']['custom_fields_removed']}")
     print(f"Total Time: {total_time:.0f} seconds ({total_time/60:.1f} minutes)")
     print(f"Average Time per Test: {total_time/total_cases:.2f} seconds")
     
     print("\nAction Breakdown:")
     for action, data in report['action_breakdown'].items():
         print(f"  {action}: {data['correct']}/{data['total']} ({data['accuracy']:.2%})")
+    
+    if report['validation_change_examples']:
+        print("\nValidation Agent Changes (Examples):")
+        for change in report['validation_change_examples']:
+            status = "✓" if change['correct'] else "✗"
+            change_desc = []
+            if change.get('action_changed'):
+                change_desc.append(f"Action: {change['original_action']} → {change['validated_action']}")
+            if change.get('entity_changed'):
+                change_desc.append(f"Entities: {', '.join(change['entity_change_types'])}")
+            
+            print(f"   {status} {' | '.join(change_desc)}")
+            print(f"      Question: {change['question'][:60]}...")
     
     if report['action_mismatches']:
         print("\nTop 10 Action Mismatches:")
@@ -484,7 +613,7 @@ def main():
         return
     
     # Initialize evaluator
-    test_cases_file = '/app/evaluation/parsing_accuracy/converted_test_cases.json'
+    test_cases_file = '/app/evaluation/parsing_accuracy/converted_test_cases_curated.json'
     evaluator = AutoGenEvaluator(test_cases_file, api_key)
     
     # Run evaluation on subset (for speed)

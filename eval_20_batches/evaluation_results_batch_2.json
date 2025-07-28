@@ -1,135 +1,111 @@
 {
   "report": {
     "total_cases": 40,
-    "action_accuracy": 0.8,
-    "entity_accuracy": 0.95,
-    "overall_accuracy": 0.75,
+    "action_accuracy": 0.875,
+    "entity_accuracy": 1.0,
+    "overall_accuracy": 0.875,
     "error_rate": 0.0,
+    "validation_changes": 0,
+    "validation_change_rate": 0.0,
+    "validation_improved_accuracy": 0,
+    "entity_validation_changes": {
+      "features_corrected": 0,
+      "operators_corrected": 0,
+      "values_corrected": 0,
+      "filter_type_corrected": 0,
+      "custom_fields_removed": 0,
+      "total_entity_changes": 0
+    },
+    "action_only_changes": 0,
+    "entity_only_changes": 0,
+    "both_changed": 0,
     "action_breakdown": {
       "explain": {
-        "total": 7,
-        "correct": 7,
-        "accuracy": 1.0
-      },
-      "data": {
         "total": 14,
-        "correct": 9,
-        "accuracy": 0.6428571428571429
+        "correct": 13,
+        "accuracy": 0.9285714285714286
       },
-      "important": {
-        "total": 9,
-        "correct": 9,
+      "mistake": {
+        "total": 1,
+        "correct": 1,
         "accuracy": 1.0
       },
-      "whatif": {
+      "predict": {
+        "total": 15,
+        "correct": 11,
+        "accuracy": 0.7333333333333333
+      },
+      "filter": {
         "total": 10,
-        "correct": 7,
-        "accuracy": 0.7
+        "correct": 10,
+        "accuracy": 1.0
       }
     },
     "action_mismatches": [
       {
-        "question": "How much do you predict people aged over 30 have diabetes?",
-        "expected_action": "data",
-        "actual_action": "new_estimate",
-        "expected_entities": {
-          "features": [
-            "age"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            30
-          ]
-        },
+        "question": "What effect do the features have those predictions made by the model on the training information?",
+        "expected_action": "explain",
+        "actual_action": "important",
+        "expected_entities": {},
         "actual_entities": {
-          "values": [
-            30
-          ],
-          "filter_type": null,
           "features": [
+            "Pregnancies",
+            "Glucose",
+            "BloodPressure",
+            "SkinThickness",
+            "Insulin",
+            "BMI",
+            "DiabetesPedigreeFunction",
             "Age"
           ],
+          "values": null,
+          "filter_type": null,
           "prediction_values": null,
-          "topk": null,
+          "label_values": null,
+          "operators": null,
           "patient_id": null,
-          "operators": [
-            ">"
-          ],
-          "label_values": null
+          "topk": null
         }
       },
       {
-        "question": "How often do you project people older than 30 to have diabetes?",
-        "expected_action": "data",
-        "actual_action": "new_estimate",
+        "question": "How likely is diabetes when blood pressure from the data is greater than 100?",
+        "expected_action": "predict",
+        "actual_action": "filter",
         "expected_entities": {
           "features": [
-            "age"
+            "BloodPressure"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            30
+            100
           ]
         },
         "actual_entities": {
-          "values": [
-            30
-          ],
-          "filter_type": null,
           "features": [
-            "Age"
-          ],
-          "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
-          "operators": [
-            ">"
-          ],
-          "label_values": null
-        }
-      },
-      {
-        "question": "How often do you predict people aged more than 30 and have diabetes?",
-        "expected_action": "data",
-        "actual_action": "new_estimate",
-        "expected_entities": {
-          "features": [
-            "age"
-          ],
-          "operators": [
-            ">"
+            "BloodPressure"
           ],
           "values": [
-            30
-          ]
-        },
-        "actual_entities": {
-          "values": [
-            30
+            100
           ],
           "filter_type": "label",
-          "features": [
-            "Age"
-          ],
           "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
+          "label_values": [
+            0,
+            1
+          ],
           "operators": [
             ">"
           ],
-          "label_values": [
-            1
-          ]
+          "patient_id": null,
+          "topk": null
         }
       },
       {
         "question": "Will you show me how likely it is that people older than 30 have diabetes?",
-        "expected_action": "data",
-        "actual_action": "new_estimate",
+        "expected_action": "predict",
+        "actual_action": "filter",
         "expected_entities": {
           "features": [
             "age"
@@ -142,467 +118,249 @@
           ]
         },
         "actual_entities": {
-          "values": [
-            30
-          ],
-          "filter_type": null,
           "features": [
             "Age"
           ],
-          "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
-          "operators": [
-            ">"
-          ],
-          "label_values": [
-            1
-          ]
-        }
-      },
-      {
-        "question": "What is the likelihood of diabetes being had by people older than 30?",
-        "expected_action": "data",
-        "actual_action": "new_estimate",
-        "expected_entities": {
-          "features": [
-            "age"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            30
-          ]
-        },
-        "actual_entities": {
-          "values": [
-            30
-          ],
-          "filter_type": null,
-          "features": [
-            "Age"
-          ],
-          "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
-          "operators": [
-            ">"
-          ],
-          "label_values": [
-            1
-          ]
-        }
-      }
-    ],
-    "entity_mismatches": [
-      {
-        "question": "What reasoning do you typically use to determine if people have diabetes when glucose levels are over 120?",
-        "expected_action": "explain",
-        "actual_action": "explain",
-        "expected_entities": {
-          "features": [
-            "glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            120
-          ]
-        },
-        "actual_entities": {
-          "values": [
-            120,
-            null,
-            null,
-            null
-          ],
-          "filter_type": null,
-          "features": [
-            "Glucose",
-            "BMI",
-            "Age",
-            "DiabetesPedigreeFunction"
-          ],
-          "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
-          "operators": [
-            ">",
-            ">",
-            ">",
-            ">"
-          ],
-          "label_values": null
-        }
-      },
-      {
-        "question": "People with a 40+ bmi have what top five most important features based on the model's predictions?",
-        "expected_action": "important",
-        "actual_action": "important",
-        "expected_entities": {
-          "features": [
-            "bmi"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            40
-          ],
-          "topk": 5
-        },
-        "actual_entities": {
-          "values": [
-            40
-          ],
-          "filter_type": null,
-          "features": [
-            "BMI"
-          ],
-          "prediction_values": null,
-          "topk": 5,
-          "patient_id": null,
-          "operators": [
-            ">="
-          ],
-          "label_values": null
-        }
-      }
-    ]
-  },
-  "detailed_results": [
-    {
-      "question": "What reasoning do you typically use to determine if people have diabetes when glucose levels are over 120?",
-      "expected": {
-        "entities": {
-          "features": [
-            "glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            120
-          ]
-        },
-        "action": "explain"
-      },
-      "actual": {
-        "generation": "parsed: explain[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
-        "action_response": {
-          "action": "explain",
-          "entities": {
-            "values": [
-              120,
-              null,
-              null,
-              null
-            ],
-            "filter_type": null,
-            "features": [
-              "Glucose",
-              "BMI",
-              "Age",
-              "DiabetesPedigreeFunction"
-            ],
-            "prediction_values": null,
-            "topk": null,
-            "patient_id": null,
-            "operators": [
-              ">",
-              ">",
-              ">",
-              ">"
-            ],
-            "label_values": null
-          },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "agent_reasoning": {
-          "original_action": "explain",
-          "validated_action": "explain",
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "command_structure": {
-          "values": [
-            120,
-            null,
-            null,
-            null
-          ],
-          "filter_type": null,
-          "features": [
-            "Glucose",
-            "BMI",
-            "Age",
-            "DiabetesPedigreeFunction"
-          ],
-          "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
-          "operators": [
-            ">",
-            ">",
-            ">",
-            ">"
-          ],
-          "label_values": null
-        },
-        "action_list": [
-          "explain"
-        ],
-        "final_action": "explain",
-        "validation_passed": true,
-        "identified_issues": []
-      },
-      "action_match": true,
-      "entities_match": false,
-      "overall_match": false,
-      "error": ""
-    },
-    {
-      "question": "How much do you predict people aged over 30 have diabetes?",
-      "expected": {
-        "entities": {
-          "features": [
-            "age"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            30
-          ]
-        },
-        "action": "data"
-      },
-      "actual": {
-        "generation": "parsed: new_estimate[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
-        "action_response": {
-          "action": "new_estimate",
-          "entities": {
-            "values": [
-              30
-            ],
-            "filter_type": null,
-            "features": [
-              "Age"
-            ],
-            "prediction_values": null,
-            "topk": null,
-            "patient_id": null,
-            "operators": [
-              ">"
-            ],
-            "label_values": null
-          },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "agent_reasoning": {
-          "original_action": "new_estimate",
-          "validated_action": "new_estimate",
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "command_structure": {
-          "values": [
-            30
-          ],
-          "filter_type": null,
-          "features": [
-            "Age"
-          ],
-          "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
-          "operators": [
-            ">"
-          ],
-          "label_values": null
-        },
-        "action_list": [
-          "new_estimate"
-        ],
-        "final_action": "new_estimate",
-        "validation_passed": true,
-        "identified_issues": []
-      },
-      "action_match": false,
-      "entities_match": true,
-      "overall_match": false,
-      "error": ""
-    },
-    {
-      "question": "How often do you project people older than 30 to have diabetes?",
-      "expected": {
-        "entities": {
-          "features": [
-            "age"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            30
-          ]
-        },
-        "action": "data"
-      },
-      "actual": {
-        "generation": "parsed: new_estimate[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
-        "action_response": {
-          "action": "new_estimate",
-          "entities": {
-            "values": [
-              30
-            ],
-            "filter_type": null,
-            "features": [
-              "Age"
-            ],
-            "prediction_values": null,
-            "topk": null,
-            "patient_id": null,
-            "operators": [
-              ">"
-            ],
-            "label_values": null
-          },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "agent_reasoning": {
-          "original_action": "new_estimate",
-          "validated_action": "new_estimate",
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "command_structure": {
-          "values": [
-            30
-          ],
-          "filter_type": null,
-          "features": [
-            "Age"
-          ],
-          "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
-          "operators": [
-            ">"
-          ],
-          "label_values": null
-        },
-        "action_list": [
-          "new_estimate"
-        ],
-        "final_action": "new_estimate",
-        "validation_passed": true,
-        "identified_issues": []
-      },
-      "action_match": false,
-      "entities_match": true,
-      "overall_match": false,
-      "error": ""
-    },
-    {
-      "question": "How often do you predict people aged more than 30 and have diabetes?",
-      "expected": {
-        "entities": {
-          "features": [
-            "age"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            30
-          ]
-        },
-        "action": "data"
-      },
-      "actual": {
-        "generation": "parsed: new_estimate[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
-        "action_response": {
-          "action": "new_estimate",
-          "entities": {
-            "values": [
-              30
-            ],
-            "filter_type": "label",
-            "features": [
-              "Age"
-            ],
-            "prediction_values": null,
-            "topk": null,
-            "patient_id": null,
-            "operators": [
-              ">"
-            ],
-            "label_values": [
-              1
-            ]
-          },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "agent_reasoning": {
-          "original_action": "new_estimate",
-          "validated_action": "new_estimate",
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "command_structure": {
           "values": [
             30
           ],
           "filter_type": "label",
-          "features": [
-            "Age"
-          ],
           "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
+          "label_values": [
+            0,
+            1
+          ],
           "operators": [
             ">"
           ],
-          "label_values": [
-            1
+          "patient_id": null,
+          "topk": null
+        }
+      },
+      {
+        "question": "What is the likelihood of diabetes being had by people older than 30?",
+        "expected_action": "predict",
+        "actual_action": "filter",
+        "expected_entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
           ]
         },
+        "actual_entities": {
+          "features": [
+            "Age"
+          ],
+          "values": [
+            30
+          ],
+          "filter_type": "label",
+          "prediction_values": null,
+          "label_values": [
+            0,
+            1
+          ],
+          "operators": [
+            ">"
+          ],
+          "patient_id": null,
+          "topk": null
+        }
+      },
+      {
+        "question": "How does the model predict diabetes when insulin levels are equal to 20?",
+        "expected_action": "predict",
+        "actual_action": "explain",
+        "expected_entities": {
+          "features": [
+            "insulin"
+          ],
+          "operators": [
+            "="
+          ],
+          "values": [
+            20
+          ]
+        },
+        "actual_entities": {
+          "features": [
+            "Insulin"
+          ],
+          "values": [
+            20
+          ],
+          "filter_type": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": [
+            "="
+          ],
+          "patient_id": null,
+          "topk": null
+        }
+      }
+    ],
+    "entity_mismatches": [],
+    "validation_change_examples": []
+  },
+  "detailed_results": [
+    {
+      "question": "What effect do the features have those predictions made by the model on the training information?",
+      "expected": {
+        "entities": {},
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.8,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "features": [
+              "Pregnancies",
+              "Glucose",
+              "BloodPressure",
+              "SkinThickness",
+              "Insulin",
+              "BMI",
+              "DiabetesPedigreeFunction",
+              "Age"
+            ],
+            "values": null,
+            "filter_type": null,
+            "prediction_values": null,
+            "label_values": null,
+            "operators": null,
+            "patient_id": null,
+            "topk": null
+          },
+          "confidence": 0.8
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "important",
+          "validated_action": "important",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "Pregnancies",
+            "Glucose",
+            "BloodPressure",
+            "SkinThickness",
+            "Insulin",
+            "BMI",
+            "DiabetesPedigreeFunction",
+            "Age"
+          ],
+          "values": null,
+          "filter_type": null,
+          "prediction_values": null,
+          "label_values": null,
+          "operators": null,
+          "patient_id": null,
+          "topk": null
+        },
         "action_list": [
-          "new_estimate"
+          "important"
         ],
-        "final_action": "new_estimate",
+        "final_action": "important",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "How likely is diabetes when blood pressure from the data is greater than 100?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "predict"
+      },
+      "actual": {
+        "generation": "parsed: filter[e]",
+        "confidence": 0.8,
+        "method": "autogen_2agent_discussion",
+        "action_response": {
+          "action": "filter",
+          "entities": {
+            "features": [
+              "BloodPressure"
+            ],
+            "values": [
+              100
+            ],
+            "filter_type": "label",
+            "prediction_values": null,
+            "label_values": [
+              0,
+              1
+            ],
+            "operators": [
+              ">"
+            ],
+            "patient_id": null,
+            "topk": null
+          },
+          "confidence": 0.8
+        },
+        "validation_response": {
+          "requires_full_dataset": false,
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "agent_reasoning": {
+          "original_action": "filter",
+          "validated_action": "filter",
+          "critical_analysis": "",
+          "alternative_interpretations": []
+        },
+        "command_structure": {
+          "features": [
+            "BloodPressure"
+          ],
+          "values": [
+            100
+          ],
+          "filter_type": "label",
+          "prediction_values": null,
+          "label_values": [
+            0,
+            1
+          ],
+          "operators": [
+            ">"
+          ],
+          "patient_id": null,
+          "topk": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
         "validation_passed": true,
         "identified_issues": []
       },
@@ -625,31 +383,32 @@
             30
           ]
         },
-        "action": "data"
+        "action": "predict"
       },
       "actual": {
-        "generation": "parsed: new_estimate[e]",
+        "generation": "parsed: filter[e]",
         "confidence": 0.8,
         "method": "autogen_2agent_discussion",
         "action_response": {
-          "action": "new_estimate",
+          "action": "filter",
           "entities": {
-            "values": [
-              30
-            ],
-            "filter_type": null,
             "features": [
               "Age"
             ],
+            "values": [
+              30
+            ],
+            "filter_type": "label",
             "prediction_values": null,
-            "topk": null,
-            "patient_id": null,
+            "label_values": [
+              0,
+              1
+            ],
             "operators": [
               ">"
             ],
-            "label_values": [
-              1
-            ]
+            "patient_id": null,
+            "topk": null
           },
           "confidence": 0.8
         },
@@ -659,33 +418,34 @@
           "alternative_interpretations": []
         },
         "agent_reasoning": {
-          "original_action": "new_estimate",
-          "validated_action": "new_estimate",
+          "original_action": "filter",
+          "validated_action": "filter",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
-          "values": [
-            30
-          ],
-          "filter_type": null,
           "features": [
             "Age"
           ],
+          "values": [
+            30
+          ],
+          "filter_type": "label",
           "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
+          "label_values": [
+            0,
+            1
+          ],
           "operators": [
             ">"
           ],
-          "label_values": [
-            1
-          ]
+          "patient_id": null,
+          "topk": null
         },
         "action_list": [
-          "new_estimate"
+          "filter"
         ],
-        "final_action": "new_estimate",
+        "final_action": "filter",
         "validation_passed": true,
         "identified_issues": []
       },
@@ -708,31 +468,32 @@
             30
           ]
         },
-        "action": "data"
+        "action": "predict"
       },
       "actual": {
-        "generation": "parsed: new_estimate[e]",
+        "generation": "parsed: filter[e]",
         "confidence": 0.8,
         "method": "autogen_2agent_discussion",
         "action_response": {
-          "action": "new_estimate",
+          "action": "filter",
           "entities": {
-            "values": [
-              30
-            ],
-            "filter_type": null,
             "features": [
               "Age"
             ],
+            "values": [
+              30
+            ],
+            "filter_type": "label",
             "prediction_values": null,
-            "topk": null,
-            "patient_id": null,
+            "label_values": [
+              0,
+              1
+            ],
             "operators": [
               ">"
             ],
-            "label_values": [
-              1
-            ]
+            "patient_id": null,
+            "topk": null
           },
           "confidence": 0.8
         },
@@ -742,79 +503,79 @@
           "alternative_interpretations": []
         },
         "agent_reasoning": {
-          "original_action": "new_estimate",
-          "validated_action": "new_estimate",
+          "original_action": "filter",
+          "validated_action": "filter",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
-          "values": [
-            30
-          ],
-          "filter_type": null,
           "features": [
             "Age"
           ],
+          "values": [
+            30
+          ],
+          "filter_type": "label",
           "prediction_values": null,
-          "topk": null,
-          "patient_id": null,
+          "label_values": [
+            0,
+            1
+          ],
           "operators": [
             ">"
           ],
-          "label_values": [
-            1
+          "patient_id": null,
+          "topk": null
+        },
+        "action_list": [
+          "filter"
+        ],
+        "final_action": "filter",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "How does the model predict diabetes when insulin levels are equal to 20?",
+      "expected": {
+        "entities": {
+          "features": [
+            "insulin"
+          ],
+          "operators": [
+            "="
+          ],
+          "values": [
+            20
           ]
         },
-        "action_list": [
-          "new_estimate"
-        ],
-        "final_action": "new_estimate",
-        "validation_passed": true,
-        "identified_issues": []
-      },
-      "action_match": false,
-      "entities_match": true,
-      "overall_match": false,
-      "error": ""
-    },
-    {
-      "question": "People with a 40+ bmi have what top five most important features based on the model's predictions?",
-      "expected": {
-        "entities": {
-          "features": [
-            "bmi"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            40
-          ],
-          "topk": 5
-        },
-        "action": "important"
+        "action": "predict"
       },
       "actual": {
-        "generation": "parsed: important[e]",
+        "generation": "parsed: explain[e]",
         "confidence": 0.8,
         "method": "autogen_2agent_discussion",
         "action_response": {
-          "action": "important",
+          "action": "explain",
           "entities": {
+            "features": [
+              "Insulin"
+            ],
             "values": [
-              40
+              20
             ],
             "filter_type": null,
-            "features": [
-              "BMI"
-            ],
             "prediction_values": null,
-            "topk": 5,
+            "label_values": null,
+            "operators": [
+              "="
+            ],
             "patient_id": null,
-            "operators": [
-              ">="
-            ],
-            "label_values": null
+            "topk": null
           },
           "confidence": 0.8
         },
@@ -824,244 +585,31 @@
           "alternative_interpretations": []
         },
         "agent_reasoning": {
-          "original_action": "important",
-          "validated_action": "important",
+          "original_action": "explain",
+          "validated_action": "explain",
           "critical_analysis": "",
           "alternative_interpretations": []
         },
         "command_structure": {
+          "features": [
+            "Insulin"
+          ],
           "values": [
-            40
+            20
           ],
           "filter_type": null,
-          "features": [
-            "BMI"
-          ],
           "prediction_values": null,
-          "topk": 5,
+          "label_values": null,
+          "operators": [
+            "="
+          ],
           "patient_id": null,
-          "operators": [
-            ">="
-          ],
-          "label_values": null
+          "topk": null
         },
         "action_list": [
-          "important"
+          "explain"
         ],
-        "final_action": "important",
-        "validation_passed": true,
-        "identified_issues": []
-      },
-      "action_match": true,
-      "entities_match": false,
-      "overall_match": false,
-      "error": ""
-    },
-    {
-      "question": "For the data point with id 33, predict the change in the likelihood of having diabetes if we increase glucose by 100.",
-      "expected": {
-        "entities": {
-          "patient_id": 33
-        },
-        "action": "whatif"
-      },
-      "actual": {
-        "generation": "parsed: new_estimate[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
-        "action_response": {
-          "action": "new_estimate",
-          "entities": {
-            "values": [
-              100
-            ],
-            "filter_type": null,
-            "features": [
-              "Glucose"
-            ],
-            "prediction_values": null,
-            "topk": null,
-            "patient_id": 33,
-            "operators": [
-              "+"
-            ],
-            "label_values": null
-          },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "agent_reasoning": {
-          "original_action": "new_estimate",
-          "validated_action": "new_estimate",
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "command_structure": {
-          "values": [
-            100
-          ],
-          "filter_type": null,
-          "features": [
-            "Glucose"
-          ],
-          "prediction_values": null,
-          "topk": null,
-          "patient_id": 33,
-          "operators": [
-            "+"
-          ],
-          "label_values": null
-        },
-        "action_list": [
-          "new_estimate"
-        ],
-        "final_action": "new_estimate",
-        "validation_passed": true,
-        "identified_issues": []
-      },
-      "action_match": false,
-      "entities_match": true,
-      "overall_match": false,
-      "error": ""
-    },
-    {
-      "question": "What changes in the likelihood of having diabetes would be made if we were to increase glucose by 100 in data point 33?",
-      "expected": {
-        "entities": {
-          "patient_id": 33
-        },
-        "action": "whatif"
-      },
-      "actual": {
-        "generation": "parsed: new_estimate[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
-        "action_response": {
-          "action": "new_estimate",
-          "entities": {
-            "values": [
-              100
-            ],
-            "filter_type": null,
-            "features": [
-              "Glucose"
-            ],
-            "prediction_values": null,
-            "topk": null,
-            "patient_id": 33,
-            "operators": [
-              "+"
-            ],
-            "label_values": null
-          },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "agent_reasoning": {
-          "original_action": "new_estimate",
-          "validated_action": "new_estimate",
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "command_structure": {
-          "values": [
-            100
-          ],
-          "filter_type": null,
-          "features": [
-            "Glucose"
-          ],
-          "prediction_values": null,
-          "topk": null,
-          "patient_id": 33,
-          "operators": [
-            "+"
-          ],
-          "label_values": null
-        },
-        "action_list": [
-          "new_estimate"
-        ],
-        "final_action": "new_estimate",
-        "validation_passed": true,
-        "identified_issues": []
-      },
-      "action_match": false,
-      "entities_match": true,
-      "overall_match": false,
-      "error": ""
-    },
-    {
-      "question": "likelihood of having diabetes if we were to increase glucose by 100 for the data point with id 33",
-      "expected": {
-        "entities": {
-          "patient_id": 33
-        },
-        "action": "whatif"
-      },
-      "actual": {
-        "generation": "parsed: new_estimate[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
-        "action_response": {
-          "action": "new_estimate",
-          "entities": {
-            "values": [
-              100
-            ],
-            "filter_type": null,
-            "features": [
-              "Glucose"
-            ],
-            "prediction_values": null,
-            "topk": null,
-            "patient_id": 33,
-            "operators": [
-              "+"
-            ],
-            "label_values": null
-          },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "agent_reasoning": {
-          "original_action": "new_estimate",
-          "validated_action": "new_estimate",
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "command_structure": {
-          "values": [
-            100
-          ],
-          "filter_type": null,
-          "features": [
-            "Glucose"
-          ],
-          "prediction_values": null,
-          "topk": null,
-          "patient_id": 33,
-          "operators": [
-            "+"
-          ],
-          "label_values": null
-        },
-        "action_list": [
-          "new_estimate"
-        ],
-        "final_action": "new_estimate",
+        "final_action": "explain",
         "validation_passed": true,
         "identified_issues": []
       },

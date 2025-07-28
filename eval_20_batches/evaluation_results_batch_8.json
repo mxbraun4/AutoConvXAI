@@ -1,12 +1,12 @@
 {
   "report": {
-    "total_cases": 165,
-    "action_accuracy": 0.793939393939394,
-    "entity_accuracy": 0.8727272727272727,
-    "overall_accuracy": 0.703030303030303,
+    "total_cases": 160,
+    "action_accuracy": 0.8,
+    "entity_accuracy": 0.86875,
+    "overall_accuracy": 0.70625,
     "error_rate": 0.0,
     "validation_changes": 2,
-    "validation_change_rate": 0.012121212121212121,
+    "validation_change_rate": 0.0125,
     "validation_improved_accuracy": 0.0,
     "entity_validation_changes": {
       "features_corrected": 0,
@@ -86,9 +86,9 @@
         "accuracy": 1.0
       },
       "self": {
-        "total": 10,
-        "correct": 4,
-        "accuracy": 0.4
+        "total": 5,
+        "correct": 1,
+        "accuracy": 0.2
       }
     },
     "action_mismatches": [
@@ -3461,138 +3461,6 @@
         },
         "command_structure": {
           "features": [],
-          "values": null,
-          "filter_type": null,
-          "prediction_values": null,
-          "label_values": null,
-          "operators": null,
-          "patient_id": null,
-          "topk": null
-        },
-        "action_list": [
-          "explain"
-        ],
-        "final_action": "explain",
-        "validation_passed": true,
-        "identified_issues": []
-      },
-      "action_match": false,
-      "entities_match": true,
-      "overall_match": false,
-      "error": ""
-    },
-    {
-      "question": "How can you help me understand diabetes predictions?",
-      "expected": {
-        "entities": {},
-        "action": "self"
-      },
-      "actual": {
-        "generation": "parsed: explain[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
-        "action_response": {
-          "action": "explain",
-          "entities": {
-            "features": [
-              "Glucose",
-              "BMI",
-              "Age",
-              "BloodPressure"
-            ],
-            "values": null,
-            "filter_type": null,
-            "prediction_values": null,
-            "label_values": null,
-            "operators": null,
-            "patient_id": null,
-            "topk": null
-          },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "agent_reasoning": {
-          "original_action": "explain",
-          "validated_action": "explain",
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "command_structure": {
-          "features": [
-            "Glucose",
-            "BMI",
-            "Age",
-            "BloodPressure"
-          ],
-          "values": null,
-          "filter_type": null,
-          "prediction_values": null,
-          "label_values": null,
-          "operators": null,
-          "patient_id": null,
-          "topk": null
-        },
-        "action_list": [
-          "explain"
-        ],
-        "final_action": "explain",
-        "validation_passed": true,
-        "identified_issues": []
-      },
-      "action_match": false,
-      "entities_match": true,
-      "overall_match": false,
-      "error": ""
-    },
-    {
-      "question": "How do you provide explanations for your answers?",
-      "expected": {
-        "entities": {},
-        "action": "self"
-      },
-      "actual": {
-        "generation": "parsed: explain[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
-        "action_response": {
-          "action": "explain",
-          "entities": {
-            "features": [
-              "data analysis",
-              "use of algorithms",
-              "dataset utilization"
-            ],
-            "values": null,
-            "filter_type": null,
-            "prediction_values": null,
-            "label_values": null,
-            "operators": null,
-            "patient_id": null,
-            "topk": null
-          },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "agent_reasoning": {
-          "original_action": "explain",
-          "validated_action": "explain",
-          "critical_analysis": "",
-          "alternative_interpretations": []
-        },
-        "command_structure": {
-          "features": [
-            "data analysis",
-            "use of algorithms",
-            "dataset utilization"
-          ],
           "values": null,
           "filter_type": null,
           "prediction_values": null,

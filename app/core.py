@@ -39,7 +39,7 @@ class SimpleActionDispatcher:
             
             # Call action with expected parameters (conversation, parse_text, i, **kwargs)
             # Most actions expect these 3 parameters plus optional kwargs for entities
-            parse_text = action_args.get('parse_text', ['data'])  # Default to basic data operation
+            parse_text = action_args.get('parse_text', ['filter'])  # Default to basic data operation
             i = action_args.get('i', 0)  # Default index
             
             # Create kwargs excluding positional parameters to avoid conflicts
