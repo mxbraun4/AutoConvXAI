@@ -34,26 +34,28 @@ function doSample(rawAction) {
     });
 }
 
-// Sample question functions - each maps to a specific action type
+// Sample question functions - each maps to a specific action type (14 total)
 // Data Exploration
-function sampleData() { doSample("data"); }
 function sampleStatistic() { doSample("statistic"); }
 function sampleLabels() { doSample("label"); }
 function sampleDefine() { doSample("define"); }
+function sampleInteract() { doSample("interact"); }
 
 // Filtering
 function sampleFilter() { doSample("filter"); }
 
-// Model Analysis
-function sampleNewPred() { doSample("new_estimate"); }
-function sampleWhy() { doSample("explain"); }
+// Predictions & Analysis
+function samplePredict() { doSample("predict"); }
+function sampleExplain() { doSample("explain"); }
 function sampleImportant() { doSample("important"); }
-function samplePerformance() { doSample("score"); }
-function sampleModel() { doSample("model"); }
+
+// Model Performance
+function sampleScore() { doSample("score"); }
+function sampleMistake() { doSample("mistake"); }
 
 // What-If Analysis
 function sampleWhatIf() { doSample("whatif"); }
-function sampleFlip() { doSample("counterfactual"); }
+function sampleCounterfactual() { doSample("counterfactual"); }
 
 // System Help
 function sampleSelf() { doSample("self"); }

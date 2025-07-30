@@ -82,22 +82,30 @@ def filter_operation(conversation, parse_text, i, **kwargs):
     ent_features = kwargs.get('features', []) if kwargs else []
     ent_ops = kwargs.get('operators', []) if kwargs else []
     ent_vals = kwargs.get('values', []) if kwargs else []
+    ent_target_vals = kwargs.get('target_values', []) if kwargs else []
+    
+    # Legacy support for old field names during transition
     ent_prediction_vals = kwargs.get('prediction_values', []) if kwargs else []
     ent_label_vals = kwargs.get('label_values', []) if kwargs else []
+    if ent_prediction_vals and not ent_target_vals:
+        ent_target_vals = ent_prediction_vals
+    elif ent_label_vals and not ent_target_vals:
+        ent_target_vals = ent_label_vals
     
-    # Handle prediction-based filtering (e.g., "show instances where model predicted 1")
-    if kwargs.get('filter_type') == 'prediction' and ent_prediction_vals:
-        # This is explicit prediction-based filtering using prediction_values
-        prediction_value = ent_prediction_vals[0]
-        updated_dset, interp_parse_text = prediction_filter(temp_dataset, conversation, str(prediction_value))
+    # Auto-detect filtering type based on available entities (no filter_type needed)
+    
+    # 1. Target-based filtering (filter action defaults to label/ground truth filtering)
+    if ent_target_vals:
+        target_value = ent_target_vals[0]
+        # Filter action interprets target_values as ground truth labels by default
+        updated_dset, interp_parse_text = label_filter(temp_dataset, conversation, str(target_value))
         
-    # Fallback: If no filter_type but pattern suggests prediction filtering
-    elif not ent_features and ent_vals and len(ent_vals) == 1 and not kwargs.get('filter_type'):
-        # Pattern suggests prediction filtering when no features specified
-        prediction_value = ent_vals[0]
-        updated_dset, interp_parse_text = prediction_filter(temp_dataset, conversation, str(prediction_value))
+    # 3. Patient ID filtering (has patient_id)
+    elif kwargs.get('patient_id') is not None:
+        patient_id = kwargs.get('patient_id')
+        updated_dset, interp_parse_text = _handle_id_filtering(temp_dataset, conversation, patient_id)
         
-    # Handle feature-based filtering using AutoGen entities
+    # 4. Feature-based filtering (has features, operators, values)
     elif ent_features and ent_ops and ent_vals:
         # Handle multiple conditions (e.g., BMI > 30 AND age > 50)
         if len(ent_features) != len(ent_ops) or len(ent_features) != len(ent_vals):
@@ -153,28 +161,18 @@ def filter_operation(conversation, parse_text, i, **kwargs):
             updated_dset = filter_dataset(temp_dataset, combined_bools)
             interp_parse_text = " and ".join(interp_parts)
     
-    # Handle label-based filtering (ground truth filtering)
-    elif kwargs.get('filter_type') == 'label' and ent_label_vals:
-        label_value = ent_label_vals[0]
-        updated_dset, interp_parse_text = label_filter(temp_dataset, conversation, str(label_value))
-    
-    # Handle ID-based filtering directly
-    elif kwargs.get('filter_type') == 'id' and kwargs.get('patient_id') is not None:
-        patient_id = kwargs.get('patient_id')
-        updated_dset, interp_parse_text = _handle_id_filtering(temp_dataset, conversation, patient_id)
-    
-    # Handle patient_id filtering when filter_type isn't explicitly set
-    elif kwargs.get('patient_id') is not None:
-        patient_id = kwargs.get('patient_id')
-        updated_dset, interp_parse_text = _handle_id_filtering(temp_dataset, conversation, patient_id)
-    
+    # 5. Fallback for ambiguous cases
+    elif not ent_features and ent_vals and len(ent_vals) == 1:
+        # Single value with no features - assume prediction filtering
+        prediction_value = ent_vals[0]
+        updated_dset, interp_parse_text = prediction_filter(temp_dataset, conversation, str(prediction_value))
+        
     else:
         # NO FALLBACK - AutoGen must provide proper entities
         raise ValueError(
             "Clean Architecture Violation: AutoGen must provide structured entities for filtering. "
             f"Received: features={ent_features}, operators={ent_ops}, values={ent_vals}, "
-            f"prediction_values={ent_prediction_vals}, label_values={ent_label_vals}, "
-            f"filter_type={kwargs.get('filter_type')}, patient_id={kwargs.get('patient_id')}, kwargs={kwargs}. "
+            f"target_values={ent_target_vals}, patient_id={kwargs.get('patient_id')}, kwargs={kwargs}. "
             "The AutoGen decoder needs to be improved to handle this query type."
         )
 

@@ -110,14 +110,14 @@ class AutoGenDecoder:
 - label: Display actual, known outcomes or true values from the dataset.
 - important: Identify and rank features according to their significance or influence on the models predictions.
 - explain: Provide explanations or reasoning for why the model made specific predictions.
-- whatif: Analyze the effects of hypothetical adjustments or changes to specific feature values.
+- whatif: Analyze the effects of HYPOTHETICAL adjustments or changes to specific feature values. Would it change the prediction?
 - counterfactual: Suggest minimal feature changes necessary to alter or reverse the models prediction.
-- mistake: Display cases where the models predictions were incorrect or erroneous.
+- mistake: Display cases where the models did mistakes or predictions were incorrect or erroneous.
 - score: Present model evaluation metrics or performance measures.
-- statistic: Provide statistical summaries or data distributions for features within the dataset.
-- interact: Explore interactions or combined effects among multiple features.
+- statistic: Provide statistical summaries or data distributions for features (not target values!) within the dataset.
+- interact: Explore interactions or combined effects among multiple features. Only applies to filters.
 - define: Provide definitions or clarifications of relevant terminology or concepts.
-- self: Address questions related to the assistants own capabilities, limitations, and functions.
+- self: Address questions related to the assistants own capabilities, and functions.
 - followup: Allow continuation or deeper exploration based on prior analyses or interactions.
 
 
@@ -147,9 +147,7 @@ class AutoGenDecoder:
 - Special:
   - Rankings: "top X" → topk:X
   - IDs: "patient X" → patient_id:X
-  - Labels: "diabetic patients" → label_values:[1]
-  - Label values only for filtering data by labels, NOT for conceptual questions
-
+  - Target values are only needed if the user is asking specifically for instances of a certain outcome class - It is only applicable for "mistake", "filter", "label", 1 for diabetic, 0 for healthy)
 
 ## Compound Questions
 - Prioritize primary action ("why" before "how").
@@ -172,9 +170,7 @@ Provide reasoning clearly, then valid JSON:
     "operators": ["operators_or_null"],
     "values": ["numbers_or_null"],
     "topk": "number_or_null",
-    "filter_type": "prediction|feature|label|null",
-    "prediction_values": ["numbers_or_null"],
-    "label_values": ["numbers_or_null"]
+    "target_values": ["numbers_or_null"]
   }
 }
 ```
@@ -183,54 +179,74 @@ Ensure JSON validity without internal comments.
 """
 
     def _create_action_validation_prompt(self) -> str:
-        """Generate focused JSON validation prompt."""
+        """Generate focused JSON validation prompt with validation rules baked into JSON comments."""
         return """You are a JSON validation agent. Your job is to help the extraction agent produce perfect JSON output through critical discussion.
 
 # JSON Validation Agent
 
 ## Role
-- Validate JSON output from extraction agent.
-- Engage in critical discussion for precise JSON accuracy.
+- Validate JSON output from extraction agent
+- Use the validation rules embedded in the JSON template below
+- Output only clean JSON without comments
 
-## Validation Checklist
-1. **Action Field:** Ensure action is one of the valid actions (predict, filter, label, important, explain, whatif, counterfactual, mistake, score, statistic, interact, define, self, followup).
-2. **Entity Fields:** Validate: patient_id, features, operators, values, topk, filter_type, prediction_values, label_values.
-3. **Operator Format:** Convert natural language to mathematical operators (over -> ">", under -> "<", exactly -> "=", increase -> "+", decrease -> "-")
-4. **Parallel Arrays:** Confirm features/operators/values arrays align correctly.
-5. **Explicitness:** Confirm ONLY explicitly mentioned features are extracted. If no features are mentioned, set features to null.
-
-## Discussion Protocol
-- ACTIVELY validate and correct entity extraction - this is your primary job.
-- MUST convert natural language operators to symbols ("over 120" → operators: [">"], values: [120]).
-- MUST ensure proper feature name capitalization (glucose → Glucose).
-- Always provide the complete corrected JSON, even if only minor corrections needed.
-- Only conclude with `CONSENSUS_REACHED` AFTER providing your corrected JSON.
-- Do NOT change valid actions unless there's a clear error in action classification.
-- Do not add unmentioned features. If you see a feature that is not mentioned in the query, remove it.
-
-## Final JSON Output
-After discussion, finalize structured JSON clearly:
-
-**CRITICAL: NO COMMENTS IN JSON - JSON must be valid without // comments or explanations inside**
+## JSON Template with Validation Rules
+Check each field according to the validation rules embedded as comments:
 
 ```json
 {
-  "action": "detected_action_name",
+  "action": "action_name", 
+  // VALIDATE ACTION: Must be one of these 14 actions: predict, filter, label, important, explain, whatif, counterfactual, mistake, score, statistic, interact, define, self, followup
+  
   "entities": {
-    "patient_id": "number_or_null",
-    "features": ["feature_names_or_null"],
-    "operators": ["operators_or_null"],
-    "values": ["numbers_or_null"],
-    "topk": "number_or_null",
-    "filter_type": "prediction|feature|label|null",
-    "prediction_values": ["numbers_or_null"],
-    "label_values": ["numbers_or_null"]
+    "patient_id": number_or_null,
+    // VALIDATE PATIENT_ID: Only set if query mentions specific patient/data point number (e.g., "patient 21", "data point 33"). Otherwise null.
+    
+    "features": ["feature_names"] or null,
+    // VALIDATE FEATURES: CRITICAL - Only include features explicitly mentioned in query with conditions or requests. Do no autocomplete with all features.
+    // WRONG: Including features mentioned without conditions ("glucose is important" → don't add glucose unless asking about glucose specifically)
+    
+    "operators": ["operators"] or null,
+    // VALIDATE OPERATORS: Convert natural language to symbols: "over"/">", "under"/"<", "equals"/"is"/"=", "increase"/"+", "decrease"/"-"
+    // Must align with features array: features[0] pairs with operators[0]
+    // Set to null if no conditions mentioned
+    
+    "values": [numbers] or null,
+    // VALIDATE VALUES: Extract exact numbers mentioned in conditions
+    // Must align with operators: operators[0] pairs with values[0] 
+    // "glucose over 120" → [120], "age between 30 and 50" → [30, 50]
+    // Set to null if no values mentioned
+    
+    "topk": number_or_null,
+    // VALIDATE TOPK: Only set if query asks for "top X", "first X", "most important X" with specific number
+    // "top 5 features" → 5, "most important features" → null (no number specified)
+    
+    "target_values": [values] or null
+    // VALIDATE TARGET_VALUES: Only for mistake/prediction/filter queries that specify target outcomes
+    // WRONG: Auto-completing with [0,1] when user asks general "show mistakes"
+    // RIGHT: "mistakes predicting diabetes" → null, "false positives" → [1], "false negatives" → [0]
   }
 }
 ```
 
-- Ensure JSON validity without internal comments.
-- Mark completion with `CONSENSUS_REACHED`.
+
+## Final Output
+Provide clean JSON without any comments:
+
+```json
+{
+  "action": "action_name",
+  "entities": {
+    "patient_id": number_or_null,
+    "features": ["feature_names"] or null,
+    "operators": ["operators"] or null,
+    "values": [numbers] or null,
+    "topk": number_or_null,
+    "target_values": [values] or null
+  }
+}
+```
+
+**Use the embedded validation rules to check every field, then output clean JSON.**
 """
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
@@ -509,41 +525,42 @@ After discussion, finalize structured JSON clearly:
             return self._create_error_response("No agent responses")
 
         # Extract structured responses from agent communications
-        for message_index, message in enumerate(collaboration_result.messages):
+        # Process messages from newest to oldest to prioritize most recent responses
+        for message_index, message in enumerate(reversed(collaboration_result.messages)):
+            # Calculate original index for logging consistency
+            original_index = len(collaboration_result.messages) - 1 - message_index
+            
             # Debug: Log agent message content
             if hasattr(message, 'content') and message.content:
-                logger.warning(f"=== MESSAGE {message_index} FULL CONTENT ===")
+                logger.warning(f"=== MESSAGE {original_index} (processing order {message_index}) FULL CONTENT ===")
                 logger.warning(f"Source: {getattr(message, 'source', 'unknown')}")
                 logger.warning(f"Length: {len(message.content)}")
                 logger.warning(f"Content: {message.content}")
-                logger.warning(f"=== END MESSAGE {message_index} ===")
+                logger.warning(f"=== END MESSAGE {original_index} ===")
                 # Check for consensus marker in message
                 if "CONSENSUS_REACHED" in message.content:
-                    logger.info(f"Found CONSENSUS_REACHED marker in message {message_index} - consensus should have triggered termination")
+                    logger.info(f"Found CONSENSUS_REACHED marker in message {original_index} - consensus should have triggered termination")
             else:
-                logger.warning(f"Message {message_index}: No content")
+                logger.warning(f"Message {original_index}: No content")
             
-            extracted_response = self._extract_json_response(message, message_index)
+            extracted_response = self._extract_json_response(message, original_index)
             
             if extracted_response and isinstance(extracted_response, dict):
-                logger.info(f"Message {message_index}: Successfully extracted JSON: {extracted_response}")
+                logger.info(f"Message {original_index}: Successfully extracted JSON: {extracted_response}")
                 # Classify response by content structure
                 response_type = self._classify_response_type(extracted_response)
-                logger.info(f"Message {message_index}: Classified as response type: {response_type}")
+                logger.info(f"Message {original_index}: Classified as response type: {response_type}")
                 
-                # Since both agents now use "action", assign by order: first = extraction, second = validation
+                # Process newest first: first valid JSON = validation agent, second = extraction agent
                 if response_type == "action":
-                    if not intent_response:
-                        intent_response = extracted_response
-                        logger.info(f"Message {message_index}: Set as intent_response (first action response)")
-                        # Handle casual conversation early termination
-                        if intent_response.get('action') == 'self':
-                            return self._create_casual_response()
-                    elif not intent_validation_response:
+                    if not intent_validation_response:
                         intent_validation_response = extracted_response
-                        logger.info(f"Message {message_index}: Set as intent_validation_response (second action response)")
+                        logger.info(f"Message {original_index}: Set as intent_validation_response (newest action response)")
+                    elif not intent_response:
+                        intent_response = extracted_response
+                        logger.info(f"Message {original_index}: Set as intent_response (second newest action response)")
             else:
-                logger.warning(f"Message {message_index}: Failed to extract valid JSON response")
+                logger.warning(f"Message {original_index}: Failed to extract valid JSON response")
         
         # Log what we found from agents for debugging
         logger.info(f"Agent responses found: Intent={bool(intent_response)}, IntentValidation={bool(intent_validation_response)}")
@@ -856,6 +873,8 @@ After discussion, finalize structured JSON clearly:
                     "action_analysis": "",
                     "validation_results": "Validation agent response unavailable"
                 },
+                "command_structure": action_response.get("entities", {}),
+                "action_list": [action],
                 "final_action": action,
                 "validation_passed": True,
                 "identified_issues": []

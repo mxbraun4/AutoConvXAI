@@ -759,7 +759,11 @@
   {
     "question": "Still imagine they were 20 years more aged?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["age"],
+        "operators": ["+"],
+        "values": [20]
+      },
       "action": "whatif"
     },
     "line_number": 55
@@ -767,7 +771,11 @@
   {
     "question": "But what happens if they happen to be twenty years older?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["age"],
+        "operators": ["+"],
+        "values": [20]
+      },
       "action": "whatif"
     },
     "line_number": 56
@@ -777,13 +785,16 @@
     "expected_json": {
       "entities": {
         "features": [
-          "age"
+          "age",
+          "glucose"
         ],
         "operators": [
-          ">"
+          ">",
+          "-"
         ],
         "values": [
-          76
+          76,
+          20
         ]
       },
       "action": "whatif"
@@ -891,7 +902,11 @@
   {
     "question": "How is the age a more feature than BMI if the people were three years older.",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["age"],
+        "operators": ["+"],
+        "values": [3]
+      },
       "action": "important"
     },
     "line_number": 65
@@ -1318,12 +1333,18 @@
     "expected_json": {
       "entities": {
         "features": [
+          "age",
+          "bmi",
           "pregnancies"
         ],
         "operators": [
+          null,
+          ">",
           ">"
         ],
         "values": [
+          null,
+          35,
           1
         ]
       },
@@ -1432,7 +1453,9 @@
   {
     "question": "How do age and BMI interact in the model's predictions?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["age", "bmi"]
+      },
       "action": "interact"
     },
     "line_number": 110
@@ -1440,7 +1463,9 @@
   {
     "question": "What is the interaction between glucose and insulin levels?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["glucose", "insulin"]
+      },
       "action": "interact"
     },
     "line_number": 111
@@ -1448,7 +1473,9 @@
   {
     "question": "How do pregnancies and age work together in predictions?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["pregnancies", "age"]
+      },
       "action": "interact"
     },
     "line_number": 112
@@ -1456,7 +1483,9 @@
   {
     "question": "Show me how blood pressure and BMI interact.",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["bloodpressure", "bmi"]
+      },
       "action": "interact"
     },
     "line_number": 113
@@ -1713,7 +1742,9 @@
   {
     "question": "What does diabetes mean?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["diabetes"]
+      },
       "action": "define"
     },
     "line_number": 136
@@ -1721,7 +1752,9 @@
   {
     "question": "Can you define what BMI represents?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["bmi"]
+      },
       "action": "define"
     },
     "line_number": 137
@@ -1729,7 +1762,9 @@
   {
     "question": "What is glucose and why is it important?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["glucose"]
+      },
       "action": "define"
     },
     "line_number": 138
@@ -1737,7 +1772,9 @@
   {
     "question": "Define insulin and its role in diabetes.",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["insulin"]
+      },
       "action": "define"
     },
     "line_number": 139
@@ -1745,7 +1782,9 @@
   {
     "question": "What does blood pressure measure?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["bloodpressure"]
+      },
       "action": "define"
     },
     "line_number": 140
@@ -1753,7 +1792,9 @@
   {
     "question": "Explain what the diabetes pedigree function means.",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["diabetespedigreefunction"]
+      },
       "action": "define"
     },
     "line_number": 141
@@ -1761,7 +1802,9 @@
   {
     "question": "What is the definition of skin thickness in medical terms?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "features": ["skinthickness"]
+      },
       "action": "define"
     },
     "line_number": 142
