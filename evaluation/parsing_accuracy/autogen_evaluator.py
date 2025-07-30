@@ -185,17 +185,21 @@ class AutoGenEvaluator:
                     return False
             return True
         
+        # Handle special case: normalize related arrays (features, operators, values) together
+        expected_normalized = self._normalize_related_arrays(expected_entities)
+        actual_normalized = self._normalize_related_arrays(actual_entities)
+        
         # Check entities that are expected to have specific non-null values
-        for key, expected_val in expected_entities.items():
+        for key, expected_val in expected_normalized.items():
             # Skip null expected values - they're not requirements
             if expected_val is None:
                 continue
                 
             # Check if the key exists in actual entities
-            if key not in actual_entities:
+            if key not in actual_normalized:
                 return False
                 
-            actual_val = actual_entities[key]
+            actual_val = actual_normalized[key]
             
             # Skip null actual values if we expect something concrete
             if actual_val is None and expected_val is not None:
@@ -212,6 +216,48 @@ class AutoGenEvaluator:
                 return False
         
         return True
+    
+    def _normalize_related_arrays(self, entities: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize related arrays (features, operators, values) by sorting them together."""
+        if not entities:
+            return entities
+        
+        # Create a copy to avoid modifying original
+        normalized = entities.copy()
+        
+        # Check if we have the related arrays that need coordinated sorting
+        related_keys = ['features', 'operators', 'values']
+        arrays_to_sort = {}
+        
+        # Collect arrays that exist and are non-null lists
+        for key in related_keys:
+            if key in entities and isinstance(entities[key], list) and entities[key]:
+                arrays_to_sort[key] = entities[key]
+        
+        # Only sort if we have features array (the primary key for sorting)
+        if 'features' in arrays_to_sort and len(arrays_to_sort) > 1:
+            features = arrays_to_sort['features']
+            
+            # Create tuples of (feature, operator, value) for sorting
+            combined = []
+            for i in range(len(features)):
+                feature = features[i] if i < len(features) else None
+                operator = arrays_to_sort.get('operators', [None] * len(features))[i] if 'operators' in arrays_to_sort and i < len(arrays_to_sort['operators']) else None
+                value = arrays_to_sort.get('values', [None] * len(features))[i] if 'values' in arrays_to_sort and i < len(arrays_to_sort['values']) else None
+                combined.append((feature, operator, value))
+            
+            # Sort by feature name (case-insensitive)
+            combined.sort(key=lambda x: str(x[0]).lower() if x[0] is not None else '')
+            
+            # Split back into separate arrays
+            if combined:
+                normalized['features'] = [item[0] for item in combined if item[0] is not None]
+                if 'operators' in arrays_to_sort:
+                    normalized['operators'] = [item[1] for item in combined if item[1] is not None]
+                if 'values' in arrays_to_sort:
+                    normalized['values'] = [item[2] for item in combined if item[2] is not None]
+        
+        return normalized
     
     def evaluate_single_case(self, test_case: Dict[str, Any]) -> EvaluationResult:
         """Evaluate a single test case using shared decoder with fresh conversation context."""

@@ -104,7 +104,7 @@ class AutoGenDecoder:
         return """
 # Action Extraction Agent
 
-## Actions
+## Actions // none other than the ones listed here are allowed
 - predict: Generate predictions or assess likelihood of certain outcomes based on the model.
 - filter: Retrieve or display specific patient records or data points by their unique identifiers.
 - label: Display actual, known outcomes or true values from the dataset.
@@ -122,9 +122,11 @@ class AutoGenDecoder:
 
 
 ## Entity Extraction Rules
-- Extract features when specific conditions are stated ("glucose over 120", "BMI above 30", "age below 50")
-- Use parallel arrays for multiple conditions
-- Dont add features that are not mentioned in the query.
+- ONLY extract features that are EXPLICITLY NAMED in the query
+- If NO features are mentioned → features = null
+- Use parallel arrays for multiple conditions: ["feature1", "feature2"] pairs with [">", "-"] and [100, 30]; Do not over-extract features.
+- DO NOT create additional JSON fields 
+- For explain, interact never extract all features 
 
 ## Patterns
 - Features:
@@ -147,17 +149,14 @@ class AutoGenDecoder:
 - Special:
   - Rankings: "top X" → topk:X
   - IDs: "patient X" → patient_id:X
-  - Target values are only needed if the user is asking specifically for instances of a certain outcome class - It is only applicable for "mistake", "filter", "label", 1 for diabetic, 0 for healthy)
+  - Target values are only needed if the wants to EXPLICITLY filter for instances of a certain outcome class (1 for diabetic, 0 for healthy)
 
-## Compound Questions
-- Prioritize primary action ("why" before "how").
+## Discussion Approach
+- Explain your reasoning for the validator to review
+- Consider alternative interpretations
+- Be open to feedback and refinement
 
-## Discussion Guidelines
-- Clearly justify extractions.
-- ONLY accept explicitly stated features, no additional features that are not mentioned in the query. If no features are mentioned, set features to null.
-
-## Response Structure
-Provide reasoning clearly, then valid JSON:
+Then provide your initial JSON proposal:
 
 **CRITICAL: NO COMMENTS IN JSON - JSON must be valid without // comments**
 
@@ -166,7 +165,7 @@ Provide reasoning clearly, then valid JSON:
   "action": "detected_action_name",
   "entities": {
     "patient_id": "number_or_null",
-    "features": ["feature_names_or_null"],
+    "features": ["feature_name_or_null"],
     "operators": ["operators_or_null"],
     "values": ["numbers_or_null"],
     "topk": "number_or_null",
@@ -180,30 +179,31 @@ Ensure JSON validity without internal comments.
 
     def _create_action_validation_prompt(self) -> str:
         """Generate focused JSON validation prompt with validation rules baked into JSON comments."""
-        return """You are a JSON validation agent. Your job is to help the extraction agent produce perfect JSON output through critical discussion.
+        return """You are a collaborative validation agent engaging in discussion with the extraction agent.
 
-# JSON Validation Agent
 
-## Role
-- Validate JSON output from extraction agent
-- Use the validation rules embedded in the JSON template below
-- Output only clean JSON without comments
+## Discussion Approach
+- Look for ways to improve the extraction // do not question the action
+- Consider if there's a more accurate interpretation  
+- Ask clarifying questions about entity choices
+- Suggest refinements constructively
+- Build toward the best possible extraction together
 
-## JSON Template with Validation Rules
-Check each field according to the validation rules embedded as comments:
+Validate each field using this template:
 
 ```json
 {
   "action": "action_name", 
-  // VALIDATE ACTION: Must be one of these 14 actions: predict, filter, label, important, explain, whatif, counterfactual, mistake, score, statistic, interact, define, self, followup
+  // Always take the action from the extractor, do not change it or question it
   
   "entities": {
     "patient_id": number_or_null,
     // VALIDATE PATIENT_ID: Only set if query mentions specific patient/data point number (e.g., "patient 21", "data point 33"). Otherwise null.
     
     "features": ["feature_names"] or null,
-    // VALIDATE FEATURES: CRITICAL - Only include features explicitly mentioned in query with conditions or requests. Do no autocomplete with all features.
-    // WRONG: Including features mentioned without conditions ("glucose is important" → don't add glucose unless asking about glucose specifically)
+    // STRICT: Only features NAMED in query 
+    // "which features" or "the features" → null (asking ABOUT features, not naming them)
+    // If ALL features extracted, likely wrong!
     
     "operators": ["operators"] or null,
     // VALIDATE OPERATORS: Convert natural language to symbols: "over"/">", "under"/"<", "equals"/"is"/"=", "increase"/"+", "decrease"/"-"
@@ -221,33 +221,14 @@ Check each field according to the validation rules embedded as comments:
     // "top 5 features" → 5, "most important features" → null (no number specified)
     
     "target_values": [values] or null
-    // VALIDATE TARGET_VALUES: Only for mistake/prediction/filter queries that specify target outcomes
-    // WRONG: Auto-completing with [0,1] when user asks general "show mistakes"
-    // RIGHT: "mistakes predicting diabetes" → null, "false positives" → [1], "false negatives" → [0]
+    // CRITICAL: "these people" / "all these people" → target_values = null (contextual reference)
+    // Only extract target_values when explicitly requesting to filter new data by outcome
+    // RULE: Only when **explicitly** filtering for instances with diabetes or no diabetes
   }
 }
 ```
 
-
-## Final Output
-Provide clean JSON without any comments:
-
-```json
-{
-  "action": "action_name",
-  "entities": {
-    "patient_id": number_or_null,
-    "features": ["feature_names"] or null,
-    "operators": ["operators"] or null,
-    "values": [numbers] or null,
-    "topk": number_or_null,
-    "target_values": [values] or null
-  }
-}
-```
-
-**Use the embedded validation rules to check every field, then output clean JSON.**
-"""
+After your critical analysis, provide clean JSON without comments."""
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
         """
@@ -405,11 +386,13 @@ Provide clean JSON without any comments:
         # Stage 3: Execute Collaborative Processing Pipeline
         processing_prompt = (
             f"{contextual_prompt}\n\n"
-            f"Collaborative pipeline:\n"
-            f"1. Extractor: Analyze query, reason, provide JSON\n"
-            f"2. Validator: Review, discuss issues, provide validated JSON\n"
-            f"3. Extractor: Confirm or adjust\n"
-            f"4. Consensus via dialogue (max 4 rounds); Validator finalizes JSON and says CONSENSUS_REACHED"
+            f"COLLABORATIVE DISCUSSION:\n"
+            f"Work together to understand the user's intent and extract the correct information.\n"
+            f"1. Extractor: Share your interpretation and reasoning\n"
+            f"2. Validator: Engage with the reasoning, offer perspectives, refine together\n"
+            f"3. Build consensus through discussion (max {self.max_rounds} rounds)\n\n"
+            f"User Query: \"{user_query}\"\n\n"
+            f"Begin collaborative analysis:"
         )
         
         logger.info("Stage 3: Starting agent collaboration...")
