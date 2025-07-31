@@ -51,6 +51,25 @@ def explain_operation(conversation, parse_text, i, **kwargs):
     if len(conversation.temp_dataset.contents['X']) == 0:
         return {'type': 'error', 'message': 'There are no instances that meet this description!'}, 0
 
+    # Apply target_values scoping if specified
+    target_vals = kwargs.get('target_values', []) if kwargs else []
+    if target_vals:
+        # Scope explanations to specific diabetes status
+        y_data = conversation.temp_dataset.contents['y']
+        target_value = target_vals[0]  # Use first target value
+        
+        # Filter data to only include patients with specified diabetes status
+        matching_indices = y_data[y_data == target_value].index
+        data = data.loc[matching_indices]
+        
+        if len(data) == 0:
+            target_name = conversation.get_class_name_from_label(target_value)
+            return {'type': 'error', 'message': f'There are no {target_name} patients that meet this description!'}, 0
+        
+        # Update temp_dataset to reflect the scoped data for downstream operations
+        conversation.temp_dataset.contents['X'] = data
+        conversation.temp_dataset.contents['y'] = y_data.loc[matching_indices]
+
     regen = conversation.temp_dataset.contents['ids_to_regenerate']
     model = conversation.get_var('model').contents
     

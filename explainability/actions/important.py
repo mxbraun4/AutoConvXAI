@@ -128,6 +128,21 @@ def important_operation(conversation, parse_text, i, **kwargs):
         # In the case that filtering has removed all the instances
         return {'error': 'No instances meet this description', 'type': 'no_data'}, 0
     
+    # Apply target_values scoping if specified
+    target_vals = kwargs.get('target_values', []) if kwargs else []
+    if target_vals:
+        # Scope importance analysis to specific diabetes status
+        y_data = conversation.temp_dataset.contents['y']
+        target_value = target_vals[0]  # Use first target value
+        
+        # Filter data to only include patients with specified diabetes status
+        matching_indices = y_data[y_data == target_value].index
+        data = data.loc[matching_indices]
+        
+        if len(data) == 0:
+            target_name = conversation.get_class_name_from_label(target_value)
+            return {'error': f'No {target_name} patients meet this description', 'type': 'no_data'}, 0
+    
     ids = list(data.index)
 
     # Use AutoGen entities instead of legacy text parsing

@@ -1,21 +1,23 @@
 {
   "report": {
     "total_cases": 40,
-    "action_accuracy": 0.925,
+    "action_accuracy": 0.825,
     "entity_accuracy": 1.0,
-    "overall_accuracy": 0.925,
+    "overall_accuracy": 0.825,
     "error_rate": 0.0,
-    "validation_changes": 10,
-    "validation_change_rate": 0.25,
-    "validation_improved_accuracy": 0.8,
-    "action_only_changes": 0,
-    "entity_only_changes": 10,
-    "both_changed": 0,
+    "both_correct": 33,
+    "both_correct_rate": 0.825,
+    "action_correct_entity_wrong": 0,
+    "action_correct_entity_wrong_rate": 0.0,
+    "action_wrong_entity_correct": 7,
+    "action_wrong_entity_correct_rate": 0.175,
+    "both_wrong": 0,
+    "both_wrong_rate": 0.0,
     "action_breakdown": {
       "explain": {
         "total": 14,
-        "correct": 11,
-        "accuracy": 0.7857142857142857
+        "correct": 14,
+        "accuracy": 1.0
       },
       "mistake": {
         "total": 1,
@@ -24,8 +26,8 @@
       },
       "predict": {
         "total": 15,
-        "correct": 15,
-        "accuracy": 1.0
+        "correct": 8,
+        "accuracy": 0.5333333333333333
       },
       "filter": {
         "total": 10,
@@ -35,207 +37,233 @@
     },
     "action_mismatches": [
       {
-        "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
-        "expected_action": "explain",
-        "actual_action": "predict",
+        "question": "How likely is diabetes when blood pressure from the data is greater than 100?",
+        "expected_action": "predict",
+        "actual_action": "score",
         "expected_entities": {
           "features": [
-            "glucose"
+            "BloodPressure"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            100
           ]
         },
         "actual_entities": {
           "patient_id": null,
           "features": [
-            "glucose"
+            "BloodPressure"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            100
           ],
           "topk": null,
-          "target_values": null
+          "target_values": [
+            1
+          ]
         }
       },
       {
-        "question": "How do you determine if people with glucose levels above 120 have diabetes?",
-        "expected_action": "explain",
-        "actual_action": "predict",
+        "question": "What is the predicted diabetes likelihood in the data for blood pressure over 100?",
+        "expected_action": "predict",
+        "actual_action": "score",
         "expected_entities": {
           "features": [
-            "glucose"
+            "BloodPressure"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            100
           ]
         },
         "actual_entities": {
           "patient_id": null,
           "features": [
-            "glucose"
+            "BloodPressure"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            100
           ],
           "topk": null,
-          "target_values": null
+          "target_values": [
+            1
+          ]
         }
       },
       {
-        "question": "What effect do the features have those predictions made by the model on the training information?",
-        "expected_action": "explain",
-        "actual_action": "important",
-        "expected_entities": {},
+        "question": "What does the model predict for people with blood pressure under 100?",
+        "expected_action": "predict",
+        "actual_action": "score",
+        "expected_entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
         "actual_entities": {
           "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ],
           "topk": null,
-          "target_values": null
+          "target_values": [
+            1
+          ]
+        }
+      },
+      {
+        "question": "If a person's blood pressure is lower than 100, what does the model predict?",
+        "expected_action": "predict",
+        "actual_action": "score",
+        "expected_entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "actual_entities": {
+          "patient_id": null,
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        }
+      },
+      {
+        "question": "What are the model's predictions for individuals with blood pressure under 100?",
+        "expected_action": "predict",
+        "actual_action": "score",
+        "expected_entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "actual_entities": {
+          "patient_id": null,
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
         }
       }
     ],
-    "entity_mismatches": [],
-    "validation_change_examples": [
-      {
-        "question": "What reasoning do you typically use to determine if people have diabetes when glucose levels are over 120?",
-        "original_action": "explain",
-        "validated_action": "explain",
-        "action_changed": false,
-        "entity_changed": true,
-        "entity_change_types": [
-          "features"
-        ],
-        "correct": true
-      },
-      {
-        "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
-        "original_action": "predict",
-        "validated_action": "predict",
-        "action_changed": false,
-        "entity_changed": true,
-        "entity_change_types": [
-          "features"
-        ],
-        "correct": false
-      },
-      {
-        "question": "How do you determine if people with glucose levels above 120 have diabetes?",
-        "original_action": "predict",
-        "validated_action": "predict",
-        "action_changed": false,
-        "entity_changed": true,
-        "entity_change_types": [
-          "features"
-        ],
-        "correct": false
-      },
-      {
-        "question": "What is the typical rationale the model uses to predict people with glucose levels below 80?",
-        "original_action": "explain",
-        "validated_action": "explain",
-        "action_changed": false,
-        "entity_changed": true,
-        "entity_change_types": [
-          "features"
-        ],
-        "correct": true
-      },
-      {
-        "question": "what do you think the reason is for the model predicting people with glucose levels less than 80?",
-        "original_action": "explain",
-        "validated_action": "explain",
-        "action_changed": false,
-        "entity_changed": true,
-        "entity_change_types": [
-          "features"
-        ],
-        "correct": true
-      }
-    ]
+    "entity_mismatches": []
   },
   "detailed_results": [
     {
-      "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
+      "question": "How likely is diabetes when blood pressure from the data is greater than 100?",
       "expected": {
         "entities": {
           "features": [
-            "glucose"
+            "BloodPressure"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            100
           ]
         },
-        "action": "explain"
+        "action": "predict"
       },
       "actual": {
-        "generation": "parsed: predict[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
+        "generation": "parsed: score[e]",
+        "confidence": 0.7200000000000001,
+        "method": "autogen_partial_pipeline",
         "action_response": {
-          "action": "predict",
+          "action": "score",
           "entities": {
             "patient_id": null,
             "features": [
-              "Glucose"
+              "BloodPressure"
             ],
             "operators": [
               ">"
             ],
             "values": [
-              120
+              100
             ],
             "topk": null,
-            "target_values": null
+            "target_values": [
+              1
+            ]
           },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
+          "confidence": 0.7200000000000001
         },
         "agent_reasoning": {
-          "original_action": "predict",
-          "validated_action": "predict",
-          "critical_analysis": "",
-          "alternative_interpretations": []
+          "action_analysis": "",
+          "validation_results": "Validation agent response unavailable"
         },
         "command_structure": {
           "patient_id": null,
           "features": [
-            "glucose"
+            "BloodPressure"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            100
           ],
           "topk": null,
-          "target_values": null
+          "target_values": [
+            1
+          ]
         },
         "action_list": [
-          "predict"
+          "score"
         ],
-        "final_action": "predict",
+        "final_action": "score",
         "validation_passed": true,
         "identified_issues": []
       },
@@ -245,72 +273,69 @@
       "error": ""
     },
     {
-      "question": "How do you determine if people with glucose levels above 120 have diabetes?",
+      "question": "What is the predicted diabetes likelihood in the data for blood pressure over 100?",
       "expected": {
         "entities": {
           "features": [
-            "glucose"
+            "BloodPressure"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            100
           ]
         },
-        "action": "explain"
+        "action": "predict"
       },
       "actual": {
-        "generation": "parsed: predict[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
+        "generation": "parsed: score[e]",
+        "confidence": 0.7200000000000001,
+        "method": "autogen_partial_pipeline",
         "action_response": {
-          "action": "predict",
+          "action": "score",
           "entities": {
             "patient_id": null,
             "features": [
-              "Glucose"
+              "BloodPressure"
             ],
             "operators": [
               ">"
             ],
             "values": [
-              120
+              100
             ],
             "topk": null,
-            "target_values": null
+            "target_values": [
+              1
+            ]
           },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
+          "confidence": 0.7200000000000001
         },
         "agent_reasoning": {
-          "original_action": "predict",
-          "validated_action": "predict",
-          "critical_analysis": "",
-          "alternative_interpretations": []
+          "action_analysis": "",
+          "validation_results": "Validation agent response unavailable"
         },
         "command_structure": {
           "patient_id": null,
           "features": [
-            "glucose"
+            "BloodPressure"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            100
           ],
           "topk": null,
-          "target_values": null
+          "target_values": [
+            1
+          ]
         },
         "action_list": [
-          "predict"
+          "score"
         ],
-        "final_action": "predict",
+        "final_action": "score",
         "validation_passed": true,
         "identified_issues": []
       },
@@ -320,50 +345,357 @@
       "error": ""
     },
     {
-      "question": "What effect do the features have those predictions made by the model on the training information?",
+      "question": "What does the model predict for people with blood pressure under 100?",
       "expected": {
-        "entities": {},
-        "action": "explain"
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "predict"
       },
       "actual": {
-        "generation": "parsed: important[e]",
-        "confidence": 0.8,
-        "method": "autogen_2agent_discussion",
+        "generation": "parsed: score[e]",
+        "confidence": 0.7200000000000001,
+        "method": "autogen_partial_pipeline",
         "action_response": {
-          "action": "important",
+          "action": "score",
           "entities": {
             "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
+            "features": [
+              "BloodPressure"
+            ],
+            "operators": [
+              "<"
+            ],
+            "values": [
+              100
+            ],
             "topk": null,
-            "target_values": null
+            "target_values": [
+              1
+            ]
           },
-          "confidence": 0.8
-        },
-        "validation_response": {
-          "requires_full_dataset": false,
-          "critical_analysis": "",
-          "alternative_interpretations": []
+          "confidence": 0.7200000000000001
         },
         "agent_reasoning": {
-          "original_action": "important",
-          "validated_action": "important",
-          "critical_analysis": "",
-          "alternative_interpretations": []
+          "action_analysis": "",
+          "validation_results": "Validation agent response unavailable"
         },
         "command_structure": {
           "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ],
           "topk": null,
-          "target_values": null
+          "target_values": [
+            1
+          ]
         },
         "action_list": [
-          "important"
+          "score"
         ],
-        "final_action": "important",
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "If a person's blood pressure is lower than 100, what does the model predict?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "predict"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.7200000000000001,
+        "method": "autogen_partial_pipeline",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "BloodPressure"
+            ],
+            "operators": [
+              "<"
+            ],
+            "values": [
+              100
+            ],
+            "topk": null,
+            "target_values": [
+              1
+            ]
+          },
+          "confidence": 0.7200000000000001
+        },
+        "agent_reasoning": {
+          "action_analysis": "",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "command_structure": {
+          "patient_id": null,
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What are the model's predictions for individuals with blood pressure under 100?",
+      "expected": {
+        "entities": {
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ]
+        },
+        "action": "predict"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.7200000000000001,
+        "method": "autogen_partial_pipeline",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "BloodPressure"
+            ],
+            "operators": [
+              "<"
+            ],
+            "values": [
+              100
+            ],
+            "topk": null,
+            "target_values": [
+              1
+            ]
+          },
+          "confidence": 0.7200000000000001
+        },
+        "agent_reasoning": {
+          "action_analysis": "",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "command_structure": {
+          "patient_id": null,
+          "features": [
+            "BloodPressure"
+          ],
+          "operators": [
+            "<"
+          ],
+          "values": [
+            100
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What does the model predict for data points where insulin levels equal 20?",
+      "expected": {
+        "entities": {
+          "features": [
+            "insulin"
+          ],
+          "operators": [
+            "="
+          ],
+          "values": [
+            20
+          ]
+        },
+        "action": "predict"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.7200000000000001,
+        "method": "autogen_partial_pipeline",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Insulin"
+            ],
+            "operators": [
+              "="
+            ],
+            "values": [
+              20
+            ],
+            "topk": null,
+            "target_values": [
+              1
+            ]
+          },
+          "confidence": 0.7200000000000001
+        },
+        "agent_reasoning": {
+          "action_analysis": "",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "command_structure": {
+          "patient_id": null,
+          "features": [
+            "Insulin"
+          ],
+          "operators": [
+            "="
+          ],
+          "values": [
+            20
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
+        "validation_passed": true,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": ""
+    },
+    {
+      "question": "What predictions does the model make when insulin levels are equivalent to 20?",
+      "expected": {
+        "entities": {
+          "features": [
+            "insulin"
+          ],
+          "operators": [
+            "="
+          ],
+          "values": [
+            20
+          ]
+        },
+        "action": "predict"
+      },
+      "actual": {
+        "generation": "parsed: score[e]",
+        "confidence": 0.7200000000000001,
+        "method": "autogen_partial_pipeline",
+        "action_response": {
+          "action": "score",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Insulin"
+            ],
+            "operators": [
+              "="
+            ],
+            "values": [
+              20
+            ],
+            "topk": null,
+            "target_values": [
+              1
+            ]
+          },
+          "confidence": 0.7200000000000001
+        },
+        "agent_reasoning": {
+          "action_analysis": "",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "command_structure": {
+          "patient_id": null,
+          "features": [
+            "Insulin"
+          ],
+          "operators": [
+            "="
+          ],
+          "values": [
+            20
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        },
+        "action_list": [
+          "score"
+        ],
+        "final_action": "score",
         "validation_passed": true,
         "identified_issues": []
       },

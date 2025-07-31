@@ -79,6 +79,21 @@ def predict_operation(conversation, parse_text, i, max_num_preds_to_print=1, **k
         else:
             return {'type': 'error', 'message': 'There are no instances that meet this description!'}, 0
 
+    # Apply target_values scoping if specified
+    target_vals = kwargs.get('target_values', []) if kwargs else []
+    if target_vals:
+        # Scope predictions to specific diabetes status
+        y_data = conversation.temp_dataset.contents['y']
+        target_value = target_vals[0]  # Use first target value
+        
+        # Filter data to only include patients with specified diabetes status
+        matching_indices = y_data[y_data == target_value].index
+        data = data.loc[matching_indices]
+        
+        if len(data) == 0:
+            target_name = conversation.get_class_name_from_label(target_value)
+            return {'type': 'error', 'message': f'There are no {target_name} patients that meet this description!'}, 0
+
     from app.core import _safe_model_predict
     model_predictions = _safe_model_predict(model, data)
     

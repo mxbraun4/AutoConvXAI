@@ -106,8 +106,8 @@ class AutoGenDecoder:
 
 ## Actions // ONLY THESE ACTIONS ARE ALLOWED
 - predict: Generate new predictions or assess likelihood of certain outcomes based on the model.
-- filter: Retrieves/ shows or display specific patient records or data points by identifiers (if asking for ground truth labels, please select label).
-- label: Show the actual diabetes status (ground truth) labels from the dataset for instances. 
+- filter: Retrieves/ shows or display specific patient records or data points by identifiers 
+- label: Retrieves/ shows the actual diabetes status (ground truth) labels from the dataset for instances. 
 - important: Rank which features matter most for predictions - feature importance analysis.
 - explain: Describe WHY a specific prediction was made - the reasoning behind model decisions.
 - whatif: Use for exploring effects of hypothetical changes to feature values.
@@ -116,7 +116,7 @@ class AutoGenDecoder:
 - score: Present model evaluation metrics or performance measures.
 - statistic: Provide statistical summaries or data distributions for features (not target values!) within the dataset.
 - interact: Explore interactions or combined effects among multiple features. Only applies to filters.
-- define: Provides definitions of features and their meaning.
+- define: Provides definitions and explanations of medical terms, features, conditions, or dataset concepts.
 - self: Explain the AI system's general capabilities and available functions - meta questions.
 - followup: Allow continuation or deeper exploration based on prior analyses or interactions.
 
@@ -125,6 +125,7 @@ class AutoGenDecoder:
 - ONLY extract features that are EXPLICITLY NAMED in the query
 - If NO features are mentioned → features = null
 - Use parallel arrays for multiple conditions: ["feature1", "feature2"] pairs with [">", "-"] and [100, 30]
+- Extract filtering features even when main action is different
 - DO NOT create additional JSON fields 
 
 ## Patterns
@@ -153,8 +154,9 @@ class AutoGenDecoder:
 - Be open to feedback and refinement
 
 **CRITICAL: NO COMMENTS IN JSON - JSON must be valid without // comments**
-Your goal is to fill out the JSON. Focus only on extracting the action and entities. Do not discuss medical advice, educational content, or 
+Your goal is to fill out the JSON with all information mentioned in the query. Focus only on extracting the action and entities. Do not discuss medical advice, educational content, or 
 response formatting. Just extract and output the required JSON structure and reasoning for this filling out of the json.
+Provide as output the JSON with the reasoning to review.
 
 ```json
 {
@@ -170,7 +172,7 @@ response formatting. Just extract and output the required JSON structure and rea
 }
 ```
 
-Ensure JSON validity without internal comments. ENSURE JSON IS OUTPUT WITH MESSAGE. 
+TODO: Output the JSON with the reasoning to review.
 """
 
     def _create_action_validation_prompt(self) -> str:
@@ -180,16 +182,14 @@ Ensure JSON validity without internal comments. ENSURE JSON IS OUTPUT WITH MESSA
 
 ## Discussion Approach
 - Goal: Never change the action or question it. Keep as provided by the extractor.
-- Apply the core principle: ONLY extract what is explicitly mentioned in the query
-- Challenge over-extraction - if all features extracted, likely wrong. Go back to explicit mentiones
-- Ask: "Is this entity actually named in the query?", when in doubt, choose null over assumption. Be literal, not interpretive - extract exactly what is stated
-- Suggest refinements constructively, but be critical. Dont agree to easily and dont be afraid to disagree.
-- Build toward the most accurate extraction together
+- BE CRITICAL: Look for missing features, incorrect operators, missing values that were mentioned in the query.
+- Challenge the extraction: "Did you miss any features mentioned?" "Are the operators correct?" "Did you extract all the numbers?"
+- If something seems missing or wrong, say so directly and propose the correction.
+- Don't agree easily - find the problems and fix them together.
 - Feature [i] should pair with operator [i] and value [i]. If more features are mentioned, more parallel arrays are needed.
-- Dont lose sight of the query that was input. Changes need to be made to the Json.
 
-Validate each field using this template:
-
+CRITICAL VALIDATION: Your job is to be skeptical and find potential issues. 
+Challenge everything and propose corrections using this template: 
 ```json
 {
   "action": "action_name", 
@@ -213,7 +213,7 @@ Validate each field using this template:
     // RULE: Set null always. Only excpetion is if user explicitly asks for the first 5 or top 5 (in number format, not string). 
     
     "target_values": [values] or null
-    // RULE: Only when filtering BY diabetes status ("show diabetic patients" = [1]). NULL when asking to see/view labels.
+    // RULE: Extract when diabetes status is mentioned ("diabetic patients" = [1], "healthy patients" = [0], "all diabetic people" = [1]). Actions use this for scoping.
 }
 ```
 
@@ -496,49 +496,65 @@ After your critical analysis, provide clean JSON without comments. Outputting th
             logger.warning("No agent responses generated - falling back to default")
             return self._create_error_response("No agent responses")
 
-        # Extract structured responses from agent communications
-        # Process messages from newest to oldest to prioritize most recent responses
-        for message_index, message in enumerate(reversed(collaboration_result.messages)):
-            # Calculate original index for logging consistency
-            original_index = len(collaboration_result.messages) - 1 - message_index
+        # Extract structured responses from agent communications only (skip user message)
+        # Process agent messages from newest to oldest to prioritize most recent responses
+        agent_messages = collaboration_result.messages[1:]  # Skip the first message (user message)
+        
+        if not agent_messages:
+            logger.warning("No agent messages found - only user message present")
+            return self._create_error_response("No agent responses")
+        
+        for message_index, message in enumerate(reversed(agent_messages)):
+            # Calculate original index for logging consistency (add 1 since we skipped user message)
+            original_index = len(agent_messages) - message_index  # This gives us 3, 2, 1 for agent messages
             
             # Debug: Log agent message content
             if hasattr(message, 'content') and message.content:
-                logger.warning(f"=== MESSAGE {original_index} (processing order {message_index}) FULL CONTENT ===")
+                logger.warning(f"=== AGENT MESSAGE {original_index} (processing order {message_index}) FULL CONTENT ===")
                 logger.warning(f"Source: {getattr(message, 'source', 'unknown')}")
                 logger.warning(f"Length: {len(message.content)}")
                 logger.warning(f"Content: {message.content}")
-                logger.warning(f"=== END MESSAGE {original_index} ===")
+                logger.warning(f"=== END AGENT MESSAGE {original_index} ===")
                 # Check for consensus marker in message
                 if "CONSENSUS_REACHED" in message.content:
-                    logger.info(f"Found CONSENSUS_REACHED marker in message {original_index} - consensus should have triggered termination")
+                    logger.info(f"Found CONSENSUS_REACHED marker in agent message {original_index} - consensus should have triggered termination")
             else:
-                logger.warning(f"Message {original_index}: No content")
+                logger.warning(f"Agent message {original_index}: No content")
             
             extracted_response = self._extract_json_response(message, original_index)
             
             if extracted_response and isinstance(extracted_response, dict):
-                logger.info(f"Message {original_index}: Successfully extracted JSON: {extracted_response}")
+                logger.info(f"Agent message {original_index}: Successfully extracted JSON: {extracted_response}")
                 # Classify response by content structure
                 response_type = self._classify_response_type(extracted_response)
-                logger.info(f"Message {original_index}: Classified as response type: {response_type}")
+                logger.info(f"Agent message {original_index}: Classified as response type: {response_type}")
                 
-                # Process newest first: first valid JSON = validation agent, second = extraction agent
+                # Use the newest agent message as the primary response
                 if response_type == "action":
                     if not intent_validation_response:
                         intent_validation_response = extracted_response
-                        logger.info(f"Message {original_index}: Set as intent_validation_response (newest action response)")
+                        logger.info(f"Agent message {original_index}: Set as primary response (newest agent message)")
+                        # For simplicity, just use the newest valid response
+                        break
                     elif not intent_response:
                         intent_response = extracted_response
-                        logger.info(f"Message {original_index}: Set as intent_response (second newest action response)")
+                        logger.info(f"Agent message {original_index}: Set as fallback response")
             else:
-                logger.warning(f"Message {original_index}: Failed to extract valid JSON response")
+                logger.warning(f"Agent message {original_index}: Failed to extract valid JSON response")
         
         # Log what we found from agents for debugging
-        logger.info(f"Agent responses found: Intent={bool(intent_response)}, IntentValidation={bool(intent_validation_response)}")
+        logger.info(f"Agent responses found: Primary={bool(intent_validation_response)}, Fallback={bool(intent_response)}")
         
-        # Integrate responses based on available information
-        return self._integrate_agent_outputs(intent_response, intent_validation_response)
+        # Use the newest valid agent response as the primary result
+        if intent_validation_response:
+            logger.info("Using newest agent response as primary result")
+            return self._integrate_agent_outputs(None, intent_validation_response)
+        elif intent_response:
+            logger.info("Using fallback agent response as primary result")
+            return self._integrate_agent_outputs(intent_response, None)
+        else:
+            logger.warning("No valid JSON responses found in any agent messages")
+            return self._create_error_response("No valid agent responses")
 
     def _extract_json_response(self, message, message_index: int) -> Optional[Dict]:
         """Extract JSON from agent message - clean and direct."""
@@ -687,11 +703,17 @@ After your critical analysis, provide clean JSON without comments. Outputting th
         if intent_response and intent_validation_response:
             return self._create_complete_response(intent_response, intent_validation_response)
             
-        # Scenario 2: Partial collaboration (fallback case)
+        # Scenario 2: Single valid response (primary case with new logic)
+        elif intent_validation_response:
+            logger.info("Using newest agent response as primary result")
+            return self._create_partial_response(intent_validation_response)
+            
+        # Scenario 3: Fallback to older response
         elif intent_response:
+            logger.info("Using fallback agent response")
             return self._create_partial_response(intent_response)
             
-        # Scenario 3: Insufficient information for integration
+        # Scenario 4: Insufficient information for integration
         else:
             logger.warning("Insufficient agent responses for integration")
             return None
@@ -821,10 +843,11 @@ After your critical analysis, provide clean JSON without comments. Outputting th
         """
         logger.info("Creating minimal response - agents didn't reach consensus")
         
-        # Try to extract action and entities from first agent response
+        # Try to extract action and entities from agent responses (skip user message)
         action_response = None
-        for message in collaboration_result.messages:
-            extracted_response = self._extract_json_response(message, 0)
+        agent_messages = collaboration_result.messages[1:] if len(collaboration_result.messages) > 1 else []
+        for i, message in enumerate(agent_messages):
+            extracted_response = self._extract_json_response(message, i+1)  # Use proper index for agent messages
             if extracted_response and isinstance(extracted_response, dict) and 'action' in extracted_response:
                 action_response = extracted_response
                 break

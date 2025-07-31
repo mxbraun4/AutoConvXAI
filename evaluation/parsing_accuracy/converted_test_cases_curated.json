@@ -1670,7 +1670,7 @@
     "line_number": 125
   },
   {
-    "question": "To be diagnosed as unlikely to have diabetes, what does patient 34 have to do?",
+    "question": "To become diagnosed as unlikely to have diabetes, what does patient 34 have to do?",
     "expected_json": {
       "entities": {
         "patient_id": 34
