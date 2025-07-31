@@ -104,29 +104,28 @@ class AutoGenDecoder:
         return """
 # Action Extraction Agent
 
-## Actions // none other than the ones listed here are allowed
-- predict: Generate predictions or assess likelihood of certain outcomes based on the model.
-- filter: Retrieve or display specific patient records or data points by their unique identifiers.
-- label: Display actual, known outcomes or true values from the dataset.
-- important: Identify and rank features according to their significance or influence on the models predictions.
-- explain: Provide explanations or reasoning for why the model made specific predictions.
-- whatif: Analyze the effects of HYPOTHETICAL adjustments or changes to specific feature values. Would it change the prediction?
-- counterfactual: Suggest minimal feature changes necessary to alter or reverse the models prediction.
-- mistake: Display cases where the models did mistakes or predictions were incorrect or erroneous.
+## Actions // ONLY THESE ACTIONS ARE ALLOWED
+- predict: Generate new predictions or assess likelihood of certain outcomes based on the model.
+- filter: Retrieves/ shows or display specific patient records or data points by identifiers (if asking for ground truth labels, please select label).
+- label: Show the actual diabetes status (ground truth) labels from the dataset for instances. 
+- important: Rank which features matter most for predictions - feature importance analysis.
+- explain: Describe WHY a specific prediction was made - the reasoning behind model decisions.
+- whatif: Use for exploring effects of hypothetical changes to feature values.
+- counterfactual: Use when seeking changes to achieve different/opposite outcome prediction outcome. 
+- mistake: Find specific prediction errors in the dataset - show individual wrong predictions.
 - score: Present model evaluation metrics or performance measures.
 - statistic: Provide statistical summaries or data distributions for features (not target values!) within the dataset.
 - interact: Explore interactions or combined effects among multiple features. Only applies to filters.
-- define: Provide definitions or clarifications of relevant terminology or concepts.
-- self: Address questions related to the assistants own capabilities, and functions.
+- define: Provides definitions of features and their meaning.
+- self: Explain the AI system's general capabilities and available functions - meta questions.
 - followup: Allow continuation or deeper exploration based on prior analyses or interactions.
 
 
 ## Entity Extraction Rules
 - ONLY extract features that are EXPLICITLY NAMED in the query
 - If NO features are mentioned → features = null
-- Use parallel arrays for multiple conditions: ["feature1", "feature2"] pairs with [">", "-"] and [100, 30]; Do not over-extract features.
+- Use parallel arrays for multiple conditions: ["feature1", "feature2"] pairs with [">", "-"] and [100, 30]
 - DO NOT create additional JSON fields 
-- For explain, interact never extract all features 
 
 ## Patterns
 - Features:
@@ -135,11 +134,7 @@ class AutoGenDecoder:
   - Compound (over 40 years → Age)
 
 - Operators:
-  - ">": over, above
-  - "<": under, below
-  - "=": exactly, equal
-  - "+": increase, add
-  - "-": decrease, remove
+  - Utilize mathematical operators: ">" (above), "<" (below), "=" (equal), "+" (increase), "-" (decrease) with their semantic meaning
 
 - Values:
   - Units: "40 years old" → Age:40
@@ -147,18 +142,19 @@ class AutoGenDecoder:
   - Ranges: "between 30 and 50" → Feature:[">=", "<="]:[30,50]
 
 - Special:
-  - Rankings: "top X" → topk:X
+  - Rankings need to specifically be mentioned in the query "top X" → topk:X 
   - IDs: "patient X" → patient_id:X
-  - Target values are only needed if the wants to EXPLICITLY filter for instances of a certain outcome class (1 for diabetic, 0 for healthy)
+  - Target values are only needed when user wants to FILTER/SHOW patients BY specific diabetes status (e.g., "show diabetic patients" = [1]). NOT when asking to SEE the diabetes labels/outcomes.
+  - Compound conditions: "For people older than 76, reduce glucose by 20" = features: ["age", "glucose"], operators: [">", "-"], values: [76, 20]
 
 ## Discussion Approach
 - Explain your reasoning for the validator to review
 - Consider alternative interpretations
 - Be open to feedback and refinement
 
-Then provide your initial JSON proposal:
-
 **CRITICAL: NO COMMENTS IN JSON - JSON must be valid without // comments**
+Your goal is to fill out the JSON. Focus only on extracting the action and entities. Do not discuss medical advice, educational content, or 
+response formatting. Just extract and output the required JSON structure and reasoning for this filling out of the json.
 
 ```json
 {
@@ -174,7 +170,7 @@ Then provide your initial JSON proposal:
 }
 ```
 
-Ensure JSON validity without internal comments.
+Ensure JSON validity without internal comments. ENSURE JSON IS OUTPUT WITH MESSAGE. 
 """
 
     def _create_action_validation_prompt(self) -> str:
@@ -183,52 +179,45 @@ Ensure JSON validity without internal comments.
 
 
 ## Discussion Approach
-- Look for ways to improve the extraction // do not question the action
-- Consider if there's a more accurate interpretation  
-- Ask clarifying questions about entity choices
-- Suggest refinements constructively
-- Build toward the best possible extraction together
+- Goal: Never change the action or question it. Keep as provided by the extractor.
+- Apply the core principle: ONLY extract what is explicitly mentioned in the query
+- Challenge over-extraction - if all features extracted, likely wrong. Go back to explicit mentiones
+- Ask: "Is this entity actually named in the query?", when in doubt, choose null over assumption. Be literal, not interpretive - extract exactly what is stated
+- Suggest refinements constructively, but be critical. Dont agree to easily and dont be afraid to disagree.
+- Build toward the most accurate extraction together
+- Feature [i] should pair with operator [i] and value [i]. If more features are mentioned, more parallel arrays are needed.
+- Dont lose sight of the query that was input. Changes need to be made to the Json.
 
 Validate each field using this template:
 
 ```json
 {
   "action": "action_name", 
-  // Always take the action from the extractor, do not change it or question it
+  // Rule: DO NOT Change the action name.
   
   "entities": {
     "patient_id": number_or_null,
-    // VALIDATE PATIENT_ID: Only set if query mentions specific patient/data point number (e.g., "patient 21", "data point 33"). Otherwise null.
-    
+    // RULE: Extract id/patient number from query if it is explicitly mentioned.
+
     "features": ["feature_names"] or null,
-    // STRICT: Only features NAMED in query 
-    // "which features" or "the features" → null (asking ABOUT features, not naming them)
-    // If ALL features extracted, likely wrong!
+    // RULE: Extract All features explicitly explicitly named in query, can be multiple. 
+    // No feature names mentioned = null
     
     "operators": ["operators"] or null,
-    // VALIDATE OPERATORS: Convert natural language to symbols: "over"/">", "under"/"<", "equals"/"is"/"=", "increase"/"+", "decrease"/"-"
-    // Must align with features array: features[0] pairs with operators[0]
-    // Set to null if no conditions mentioned
+    // RULE: Extract only if query contains comparison words (over/above/greater = ">", under/below = "<", equals = "=", increase = "+", decrease = "-"). Extract all operators that are mentioned.
     
     "values": [numbers] or null,
-    // VALIDATE VALUES: Extract exact numbers mentioned in conditions
-    // Must align with operators: operators[0] pairs with values[0] 
-    // "glucose over 120" → [120], "age between 30 and 50" → [30, 50]
-    // Set to null if no values mentioned
+    // RULE: Extract all explicitly mentioned numbers with conditions ("over 120" = [120], "between 30-50" = [30,50])
     
     "topk": number_or_null,
-    // VALIDATE TOPK: Only set if query asks for "top X", "first X", "most important X" with specific number
-    // "top 5 features" → 5, "most important features" → null (no number specified)
+    // RULE: Set null always. Only excpetion is if user explicitly asks for the first 5 or top 5 (in number format, not string). 
     
     "target_values": [values] or null
-    // CRITICAL: "these people" / "all these people" → target_values = null (contextual reference)
-    // Only extract target_values when explicitly requesting to filter new data by outcome
-    // RULE: Only when **explicitly** filtering for instances with diabetes or no diabetes
-  }
+    // RULE: Only when filtering BY diabetes status ("show diabetic patients" = [1]). NULL when asking to see/view labels.
 }
 ```
 
-After your critical analysis, provide clean JSON without comments."""
+After your critical analysis, provide clean JSON without comments. Outputting this clean JSON is CRITICAL."""
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
         """

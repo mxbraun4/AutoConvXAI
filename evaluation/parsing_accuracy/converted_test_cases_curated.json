@@ -704,7 +704,14 @@
   {
     "question": "What changes would occur in the predictions if people with a bmi of 30 were reduced in age by 5 years.",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "patient_id": null,
+        "features": ["BMI", "Age"],
+        "operators": ["=", "-"],
+        "values": [30, 5],
+        "topk": null,
+        "target_values": null
+      },
       "action": "whatif"
     },
     "line_number": 50
@@ -712,7 +719,14 @@
   {
     "question": "If we lowered the age by 5 years for people with a bmi of 30, what changes would occur in the predictions?",
     "expected_json": {
-      "entities": {},
+      "entities": {
+        "patient_id": null,
+        "features": ["BMI", "Age"],
+        "operators": ["=", "-"],
+        "values": [30, 5],
+        "topk": null,
+        "target_values": null
+      },
       "action": "whatif"
     },
     "line_number": 51
@@ -721,7 +735,12 @@
     "question": "If we increased glucose by 100 for the data point with id 33, what would happen to the likelihood of having diabetes",
     "expected_json": {
       "entities": {
-        "patient_id": 33
+        "patient_id": 33,
+        "features": ["Glucose"],
+        "operators": ["+"],
+        "values": [100],
+        "topk": null,
+        "target_values": null
       },
       "action": "whatif"
     },
@@ -731,7 +750,12 @@
     "question": "If we increased glucose by 100 for the data point with id 33, would the likelihood of having diabetes go up or down",
     "expected_json": {
       "entities": {
-        "patient_id": 33
+        "patient_id": 33,
+        "features": ["Glucose"],
+        "operators": ["+"],
+        "values": [100],
+        "topk": null,
+        "target_values": null
       },
       "action": "whatif"
     },
