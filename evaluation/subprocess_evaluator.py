@@ -133,7 +133,7 @@ def run_subprocess_evaluation():
             "test_cases": batch_cases,
             "test_cases_file": test_cases_file,
             "api_key": api_key,
-            "delay_between_calls": 0.5,
+            "delay_between_calls": 2.0,
             "result_file": f"temp_results_{batch_num}.pkl"
         }
         

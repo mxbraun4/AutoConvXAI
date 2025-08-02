@@ -37,6 +37,7 @@ class EvaluationResult:
     entities_match: bool
     overall_match: bool
     error_message: str = ""
+    initial_extraction: Dict[str, Any] = None  # First agent's extraction before validation
 
 
 class MockConversation:
@@ -179,22 +180,24 @@ class AutoGenEvaluator:
                 return True
             
             # actual_entities has fields - check they're all null/empty (system's null-filled format)
-            for key, actual_val in actual_entities.items():
+            # Remove target_values first since actions handle this internally
+            actual_entities_filtered = {k: v for k, v in actual_entities.items() if k != 'target_values'}
+            for key, actual_val in actual_entities_filtered.items():
                 # Accept null, empty list, empty string, or boolean False as "empty"
                 if actual_val is not None and actual_val != [] and actual_val != "" and actual_val is not False:
                     return False
             return True
         
+        # Remove target_values from actual_entities before any comparison
+        # Actions handle this internally now, so it shouldn't affect evaluation
+        actual_entities_filtered = {k: v for k, v in actual_entities.items() if k != 'target_values'}
+        
         # Handle special case: normalize related arrays (features, operators, values) together
         expected_normalized = self._normalize_related_arrays(expected_entities)
-        actual_normalized = self._normalize_related_arrays(actual_entities)
+        actual_normalized = self._normalize_related_arrays(actual_entities_filtered)
         
         # Check entities that are expected to have specific non-null values
         for key, expected_val in expected_normalized.items():
-            # Skip target_values from evaluation - actions handle this internally now
-            if key == 'target_values':
-                continue
-                
             # Skip null expected values - they're not requirements
             if expected_val is None:
                 continue
@@ -283,6 +286,16 @@ class AutoGenEvaluator:
             # Get AutoGen output using shared decoder
             autogen_output = self.decoder.complete_sync(question, fresh_conversation)
             
+            # Extract initial extraction from revision stats if available
+            initial_extraction = None
+            try:
+                revision_stats = self.decoder.get_revision_stats()
+                # Get the last discussion rounds to find initial extraction
+                if hasattr(self.decoder, '_last_revision_info'):
+                    initial_extraction = getattr(self.decoder, '_last_revision_info', {}).get('initial_extraction')
+            except Exception as e:
+                self.logger.debug(f"Could not extract initial extraction: {e}")
+            
             # Check matches
             action_match = self.evaluate_action_match(expected_json, autogen_output)
             entities_match = self.evaluate_entities_match(expected_json, autogen_output)
@@ -294,7 +307,8 @@ class AutoGenEvaluator:
                 autogen_output=autogen_output,
                 action_match=action_match,
                 entities_match=entities_match,
-                overall_match=overall_match
+                overall_match=overall_match,
+                initial_extraction=initial_extraction
             )
             
         except Exception as e:
@@ -409,25 +423,37 @@ class AutoGenEvaluator:
         
         # Add action mismatches
         for mismatch in action_mismatches:
-            report['action_mismatches'].append({
+            mismatch_data = {
                 'question': mismatch.question,
                 'expected_action': mismatch.expected_json.get('action'),
                 'actual_action': mismatch.autogen_output.get('final_action') or 
                               mismatch.autogen_output.get('action_response', {}).get('action'),
                 'expected_entities': mismatch.expected_json.get('entities', {}),
                 'actual_entities': mismatch.autogen_output.get('command_structure', {})
-            })
+            }
+            
+            # Add initial extraction if available
+            if mismatch.initial_extraction:
+                mismatch_data['initial_extraction'] = mismatch.initial_extraction
+                
+            report['action_mismatches'].append(mismatch_data)
         
         # Add entity mismatches
         for mismatch in entity_mismatches:
-            report['entity_mismatches'].append({
+            mismatch_data = {
                 'question': mismatch.question,
                 'expected_action': mismatch.expected_json.get('action'),
                 'actual_action': mismatch.autogen_output.get('final_action') or 
                               mismatch.autogen_output.get('action_response', {}).get('action'),
                 'expected_entities': mismatch.expected_json.get('entities', {}),
                 'actual_entities': mismatch.autogen_output.get('command_structure', {})
-            })
+            }
+            
+            # Add initial extraction if available
+            if mismatch.initial_extraction:
+                mismatch_data['initial_extraction'] = mismatch.initial_extraction
+                
+            report['entity_mismatches'].append(mismatch_data)
         
         return report
     
@@ -445,7 +471,7 @@ class AutoGenEvaluator:
         # Only save mismatches (cases where overall_match is False)
         for result in results:
             if not result.overall_match:  # Only include mismatches
-                output_data['detailed_results'].append({
+                result_data = {
                     'question': result.question,
                     'expected': result.expected_json,
                     'actual': result.autogen_output,
@@ -453,7 +479,13 @@ class AutoGenEvaluator:
                     'entities_match': result.entities_match,
                     'overall_match': result.overall_match,
                     'error': result.error_message
-                })
+                }
+                
+                # Add initial extraction if available
+                if result.initial_extraction:
+                    result_data['initial_extraction'] = result.initial_extraction
+                    
+                output_data['detailed_results'].append(result_data)
         
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
@@ -473,7 +505,7 @@ def evaluate_all_cases():
     
     # Initialize evaluator with smart rate limiting
     test_cases_file = '/app/evaluation/parsing_accuracy/converted_test_cases_curated.json'
-    evaluator = AutoGenEvaluator(test_cases_file, api_key, delay_between_calls=0.1)
+    evaluator = AutoGenEvaluator(test_cases_file, api_key, delay_between_calls=2)
     
     total_cases = len(evaluator.test_cases)
     batch_size = 20
@@ -520,6 +552,14 @@ def evaluate_all_cases():
         batch_entity_matches = sum(1 for r in batch_results if r.entities_match)
         print(f"Batch {batch_num + 1} complete: {batch_matches}/{len(batch_results)} overall, {batch_action_matches} actions, {batch_entity_matches} entities")
         
+        # Show entity change statistics from validation agent
+        if hasattr(evaluator, 'decoder') and evaluator.decoder:
+            revision_stats = evaluator.decoder.get_revision_stats()
+            total_queries = revision_stats.get('total_queries', 0)
+            entities_changed = revision_stats.get('entities_changed', 0)
+            entity_change_rate = (entities_changed / total_queries * 100) if total_queries > 0 else 0
+            print(f"Entity Changes: {entities_changed}/{total_queries} ({entity_change_rate:.1f}%) - Validation agent influenced entity extraction")
+        
         # Add 10-second break between batches (except after the last batch)
         if batch_num < num_batches - 1:
             print("Waiting 10 seconds before next batch to allow rate limits to reset...")
@@ -540,6 +580,14 @@ def evaluate_all_cases():
     print(f"Entity Accuracy: {report['entity_accuracy']:.2%}")
     print(f"Overall Accuracy: {report['overall_accuracy']:.2%}")
     print(f"Error Rate: {report['error_rate']:.2%}")
+    
+    # Show final entity change statistics
+    if hasattr(evaluator, 'decoder') and evaluator.decoder:
+        revision_stats = evaluator.decoder.get_revision_stats()
+        total_queries = revision_stats.get('total_queries', 0)
+        entities_changed = revision_stats.get('entities_changed', 0)
+        entity_change_rate = (entities_changed / total_queries * 100) if total_queries > 0 else 0
+        print(f"Entity Changes: {entities_changed}/{total_queries} ({entity_change_rate:.1f}%) - Validation agent influenced entity extraction")
     
     print(f"\nDETAILED BREAKDOWN:")
     print(f"  Both Correct (Action ✓ & Entity ✓): {report['both_correct']} ({report['both_correct_rate']:.2%})")
@@ -602,6 +650,14 @@ def main():
     print(f"Entity Accuracy: {report['entity_accuracy']:.2%}")
     print(f"Overall Accuracy: {report['overall_accuracy']:.2%}")
     print(f"Error Rate: {report['error_rate']:.2%}")
+    
+    # Show final entity change statistics
+    if hasattr(evaluator, 'decoder') and evaluator.decoder:
+        revision_stats = evaluator.decoder.get_revision_stats()
+        total_queries = revision_stats.get('total_queries', 0)
+        entities_changed = revision_stats.get('entities_changed', 0)
+        entity_change_rate = (entities_changed / total_queries * 100) if total_queries > 0 else 0
+        print(f"Entity Changes: {entities_changed}/{total_queries} ({entity_change_rate:.1f}%) - Validation agent influenced entity extraction")
     
     print(f"\nDETAILED BREAKDOWN:")
     print(f"  Both Correct (Action ✓ & Entity ✓): {report['both_correct']} ({report['both_correct_rate']:.2%})")

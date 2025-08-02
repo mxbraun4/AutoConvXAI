@@ -1,23 +1,23 @@
 {
   "report": {
     "total_cases": 20,
-    "action_accuracy": 1.0,
+    "action_accuracy": 0.95,
     "entity_accuracy": 1.0,
-    "overall_accuracy": 1.0,
+    "overall_accuracy": 0.95,
     "error_rate": 0.0,
-    "both_correct": 20,
-    "both_correct_rate": 1.0,
+    "both_correct": 19,
+    "both_correct_rate": 0.95,
     "action_correct_entity_wrong": 0,
     "action_correct_entity_wrong_rate": 0.0,
-    "action_wrong_entity_correct": 0,
-    "action_wrong_entity_correct_rate": 0.0,
+    "action_wrong_entity_correct": 1,
+    "action_wrong_entity_correct_rate": 0.05,
     "both_wrong": 0,
     "both_wrong_rate": 0.0,
     "action_breakdown": {
       "explain": {
         "total": 14,
-        "correct": 14,
-        "accuracy": 1.0
+        "correct": 13,
+        "accuracy": 0.9285714285714286
       },
       "mistake": {
         "total": 1,
@@ -30,8 +30,92 @@
         "accuracy": 1.0
       }
     },
-    "action_mismatches": [],
+    "action_mismatches": [
+      {
+        "question": "What effect do the features have those predictions made by the model on the training information?",
+        "expected_action": "explain",
+        "actual_action": "important",
+        "expected_entities": {},
+        "actual_entities": {
+          "patient_id": null,
+          "features": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "target_values": null
+        },
+        "initial_extraction": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "features": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "target_values": null
+          }
+        }
+      }
+    ],
     "entity_mismatches": []
   },
-  "detailed_results": []
+  "detailed_results": [
+    {
+      "question": "What effect do the features have those predictions made by the model on the training information?",
+      "expected": {
+        "entities": {},
+        "action": "explain"
+      },
+      "actual": {
+        "generation": "parsed: important[e]",
+        "confidence": 0.7200000000000001,
+        "method": "autogen_partial_pipeline",
+        "action_response": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "features": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "target_values": null
+          },
+          "confidence": 0.7200000000000001
+        },
+        "agent_reasoning": {
+          "action_analysis": "",
+          "validation_results": "Validation agent response unavailable"
+        },
+        "command_structure": {
+          "patient_id": null,
+          "features": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "target_values": null
+        },
+        "action_list": [
+          "important"
+        ],
+        "final_action": "important",
+        "validation_passed": false,
+        "identified_issues": []
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": "",
+      "initial_extraction": {
+        "action": "important",
+        "entities": {
+          "patient_id": null,
+          "features": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "target_values": null
+        }
+      }
+    }
+  ]
 }

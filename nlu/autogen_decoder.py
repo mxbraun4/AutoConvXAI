@@ -35,7 +35,7 @@ class AutoGenDecoder:
     
     def __init__(self, 
                  api_key: Optional[str] = None,
-                 model: str = "gpt-4o-mini",  # Faster model for real-time collaboration
+                 model: str = "gpt-4.1-mini-2025-04-14",  # Faster model for real-time collaboration
                  max_rounds: int = 4):
         """Initialize the multi-agent decoder.
         
@@ -67,6 +67,18 @@ class AutoGenDecoder:
         self._setup_agent_architecture()
         
         # No longer need action mapping - agents output actions directly
+        
+        # Revision tracking for validator effectiveness
+        self.revision_stats = {
+            'total_queries': 0,
+            'revisions_made': 0,
+            'revision_types': {
+                'action_changed': 0,
+                'entities_changed': 0,
+                'both_changed': 0
+            },
+            'discussion_rounds': []
+        }
         
         logger.info(f"Initialized AutoGenDecoder with model={model}, max_rounds={max_rounds}")
     
@@ -105,13 +117,13 @@ class AutoGenDecoder:
 # Action Extraction Agent
 
 ## Actions // ONLY THESE ACTIONS ARE ALLOWED
-- predict: Generate new predictions or assess likelihood of certain outcomes based on the model.
-- filter: Retrieves/ shows or display specific patient records or data points by identifiers 
-- label: Retrieves/ shows the actual diabetes status (ground truth) labels from the dataset for instances. 
+- predict: Generate predictions for existing data conditions or assess likelihood based on current feature values.
+- filter: Retrieves/ shows specific patient records or data points by identifiers 
+- label: Shows diabetes status labels. Use when query asks for "labels assigned to" or "correct labels". 
 - important: Rank which features matter most for predictions - feature importance analysis.
-- explain: Describe WHY a specific prediction was made - the reasoning behind model decisions.
-- whatif: Use for exploring effects of hypothetical changes to feature values.
-- counterfactual: Use when seeking changes to achieve different/opposite outcome prediction outcome. 
+- explain: Describe WHY predictions were made or HOW features affect/influence predictions.
+- whatif: Explore effects of hypothetical changes to feature values.
+- counterfactual: Find minimal changes needed to flip/reverse a prediction outcome. 
 - mistake: Find specific prediction errors in the dataset - show individual wrong predictions.
 - score: Present model evaluation metrics or performance measures.
 - statistic: Provide statistical summaries or data distributions for features (not target values!) within the dataset.
@@ -120,104 +132,136 @@ class AutoGenDecoder:
 - self: Explain the AI system's general capabilities and available functions - meta questions.
 - followup: Allow continuation or deeper exploration based on prior analyses or interactions.
 
+## CONVERSATION PROTOCOL:
 
-## Entity Extraction Rules
-- ONLY extract features that are EXPLICITLY NAMED in the query
-- If NO features are mentioned → features = null
-- Use parallel arrays for multiple conditions: ["feature1", "feature2"] pairs with [">", "-"] and [100, 30]
-- Extract filtering features even when main action is different
-- DO NOT create additional JSON fields 
+**ROUND 1 (Initial Response):** Analyze the user query and provide your initial JSON extraction.
 
-## Patterns
-- Features:
-  - Direct (BMI, age, glucose)
-  - Natural (high BMI → BMI)
-  - Compound (over 40 years → Age)
+**SUBSEQUENT ROUNDS:** Wait for ActionValidator's response. When you receive the validator's JSON with evidence:
+- Review each suggested change against the evidence provided (except for the action, keep the action the same as the extractor)
+- Accept changes ONLY if the evidence directly quotes relevant text from the query
+- Reject changes if evidence is weak, inferred, or based on "context"
+- Provide updated JSON incorporating accepted changes
 
-- Operators:
-  - Utilize mathematical operators: ">" (above), "<" (below), "=" (equal), "+" (increase), "-" (decrease) with their semantic meaning
-
-- Values:
-  - Units: "40 years old" → Age:40
-  - Simple: "BMI over 30" → BMI:30
-  - Ranges: "between 30 and 50" → Feature:[">=", "<="]:[30,50]
-
-- Special:
-  - Rankings need to specifically be mentioned in the query "top X" → topk:X 
-  - IDs: "patient X" → patient_id:X
-  - Target values are only needed when user wants to FILTER/SHOW patients BY specific diabetes status (e.g., "show diabetic patients" = [1]). NOT when asking to SEE the diabetes labels/outcomes.
-  - Compound conditions: "For people older than 76, reduce glucose by 20" = features: ["age", "glucose"], operators: [">", "-"], values: [76, 20]
-
-## Discussion Approach
-- Explain your reasoning for the validator to review
-- Consider alternative interpretations
-- Be open to feedback and refinement
-
-**CRITICAL: NO COMMENTS IN JSON - JSON must be valid without // comments**
-Your goal is to fill out the JSON with all information mentioned in the query. Focus only on extracting the action and entities. Do not discuss medical advice, educational content, or 
-response formatting. Just extract and output the required JSON structure and reasoning for this filling out of the json.
-Provide as output the JSON with the reasoning to review.
+Extract ALL information mentioned in the query. Always provide reasoning after your JSON.
+Still it must also follow these guidelines of the entities: 
 
 ```json
 {
   "action": "detected_action_name",
+  // Select ONE single action from the list above that matches what the user wants
+  
   "entities": {
-    "patient_id": "number_or_null",
-    "features": ["feature_name_or_null"],
-    "operators": ["operators_or_null"],
-    "values": ["numbers_or_null"],
-    "topk": "number_or_null",
-    "target_values": ["numbers_or_null"]
+    "patient_id": number_or_null,
+    // Extract ONLY if patient number explicitly mentioned ("patient 5" = 5)
+    
+    "features": ["feature_name"] or null,
+    // If no features are explicitly mentioned, set to null. If features are directly mentioned, extract them. X years older/ younger represents feature "age", operators ["-"/"+"]
+    // do not infer that a mention of "features" represents all features. set to null. Multi-conditions should extract the properties and operators mentioned. 
+    
+    "operators": ["operators"] or null,
+    // Extract comparison operators: "over/above/older than" = ">", "under/below/younger than" = "<", "equals" = "=", "increase" = "+", "decrease/reduce" = "-"
+    // NOTE: For feature importance comparisons ("age more important than BMI"), don't extract operators - it's about ranking, not filtering
+    
+    "values": [numbers] or null,
+    // Extract ONLY explicit numbers ("over 120" = [120], "reduce by 20" = [20])
+    
+    "topk": number_or_null,
+    // Extract ONLY if "top X" or "first X" explicitly mentioned as numbers
+    
+    "target_values": [values] or null
+    // Extract when diabetes status mentioned ("diabetic patients" > [1], "healthy patients" > [0])
   }
 }
 ```
 
-TODO: Output the JSON with the reasoning to review.
+**IMPORTANT:** 
+- In Round 1: Provide initial extraction based on user query
+- In subsequent rounds: Review ActionValidator's suggestions and evidence
+  - ACCEPT corrections with strong quoted evidence from the query
+  - REJECT suggestions that are weak or inferential
+  - Provide updated JSON with accepted changes
+- Do NOT have internal discussions - only respond to what the ActionValidator actually says
+
+
 """
 
     def _create_action_validation_prompt(self) -> str:
         """Generate focused JSON validation prompt with validation rules baked into JSON comments."""
-        return """You are a collaborative validation agent engaging in discussion with the extraction agent.
+        return """
+You are an evidence-based ActionValidator. You MUST cite exact text from the query for every suggestion.
+
+## CONVERSATION PROTOCOL:
+
+**YOUR ROLE:** Wait for ActionExtractor's initial JSON response, then provide evidence-based validation.
+
+**CRITICAL RULES:**
+1. For EVERY entity value you suggest, provide the EXACT quoted text from the user query
+2. If you cannot quote supporting text, the value should be null
+3. NEVER infer, assume, or use "implicit context" - only use explicitly stated text
+4. Never extract all features if user asks for "features"
+
+**Your job:** Validate the ActionExtractor's entities by providing text evidence for corrections.
+- Be extremely critical and validate if ALL entities are properly extracted from the query text
+- Keep the action the same as the extractor unless there's clear evidence for a different action
+- Be literal and do not make assumptions about the entities
+- If you think the extractor missed something, suggest it with exact quoted evidence
+
+**Common patterns to check:**
+- "For people with X > Y" → Both filtering condition AND target should be extracted
+- "multiple pregnancies" → features: ["Pregnancies"], operators: [">"], values: [1]
+- "older than X" → features: ["Age"], operators: [">"], values: [X]
+- "Average [FEATURE] of people with [CONDITIONS]" → Include both the target statistic feature AND filtering features
+- Check that features, operators, and values arrays are same length and align correctly
+
+**ALWAYS include this instruction:** "ActionExtractor, please review your action choice by going through the full action list again. Is your selected action truly the best fit for what the user wants?"
 
 
-## Discussion Approach
-- Goal: Never change the action or question it. Keep as provided by the extractor.
-- BE CRITICAL: Look for missing features, incorrect operators, missing values that were mentioned in the query.
-- Challenge the extraction: "Did you miss any features mentioned?" "Are the operators correct?" "Did you extract all the numbers?"
-- If something seems missing or wrong, say so directly and propose the correction.
-- Don't agree easily - find the problems and fix them together.
-- Feature [i] should pair with operator [i] and value [i]. If more features are mentioned, more parallel arrays are needed.
-
-CRITICAL VALIDATION: Your job is to be skeptical and find potential issues. 
-Challenge everything and propose corrections using this template: 
 ```json
 {
-  "action": "action_name", 
-  // Rule: DO NOT Change the action name.
-  
+  "action": "<keep_same>",
   "entities": {
-    "patient_id": number_or_null,
-    // RULE: Extract id/patient number from query if it is explicitly mentioned.
-
-    "features": ["feature_names"] or null,
-    // RULE: Extract All features explicitly explicitly named in query, can be multiple. 
-    // No feature names mentioned = null
-    
-    "operators": ["operators"] or null,
-    // RULE: Extract only if query contains comparison words (over/above/greater = ">", under/below = "<", equals = "=", increase = "+", decrease = "-"). Extract all operators that are mentioned.
-    
-    "values": [numbers] or null,
-    // RULE: Extract all explicitly mentioned numbers with conditions ("over 120" = [120], "between 30-50" = [30,50])
-    
-    "topk": number_or_null,
-    // RULE: Set null always. Only excpetion is if user explicitly asks for the first 5 or top 5 (in number format, not string). 
-    
-    "target_values": [values] or null
-    // RULE: Extract when diabetes status is mentioned ("diabetic patients" = [1], "healthy patients" = [0], "all diabetic people" = [1]). Actions use this for scoping.
+    "patient_id": <number_or_null>,
+    "features": <["feature_name_1", "feature_name2",...] or null>,
+    "operators": <[">","<","=","+","-"] or null>,
+    "values": <[number1, number2, ...] or null>,
+    "topk": <number_or_null>,
+    "target_values": <[0,1] or null>
+  },
+  "evidence": {
+    "patient_id": "<exact explicitly stated text from query or 'not mentioned'>",
+    "features": ["<exact explicitly stated feature names from query>"] or "no features mentioned - check for column names like age, BMI, glucose, etc.",
+    "operators": ["<exact explicitly statedtext like 'over >', 'below <', 'increase +', 'decrease -'>"] or "no operators found",
+    "values": ["<exact numbers from text>"] or "no values stated",
+    "topk": "<exact text like 'top 5' or 'not mentioned'>",
+    "target_values": "<exact text about diabetes > 1 or 'no diabetes > 0'>",
+    "array_alignment": "Check: Do features, operators, values arrays have same length? Do they align logically?",
+    "statistical_target": "For 'average/mean X of people with Y': Is the target statistic feature X included in features?"
+  }
 }
 ```
 
-After your critical analysis, provide clean JSON without comments. Outputting this clean JSON is CRITICAL."""
+EXAMPLE:
+Query: "What are the top 3 features for patients with BMI over 30?"
+Your response:
+{
+  "action": "important",
+  "entities": {
+    "features": ["BMI"],
+    "operators": [">"],
+    "values": [30],
+    "topk": 3,
+    "target_values": null
+  },
+  "evidence": {
+    "features": ["BMI"],
+    "operators": ["over"],
+    "values": ["30"],
+    "topk": "top 3",
+    "target_values": "diabetes not mentioned"
+  }
+}
+
+"""
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
         """
@@ -359,6 +403,10 @@ After your critical analysis, provide clean JSON without comments. Outputting th
         """
         # Direct execution - clean and simple
         
+        # Track query processing
+        self.revision_stats['total_queries'] += 1
+        initial_response = None  # Will track for revisions
+        
         # Stage 1: Context Construction and Preparation
         contextual_prompt = self._build_contextual_prompt(user_query, conversation)
         logger.info(f"Processing query: {user_query[:100]}...")
@@ -375,19 +423,37 @@ After your critical analysis, provide clean JSON without comments. Outputting th
         # Stage 3: Execute Collaborative Processing Pipeline
         processing_prompt = (
             f"{contextual_prompt}\n\n"
-            f"COLLABORATIVE DISCUSSION:\n"
-            f"Work together to understand the user's intent and extract the correct information.\n"
-            f"1. Extractor: Share your interpretation and reasoning\n"
-            f"2. Validator: Engage with the reasoning, offer perspectives, refine together\n"
-            f"3. Build consensus through discussion (max {self.max_rounds} rounds)\n\n"
+            f"COLLABORATIVE DISCUSSION PROTOCOL:\n"
+            f"This is a structured turn-taking conversation between two agents.\n\n"
+            f"ROUND 1:\n"
+            f"- ActionExtractor: Analyze the user query and provide initial JSON extraction with reasoning\n\n"
+            f"ROUND 2+:\n"
+            f"- ActionValidator: Review the ActionExtractor's JSON and provide evidence-based validation\n"
+            f"- ActionExtractor: Respond to ActionValidator's specific feedback, not to yourself\n"
+            f"- Continue alternating until consensus (max {self.max_rounds} rounds)\n\n"
+            f"IMPORTANT: Each agent must wait for and respond to the other agent's actual output.\n"
+            f"Do NOT engage in self-conversation or assume what the other agent will say.\n\n"
             f"User Query: \"{user_query}\"\n\n"
-            f"Begin collaborative analysis:"
+            f"ActionExtractor, begin with your initial analysis:"
         )
         
         logger.info("Stage 3: Starting agent collaboration...")
         logger.info(f"Processing prompt: {processing_prompt[:200]}...")
         try:
             collaboration_result = await team_configuration.run(task=processing_prompt)
+            
+            # DEBUG: Verify the raw message list coming back from RoundRobinGroupChat
+            logger.warning("=== RAW MESSAGE LIST DEBUG ===")
+            if hasattr(collaboration_result, 'messages'):
+                logger.warning(f"Total messages: {len(collaboration_result.messages)}")
+                for i, m in enumerate(collaboration_result.messages):
+                    source = getattr(m, 'source', '?')
+                    content_len = len(getattr(m, 'content', ''))
+                    logger.warning(f"Message {i}: source={source} content_length={content_len}")
+            else:
+                logger.warning("No messages attribute found!")
+            logger.warning("=== END RAW MESSAGE DEBUG ===")
+            
             logger.info(f"Stage 3: Agent collaboration completed with {len(collaboration_result.messages) if hasattr(collaboration_result, 'messages') else 0} messages")
             logger.info(f"Collaboration result type: {type(collaboration_result)}")
             if hasattr(collaboration_result, 'messages'):
@@ -408,6 +474,12 @@ After your critical analysis, provide clean JSON without comments. Outputting th
         logger.info("Stage 4: Processing agent responses...")
         final_response = self._process_agent_responses(collaboration_result)
         
+        # Track revisions made during discussion
+        if hasattr(collaboration_result, 'messages') and len(collaboration_result.messages) > 0:
+            revision_info = self._analyze_revisions(collaboration_result.messages)
+            self._last_revision_info = revision_info  # Store for evaluation access
+            self._update_revision_stats(revision_info)
+        
         if final_response:
             logger.info("Successfully processed query")
             return final_response
@@ -415,13 +487,179 @@ After your critical analysis, provide clean JSON without comments. Outputting th
             logger.warning("Creating minimal response")
             return self._create_minimal_response(user_query, collaboration_result)
 
+    def _analyze_revisions(self, messages) -> Dict[str, Any]:
+        """Analyze the agent messages to detect revisions and changes.
+        
+        Returns:
+            Dict with revision information including counts and types of changes
+        """
+        revision_info = {
+            'total_rounds': len(messages),
+            'action_changes': 0,
+            'entity_changes': 0,
+            'initial_extraction': None,
+            'final_extraction': None,
+            'validator_influenced': False
+        }
+        
+        extractor_responses = []
+        validator_responses = []
+        
+        # Separate messages by agent
+        for msg in messages:
+            source = getattr(msg, 'source', '')
+            content = getattr(msg, 'content', '')
+            
+            if 'ActionExtractor' in source:
+                # Try to extract JSON from extractor messages
+                json_data = self._extract_json_from_message(content)
+                if json_data:
+                    extractor_responses.append(json_data)
+            elif 'ActionValidator' in source:
+                # Track validator suggestions
+                json_data = self._extract_json_from_message(content)
+                if json_data:
+                    validator_responses.append(json_data)
+        
+        # Compare initial vs final extractor responses
+        if len(extractor_responses) >= 2:
+            initial = extractor_responses[0]
+            final = extractor_responses[-1]
+            
+            revision_info['initial_extraction'] = initial
+            revision_info['final_extraction'] = final
+            
+            # Check for action changes
+            if initial.get('action') != final.get('action'):
+                revision_info['action_changes'] = 1
+            
+            # Check for meaningful entity changes (ignore trivial changes)
+            initial_entities = initial.get('entities', {})
+            final_entities = final.get('entities', {})
+            
+            if self._has_meaningful_entity_changes(initial_entities, final_entities):
+                revision_info['entity_changes'] = 1
+            
+            # Check if validator influenced changes
+            if len(validator_responses) > 0 and (revision_info['action_changes'] or revision_info['entity_changes']):
+                revision_info['validator_influenced'] = True
+        
+        return revision_info
+    
+    def _has_meaningful_entity_changes(self, initial: Dict, final: Dict) -> bool:
+        """Check if entity changes are meaningful (not just trivial differences).
+        
+        Only considers changes to core entities that affect functionality:
+        - patient_id, features, operators, values, topk
+        
+        Ignores trivial changes like:
+        - target_values (often inferred/added automatically)
+        - null vs missing keys
+        - Case changes that don't affect meaning
+        """
+        # Define core entities that matter for functionality
+        core_entities = ['patient_id', 'features', 'operators', 'values', 'topk']
+        
+        for entity in core_entities:
+            initial_val = initial.get(entity)
+            final_val = final.get(entity)
+            
+            # Normalize values for comparison
+            initial_normalized = self._normalize_entity_value(initial_val)
+            final_normalized = self._normalize_entity_value(final_val)
+            
+            if initial_normalized != final_normalized:
+                return True
+        
+        return False
+    
+    def _normalize_entity_value(self, value):
+        """Normalize entity values for meaningful comparison."""
+        if value is None:
+            return None
+        
+        # Handle lists (features, operators, values)
+        if isinstance(value, list):
+            if not value:  # Empty list treated as None
+                return None
+            # Normalize case for string lists (features)
+            normalized_list = []
+            for item in value:
+                if isinstance(item, str):
+                    # Normalize common feature name variations
+                    normalized = item.lower().strip()
+                    if normalized in ['bmi', 'body mass index']:
+                        normalized = 'bmi'
+                    elif normalized in ['glucose', 'blood glucose']:
+                        normalized = 'glucose'
+                    elif normalized in ['age']:
+                        normalized = 'age'
+                    elif normalized in ['bloodpressure', 'blood pressure']:
+                        normalized = 'bloodpressure'
+                    normalized_list.append(normalized)
+                else:
+                    normalized_list.append(item)
+            return sorted(normalized_list)  # Sort for consistent comparison
+        
+        # Handle strings
+        if isinstance(value, str):
+            return value.lower().strip()
+            
+        # Handle numbers and other types as-is
+        return value
+    
+    def _extract_json_from_message(self, content: str) -> Optional[Dict]:
+        """Extract JSON from message content."""
+        try:
+            # Look for JSON blocks
+            import re
+            json_match = re.search(r'```json\s*(\{.*?\})\s*```', content, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group(1))
+            
+            # Look for plain JSON
+            json_match = re.search(r'(\{[^}]+\})', content, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group(1))
+                
+        except (json.JSONDecodeError, AttributeError):
+            pass
+        return None
+    
+    def _update_revision_stats(self, revision_info: Dict[str, Any]):
+        """Update the revision statistics based on analysis."""
+        if revision_info['action_changes'] or revision_info['entity_changes']:
+            self.revision_stats['revisions_made'] += 1
+            
+            if revision_info['action_changes'] and revision_info['entity_changes']:
+                self.revision_stats['revision_types']['both_changed'] += 1
+            elif revision_info['action_changes']:
+                self.revision_stats['revision_types']['action_changed'] += 1
+            elif revision_info['entity_changes']:
+                self.revision_stats['revision_types']['entities_changed'] += 1
+        
+        self.revision_stats['discussion_rounds'].append(revision_info['total_rounds'])
+        
+        # Log revision stats
+        if revision_info['validator_influenced']:
+            logger.info("REVISION TRACKER: Validator successfully influenced changes")
+        
+        logger.info(f"REVISION TRACKER: Total queries={self.revision_stats['total_queries']}, "
+                   f"Revisions made={self.revision_stats['revisions_made']}, "
+                   f"Success rate={self.revision_stats['revisions_made']/self.revision_stats['total_queries']*100:.1f}%")
+
+    def get_revision_stats(self) -> Dict[str, Any]:
+        """Get current revision statistics."""
+        return self.revision_stats.copy()
+
     def _configure_termination_condition(self):
         """Configure Agent Team Termination Conditions with consensus detection."""
         from autogen_agentchat.conditions import MaxMessageTermination, TextMentionTermination
         
-        # For debugging: Use only max message termination to avoid premature exits
-        max_message_termination = MaxMessageTermination(self.max_rounds)
-        logger.info(f"Using only MaxMessageTermination with max_rounds={self.max_rounds}")
+        # Ensure minimum rounds for validator participation: user + extractor + validator + extractor
+        min_rounds = max(4, self.max_rounds)
+        max_message_termination = MaxMessageTermination(min_rounds)
+        logger.info(f"Using MaxMessageTermination with min_rounds={min_rounds} to ensure validator participation")
         
         return max_message_termination
         
@@ -447,10 +685,12 @@ After your critical analysis, provide clean JSON without comments. Outputting th
         import inspect
         
         # Use runtime inspection to handle API parameter variations
+        # Order agents specifically: ActionExtractor first, ActionValidator second
+        # This ensures ActionExtractor starts the conversation
         team_parameters = {
             "participants": [
-                self.action_extraction_agent,
-                self.action_validation_agent,
+                self.action_extraction_agent,  # Always goes first
+                self.action_validation_agent,  # Always responds to extractor
             ]
         }
         
@@ -504,13 +744,13 @@ After your critical analysis, provide clean JSON without comments. Outputting th
             logger.warning("No agent messages found - only user message present")
             return self._create_error_response("No agent responses")
         
-        for message_index, message in enumerate(reversed(agent_messages)):
-            # Calculate original index for logging consistency (add 1 since we skipped user message)
-            original_index = len(agent_messages) - message_index  # This gives us 3, 2, 1 for agent messages
+        # Process ALL agent messages first to show complete discussion
+        for message_index, message in enumerate(agent_messages):
+            original_index = message_index + 1  # 1, 2, 3 for agent messages
             
-            # Debug: Log agent message content
+            # Debug: Log ALL agent message content to see the full discussion
             if hasattr(message, 'content') and message.content:
-                logger.warning(f"=== AGENT MESSAGE {original_index} (processing order {message_index}) FULL CONTENT ===")
+                logger.warning(f"=== AGENT MESSAGE {original_index} (chronological order) FULL CONTENT ===")
                 logger.warning(f"Source: {getattr(message, 'source', 'unknown')}")
                 logger.warning(f"Length: {len(message.content)}")
                 logger.warning(f"Content: {message.content}")
@@ -520,6 +760,11 @@ After your critical analysis, provide clean JSON without comments. Outputting th
                     logger.info(f"Found CONSENSUS_REACHED marker in agent message {original_index} - consensus should have triggered termination")
             else:
                 logger.warning(f"Agent message {original_index}: No content")
+        
+        # Now process messages from newest to oldest for response selection
+        for message_index, message in enumerate(reversed(agent_messages)):
+            # Calculate original index for logging consistency (add 1 since we skipped user message)
+            original_index = len(agent_messages) - message_index  # This gives us 3, 2, 1 for agent messages
             
             extracted_response = self._extract_json_response(message, original_index)
             
@@ -823,7 +1068,7 @@ After your critical analysis, provide clean JSON without comments. Outputting th
             "command_structure": intent_response.get('entities', {}),
             "action_list": [final_action],
             "final_action": final_action,
-            "validation_passed": True,  # Assume valid with programmatic validation
+            "validation_passed": False,  # No validation performed
             "identified_issues": []
         }
 
@@ -871,7 +1116,7 @@ After your critical analysis, provide clean JSON without comments. Outputting th
                 "command_structure": action_response.get("entities", {}),
                 "action_list": [action],
                 "final_action": action,
-                "validation_passed": True,
+                "validation_passed": False,  # No validation performed
                 "identified_issues": []
             }
         else:
