@@ -33,8 +33,7 @@ Natural Language Query → AutoGen Multi-Agent System → Action Execution → L
 ### Core Components
 
 1. **AutoGen Multi-Agent Decoder** (`nlu/autogen_decoder.py`)
-   - **Intent Extraction Agent**: Analyzes user queries for intentions and entities
-   - **Action Planning Agent**: Translates intents into executable actions
+   - **Extraction Agent**: Analyzes user queries for intentions and entities
    - **Validation Agent**: Ensures action correctness and handles edge cases
    - Collaborative decision-making with configurable conversation rounds
 
@@ -61,7 +60,7 @@ Natural Language Query → AutoGen Multi-Agent System → Action Execution → L
 ## Key Features
 
 - **Natural Language Interface**: Ask questions like "What are the most important features?" or "What if this patient had lower BMI?"
-- **Multi-Agent Intelligence**: Three specialized agents collaborate for robust query understanding
+- **Multi-Agent Intelligence**: Two specialized agents collaborate for robust query understanding
 - **Comprehensive Explanations**: LIME, SHAP, counterfactuals, feature importance, and statistical analysis
 - **Context Awareness**: Maintains conversation history and applies filters across interactions
 - **Real-time Processing**: Fast response times with efficient caching
@@ -69,6 +68,8 @@ Natural Language Query → AutoGen Multi-Agent System → Action Execution → L
 - **Extensible Design**: Easy to add new explanation methods and actions
 
 ## Quick Start
+
+**Docker recommended** - see [Docker Usage](#docker-usage) section for easiest setup.
 
 ### Prerequisites
 
@@ -128,9 +129,8 @@ The system underwent comprehensive evaluation comparing **multi-agent** vs **sin
 - **Robustness**: Handling of edge cases and ambiguous queries
 
 ### Results Summary
-- **Multi-Agent System**: 89.2% parsing accuracy, superior context handling
-- **Single-Agent Baseline**: 74.1% parsing accuracy, frequent context loss
-- **User Study**: 92% satisfaction rate, 87% found explanations helpful
+- **Multi-Agent System**: 85.47% parsing accuracy
+- **Single-Agent Baseline**: 84.46% parsing accuracy
 
 *Detailed results available in `evaluation/results/`*
 
@@ -165,16 +165,6 @@ python evaluation/run_full_evaluation.py
 python evaluation/parsing_accuracy/autogen_evaluator.py
 ```
 
-## API Reference
-
-**Main endpoint:** `POST /query` with JSON `{"query": "your question"}`
-
-```python
-import requests
-response = requests.post('http://localhost:5000/query', 
-                        json={"query": "What are the most important features?"})
-```
-
 ## Academic Context
 
 This work contributes to the growing field of **Explainable AI (XAI)** and **Human-AI Interaction**:
@@ -183,13 +173,10 @@ This work contributes to the growing field of **Explainable AI (XAI)** and **Hum
 1. **Novel Multi-Agent Architecture** for natural language explanations
 2. **Comprehensive Evaluation Framework** for conversational explainability systems
 3. **Practical Implementation** demonstrating real-world applicability
-4. **Open-Source Toolkit** for researchers and practitioners
 
 ### Related Work
 - **TalkToModel** (Slack et al., 2022): Original concept foundation
 - **AutoGen** (Microsoft, 2023): Multi-agent conversation framework
-- **LIME/SHAP**: Local and global explanation methods
-- **Conversational AI**: Natural language interfaces for complex systems
 
 *Based on TalkToModel framework by Slack et al. (2022)*
 
@@ -223,8 +210,7 @@ docker run -e OPENAI_API_KEY="your-key" -v $(pwd):/app -w /app ttm-gpt4-test pyt
 This is a research project developed for academic purposes. For questions about the implementation or research methodology:
 
 1. **Issues**: Use GitHub issues for bugs or questions
-2. **Research Inquiries**: Contact the author for academic collaboration
-3. **Extensions**: Fork the repository for your own research
+2. **Extensions**: Fork the repository for your own research
 
 ## License
 
@@ -234,15 +220,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Original TalkToModel** framework by Slack, Krishna, Lakkaraju, and Singh
 - **Microsoft AutoGen** for multi-agent conversation capabilities  
-- **OpenAI** for language model APIs
-- **Open-source ML community** for LIME, SHAP, and scikit-learn
 
 ## Contact
 
 **Maximilian Braun**  
 Bachelor's Thesis Project  
 *Interactive Explanations in AI*
+maximilian3.braun@stud.uni-regensburg.de
 
 ---
 
-*This README provides comprehensive documentation for AutoConvXAI, developed as part of a bachelor's thesis exploring conversational interfaces for machine learning explainability.*
+*This README provides comprehensive documentation for AutoConvXAI, developed as part of a bachelor's thesis exploring conversational XAI for machine learning explainability.*
