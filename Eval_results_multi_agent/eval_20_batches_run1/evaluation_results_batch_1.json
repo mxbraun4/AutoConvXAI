@@ -32,7 +32,7 @@
     },
     "action_mismatches": [
       {
-        "question": "What effect do the features have those predictions made by the model on the training information?",
+        "question": "Can you explain which features influenced these predictions?",
         "expected_action": "explain",
         "actual_action": "important",
         "expected_entities": {},
@@ -45,7 +45,7 @@
           "target_values": null
         },
         "initial_extraction": {
-          "action": "important",
+          "action": "explain",
           "entities": {
             "patient_id": null,
             "features": null,
@@ -61,7 +61,7 @@
   },
   "detailed_results": [
     {
-      "question": "What effect do the features have those predictions made by the model on the training information?",
+      "question": "Can you explain which features influenced these predictions?",
       "expected": {
         "entities": {},
         "action": "explain"
@@ -106,7 +106,7 @@
       "overall_match": false,
       "error": "",
       "initial_extraction": {
-        "action": "important",
+        "action": "explain",
         "entities": {
           "patient_id": null,
           "features": null,

@@ -1,0 +1,118 @@
+{
+  "report": {
+    "total_cases": 20,
+    "action_accuracy": 0.95,
+    "entity_accuracy": 0.95,
+    "overall_accuracy": 0.95,
+    "error_rate": 0.0,
+    "both_correct": 19,
+    "both_correct_rate": 0.95,
+    "action_correct_entity_wrong": 0,
+    "action_correct_entity_wrong_rate": 0.0,
+    "action_wrong_entity_correct": 0,
+    "action_wrong_entity_correct_rate": 0.0,
+    "both_wrong": 1,
+    "both_wrong_rate": 0.05,
+    "action_breakdown": {
+      "explain": {
+        "total": 14,
+        "correct": 14,
+        "accuracy": 1.0
+      },
+      "mistake": {
+        "total": 1,
+        "correct": 1,
+        "accuracy": 1.0
+      },
+      "predict": {
+        "total": 5,
+        "correct": 4,
+        "accuracy": 0.8
+      }
+    },
+    "action_mismatches": [
+      {
+        "question": "How often do you project people older than 30 to have diabetes?",
+        "expected_action": "predict",
+        "actual_action": null,
+        "expected_entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ]
+        },
+        "actual_entities": {},
+        "initial_extraction": {
+          "action": "predict",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Age"
+            ],
+            "operators": [
+              ">"
+            ],
+            "values": [
+              30
+            ],
+            "topk": null,
+            "target_values": null
+          }
+        }
+      }
+    ],
+    "entity_mismatches": []
+  },
+  "detailed_results": [
+    {
+      "question": "How often do you project people older than 30 to have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ]
+        },
+        "action": "predict"
+      },
+      "actual": {
+        "generation": "parsed: explain[e]",
+        "error": "System timeout after 60 seconds - agents need more focus",
+        "confidence": 0.1,
+        "method": "autogen_error_recovery",
+        "timestamp": "unknown"
+      },
+      "action_match": false,
+      "entities_match": false,
+      "overall_match": false,
+      "error": "",
+      "initial_extraction": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Age"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            30
+          ],
+          "topk": null,
+          "target_values": null
+        }
+      }
+    }
+  ]
+}

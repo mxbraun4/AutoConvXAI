@@ -61,6 +61,7 @@ class AutoGenDecoder:
         self.model_client = OpenAIChatCompletionClient(
             model=self.model,
             api_key=self.api_key,
+            temperature=0.1,  # Low temperature for consistent, focused responses
         )
         
         # Initialize the specialized agent network
@@ -117,8 +118,8 @@ class AutoGenDecoder:
 # Action Extraction Agent
 
 ## Actions // ONLY THESE ACTIONS ARE ALLOWED
-- predict: Generate predictions for existing data conditions or assess likelihood based on current feature values.
-- filter: Retrieves/ shows specific patient records or data points by identifiers 
+- predict: Generate predictions for existing data conditions or assess likelihood based on feature values.
+- filter: Retrieves/ shows specific patient features or data points by identifiers. Does not contain target values.
 - label: Shows diabetes status labels. Use when query asks for "labels assigned to" or "correct labels". 
 - important: Rank which features matter most for predictions - feature importance analysis.
 - explain: Describe WHY predictions were made or HOW features affect/influence predictions.
@@ -192,29 +193,17 @@ You are an evidence-based ActionValidator. You MUST cite exact text from the que
 
 ## CONVERSATION PROTOCOL:
 
-**YOUR ROLE:** Wait for ActionExtractor's initial JSON response, then provide evidence-based validation.
+**YOUR ROLE:** Validate the ActionExtractor's entities by providing text evidence for corrections. Go through the query very carefully and check if the entities are properly extracted.
 
 **CRITICAL RULES:**
 1. For EVERY entity value you suggest, provide the EXACT quoted text from the user query
 2. If you cannot quote supporting text, the value should be null
-3. NEVER infer, assume, or use "implicit context" - only use explicitly stated text
-4. Never extract all features if user asks for "features"
+3  If you think the extractor missed something, suggest it with exact quoted evidence
+4. NEVER infer, assume, or use "implicit context" - only use explicitly stated text
+5. Never extract all features if user asks for "features"
 
-**Your job:** Validate the ActionExtractor's entities by providing text evidence for corrections.
-- Be extremely critical and validate if ALL entities are properly extracted from the query text
-- Keep the action the same as the extractor unless there's clear evidence for a different action
-- Be literal and do not make assumptions about the entities
-- If you think the extractor missed something, suggest it with exact quoted evidence
 
-**Common patterns to check:**
-- "For people with X > Y" → Both filtering condition AND target should be extracted
-- "multiple pregnancies" → features: ["Pregnancies"], operators: [">"], values: [1]
-- "older than X" → features: ["Age"], operators: [">"], values: [X]
-- "Average [FEATURE] of people with [CONDITIONS]" → Include both the target statistic feature AND filtering features
-- Check that features, operators, and values arrays are same length and align correctly
-
-**ALWAYS include this instruction:** "ActionExtractor, please review your action choice by going through the full action list again. Is your selected action truly the best fit for what the user wants?"
-
+**IMPORTANT:** When all features are extracted - ask the Extractor if they actually were mentioned explicitly singularily or we wrongly implied them all. Then we should remove. 
 
 ```json
 {
@@ -229,37 +218,17 @@ You are an evidence-based ActionValidator. You MUST cite exact text from the que
   },
   "evidence": {
     "patient_id": "<exact explicitly stated text from query or 'not mentioned'>",
-    "features": ["<exact explicitly stated feature names from query>"] or "no features mentioned - check for column names like age, BMI, glucose, etc.",
+    "features": ["<exact explicitly stated feature names from query>"] or "no features mentioned",
     "operators": ["<exact explicitly statedtext like 'over >', 'below <', 'increase +', 'decrease -'>"] or "no operators found",
     "values": ["<exact numbers from text>"] or "no values stated",
     "topk": "<exact text like 'top 5' or 'not mentioned'>",
     "target_values": "<exact text about diabetes > 1 or 'no diabetes > 0'>",
-    "array_alignment": "Check: Do features, operators, values arrays have same length? Do they align logically?",
-    "statistical_target": "For 'average/mean X of people with Y': Is the target statistic feature X included in features?"
+    "target_vs_filter": "Is the query asking about X for people with Y conditions? Include both X (target) and Y (filters) in features, with nulls for target.",
+    "order_check": "Check: Is the order right? [feature1] has [operator1] [value1] and [feature2] has [operator2] [value2]. Feature with no operator always shoudl be last."
   }
 }
 ```
-
-EXAMPLE:
-Query: "What are the top 3 features for patients with BMI over 30?"
-Your response:
-{
-  "action": "important",
-  "entities": {
-    "features": ["BMI"],
-    "operators": [">"],
-    "values": [30],
-    "topk": 3,
-    "target_values": null
-  },
-  "evidence": {
-    "features": ["BMI"],
-    "operators": ["over"],
-    "values": ["30"],
-    "topk": "top 3",
-    "target_values": "diabetes not mentioned"
-  }
-}
+ALWAYS include this instruction after the Json: Please review your action choice by going through the full action list again. Based on the QUERY - is your selected action the best fit for what the user wants?
 
 """
 
