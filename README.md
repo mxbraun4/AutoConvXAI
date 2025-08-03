@@ -1,6 +1,6 @@
 # AutoConvXAI: Interactive Explanations in AI
 
-**A Multi-Agent Natural Language Interface for Machine Learning Model Explanations**
+**A Multi-Agent Conversational XAI System**
 
 *Bachelor's Thesis by Maximilian Braun*
 
@@ -11,16 +11,8 @@
 
 ## Overview
 
-This project presents a novel approach to making machine learning models interpretable through **conversational AI interfaces**. Instead of traditional static visualization approaches, users can ask natural language questions about model behavior, feature importance, predictions, and counterfactual scenarios, receiving contextual explanations through multi-agent collaboration.
+This project presents a novel approach to intent parsing in Conversational XAI and bridges the gap between complex AI models and human understanding by providing an intuitive, interactive dialogue interface that democratizes access to machine learning explanations.
 
-The system bridges the gap between complex AI models and human understanding by providing an intuitive, interactive dialogue interface that democratizes access to machine learning explanations.
-
-## Research Objectives
-
-- **Interactive Explanations**: Enable natural language conversations about ML model behavior
-- **Multi-Agent Architecture**: Leverage collaborative AI agents for robust intent understanding
-- **Comprehensive Explainability**: Support diverse explanation types (LIME, SHAP, counterfactuals, feature analysis)
-- **Practical Implementation**: Demonstrate real-world applicability with healthcare data (diabetes prediction)
 
 ## Architecture
 
@@ -104,19 +96,6 @@ Natural Language Query → AutoGen Multi-Agent System → Action Execution → L
 5. **Access the interface**:
    - Web UI: http://localhost:5000
    - API: POST to `/query` with JSON `{"query": "your question"}`
-
-## Example Conversations
-
-```
-User: "What are the most important features for diabetes prediction?"
-AI: "The top 3 features are: Glucose (0.42 importance), BMI (0.28), and Age (0.15). 
-These account for 85% of the model's decision-making."
-
-User: "Show me counterfactuals for patient 5"
-AI: "Patient 5 (No Diabetes, 23% risk) would change to Diabetes if:
-- Glucose increased from 105 to 140 → 67% risk
-- BMI increased from 29.6 to 35.2 → 58% risk"
-```
 
 ## Research Evaluation
 
@@ -226,6 +205,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Maximilian Braun**  
 Bachelor's Thesis Project  
 *Interactive Explanations in AI*
+
 maximilian3.braun@stud.uni-regensburg.de
 
 ---
