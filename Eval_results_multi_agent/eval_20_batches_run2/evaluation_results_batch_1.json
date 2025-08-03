@@ -1,23 +1,23 @@
 {
   "report": {
     "total_cases": 20,
-    "action_accuracy": 0.85,
-    "entity_accuracy": 1.0,
-    "overall_accuracy": 0.85,
+    "action_accuracy": 0.95,
+    "entity_accuracy": 0.95,
+    "overall_accuracy": 0.95,
     "error_rate": 0.0,
-    "both_correct": 17,
-    "both_correct_rate": 0.85,
+    "both_correct": 19,
+    "both_correct_rate": 0.95,
     "action_correct_entity_wrong": 0,
     "action_correct_entity_wrong_rate": 0.0,
-    "action_wrong_entity_correct": 3,
-    "action_wrong_entity_correct_rate": 0.15,
-    "both_wrong": 0,
-    "both_wrong_rate": 0.0,
+    "action_wrong_entity_correct": 0,
+    "action_wrong_entity_correct_rate": 0.0,
+    "both_wrong": 1,
+    "both_wrong_rate": 0.05,
     "action_breakdown": {
       "explain": {
         "total": 14,
-        "correct": 11,
-        "accuracy": 0.7857142857142857
+        "correct": 14,
+        "accuracy": 1.0
       },
       "mistake": {
         "total": 1,
@@ -26,107 +26,40 @@
       },
       "predict": {
         "total": 5,
-        "correct": 5,
-        "accuracy": 1.0
+        "correct": 4,
+        "accuracy": 0.8
       }
     },
     "action_mismatches": [
       {
-        "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
-        "expected_action": "explain",
-        "actual_action": "predict",
+        "question": "How often do you project people older than 30 to have diabetes?",
+        "expected_action": "predict",
+        "actual_action": null,
         "expected_entities": {
           "features": [
-            "glucose"
+            "age"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            30
           ]
         },
-        "actual_entities": {
-          "patient_id": null,
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            120
-          ],
-          "topk": null,
-          "target_values": [
-            1
-          ]
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "predict",
           "entities": {
             "patient_id": null,
             "features": [
-              "Glucose"
+              "Age"
             ],
             "operators": [
               ">"
             ],
             "values": [
-              120
+              30
             ],
-            "topk": null,
-            "target_values": [
-              1
-            ]
-          }
-        }
-      },
-      {
-        "question": "What effect do the features have those predictions made by the model on the training information?",
-        "expected_action": "explain",
-        "actual_action": "interact",
-        "expected_entities": {},
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        },
-        "initial_extraction": {
-          "action": "interact",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          }
-        }
-      },
-      {
-        "question": "Can you explain which features influenced these predictions?",
-        "expected_action": "explain",
-        "actual_action": "important",
-        "expected_entities": {},
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        },
-        "initial_extraction": {
-          "action": "important",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
             "topk": null,
             "target_values": null
           }
@@ -137,74 +70,30 @@
   },
   "detailed_results": [
     {
-      "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
+      "question": "How often do you project people older than 30 to have diabetes?",
       "expected": {
         "entities": {
           "features": [
-            "glucose"
+            "age"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            30
           ]
         },
-        "action": "explain"
+        "action": "predict"
       },
       "actual": {
-        "generation": "parsed: predict[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "predict",
-          "entities": {
-            "patient_id": null,
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              ">"
-            ],
-            "values": [
-              120
-            ],
-            "topk": null,
-            "target_values": [
-              1
-            ]
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
-          "patient_id": null,
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            120
-          ],
-          "topk": null,
-          "target_values": [
-            1
-          ]
-        },
-        "action_list": [
-          "predict"
-        ],
-        "final_action": "predict",
-        "validation_passed": false,
-        "identified_issues": []
+        "generation": "parsed: explain[e]",
+        "error": "System timeout after 60 seconds - agents need more focus",
+        "confidence": 0.1,
+        "method": "autogen_error_recovery",
+        "timestamp": "unknown"
       },
       "action_match": false,
-      "entities_match": true,
+      "entities_match": false,
       "overall_match": false,
       "error": "",
       "initial_extraction": {
@@ -212,130 +101,14 @@
         "entities": {
           "patient_id": null,
           "features": [
-            "Glucose"
+            "Age"
           ],
           "operators": [
             ">"
           ],
           "values": [
-            120
+            30
           ],
-          "topk": null,
-          "target_values": [
-            1
-          ]
-        }
-      }
-    },
-    {
-      "question": "What effect do the features have those predictions made by the model on the training information?",
-      "expected": {
-        "entities": {},
-        "action": "explain"
-      },
-      "actual": {
-        "generation": "parsed: interact[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "interact",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        },
-        "action_list": [
-          "interact"
-        ],
-        "final_action": "interact",
-        "validation_passed": false,
-        "identified_issues": []
-      },
-      "action_match": false,
-      "entities_match": true,
-      "overall_match": false,
-      "error": "",
-      "initial_extraction": {
-        "action": "interact",
-        "entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        }
-      }
-    },
-    {
-      "question": "Can you explain which features influenced these predictions?",
-      "expected": {
-        "entities": {},
-        "action": "explain"
-      },
-      "actual": {
-        "generation": "parsed: important[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "important",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        },
-        "action_list": [
-          "important"
-        ],
-        "final_action": "important",
-        "validation_passed": false,
-        "identified_issues": []
-      },
-      "action_match": false,
-      "entities_match": true,
-      "overall_match": false,
-      "error": "",
-      "initial_extraction": {
-        "action": "important",
-        "entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
           "topk": null,
           "target_values": null
         }

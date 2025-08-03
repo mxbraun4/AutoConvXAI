@@ -1,18 +1,18 @@
 {
   "report": {
-    "total_cases": 100,
-    "action_accuracy": 0.9,
-    "entity_accuracy": 0.93,
-    "overall_accuracy": 0.85,
+    "total_cases": 120,
+    "action_accuracy": 0.9083333333333333,
+    "entity_accuracy": 0.9333333333333333,
+    "overall_accuracy": 0.8583333333333333,
     "error_rate": 0.0,
-    "both_correct": 85,
-    "both_correct_rate": 0.85,
-    "action_correct_entity_wrong": 5,
+    "both_correct": 103,
+    "both_correct_rate": 0.8583333333333333,
+    "action_correct_entity_wrong": 6,
     "action_correct_entity_wrong_rate": 0.05,
-    "action_wrong_entity_correct": 8,
-    "action_wrong_entity_correct_rate": 0.08,
+    "action_wrong_entity_correct": 9,
+    "action_wrong_entity_correct_rate": 0.075,
     "both_wrong": 2,
-    "both_wrong_rate": 0.02,
+    "both_wrong_rate": 0.016666666666666666,
     "action_breakdown": {
       "explain": {
         "total": 15,
@@ -21,13 +21,13 @@
       },
       "mistake": {
         "total": 10,
-        "correct": 7,
-        "accuracy": 0.7
+        "correct": 8,
+        "accuracy": 0.8
       },
       "predict": {
         "total": 15,
-        "correct": 13,
-        "accuracy": 0.8666666666666667
+        "correct": 14,
+        "accuracy": 0.9333333333333333
       },
       "filter": {
         "total": 15,
@@ -36,8 +36,8 @@
       },
       "whatif": {
         "total": 15,
-        "correct": 14,
-        "accuracy": 0.9333333333333333
+        "correct": 11,
+        "accuracy": 0.7333333333333333
       },
       "important": {
         "total": 15,
@@ -55,6 +55,16 @@
         "accuracy": 1.0
       },
       "statistic": {
+        "total": 10,
+        "correct": 10,
+        "accuracy": 1.0
+      },
+      "interact": {
+        "total": 10,
+        "correct": 10,
+        "accuracy": 1.0
+      },
+      "label": {
         "total": 5,
         "correct": 5,
         "accuracy": 1.0
@@ -64,16 +74,9 @@
       {
         "question": "What effect do the features have those predictions made by the model on the training information?",
         "expected_action": "explain",
-        "actual_action": "interact",
+        "actual_action": null,
         "expected_entities": {},
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "interact",
           "entities": {
@@ -89,16 +92,9 @@
       {
         "question": "Can you explain which features influenced these predictions?",
         "expected_action": "explain",
-        "actual_action": "important",
+        "actual_action": null,
         "expected_entities": {},
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "important",
           "entities": {
@@ -112,56 +108,9 @@
         }
       },
       {
-        "question": "How likely is diabetes when blood pressure from the data is greater than 100?",
-        "expected_action": "predict",
-        "actual_action": "filter",
-        "expected_entities": {
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            100
-          ]
-        },
-        "actual_entities": {
-          "patient_id": null,
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            100
-          ],
-          "topk": null,
-          "target_values": null
-        },
-        "initial_extraction": {
-          "action": "predict",
-          "entities": {
-            "patient_id": null,
-            "features": [
-              "BloodPressure"
-            ],
-            "operators": [
-              ">"
-            ],
-            "values": [
-              100
-            ],
-            "topk": null,
-            "target_values": null
-          }
-        }
-      },
-      {
         "question": "How does the model predict diabetes when insulin levels are equal to 20?",
         "expected_action": "predict",
-        "actual_action": "explain",
+        "actual_action": null,
         "expected_entities": {
           "features": [
             "insulin"
@@ -173,20 +122,7 @@
             20
           ]
         },
-        "actual_entities": {
-          "patient_id": null,
-          "features": [
-            "Insulin"
-          ],
-          "operators": [
-            "="
-          ],
-          "values": [
-            20
-          ],
-          "topk": null,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "explain",
           "entities": {
@@ -201,6 +137,42 @@
               20
             ],
             "topk": null,
+            "target_values": [
+              1
+            ]
+          }
+        }
+      },
+      {
+        "question": "What are the chances someone will develop diabetes with bmi 10 points lower?",
+        "expected_action": "whatif",
+        "actual_action": null,
+        "expected_entities": {
+          "features": [
+            "bmi"
+          ],
+          "operators": [
+            "-"
+          ],
+          "values": [
+            10
+          ]
+        },
+        "actual_entities": {},
+        "initial_extraction": {
+          "action": "predict",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "BMI"
+            ],
+            "operators": [
+              "-"
+            ],
+            "values": [
+              10
+            ],
+            "topk": null,
             "target_values": null
           }
         }
@@ -208,7 +180,7 @@
       {
         "question": "For the data point with id 33, predict the change in the likelihood of having diabetes if we increase glucose by 100.",
         "expected_action": "whatif",
-        "actual_action": "predict",
+        "actual_action": null,
         "expected_entities": {
           "patient_id": 33,
           "features": [
@@ -221,20 +193,7 @@
             100
           ]
         },
-        "actual_entities": {
-          "patient_id": 33,
-          "features": [
-            "Glucose"
-          ],
-          "operators": [
-            "+"
-          ],
-          "values": [
-            100
-          ],
-          "topk": null,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "predict",
           "entities": {
@@ -258,7 +217,7 @@
       {
         "question": "People with a 40+ bmi have what top five most important features based on the model's predictions?",
         "expected_action": "important",
-        "actual_action": "important",
+        "actual_action": null,
         "expected_entities": {
           "features": [
             "bmi"
@@ -271,18 +230,7 @@
           ],
           "topk": 5
         },
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": [
-            ">"
-          ],
-          "values": [
-            40
-          ],
-          "topk": 5,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "important",
           "entities": {
@@ -302,7 +250,7 @@
       {
         "question": "If your bmi is over 40 than what are the five most important aspects of the model's prediction?",
         "expected_action": "important",
-        "actual_action": "important",
+        "actual_action": null,
         "expected_entities": {
           "features": [
             "bmi"
@@ -315,18 +263,7 @@
           ],
           "topk": 5
         },
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": [
-            ">"
-          ],
-          "values": [
-            40
-          ],
-          "topk": 5,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "important",
           "entities": {
@@ -346,7 +283,7 @@
       {
         "question": "When your BMI is over 40, what are the five most important things for the model's prediction?",
         "expected_action": "important",
-        "actual_action": "important",
+        "actual_action": null,
         "expected_entities": {
           "features": [
             "bmi"
@@ -359,18 +296,7 @@
           ],
           "topk": 5
         },
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": [
-            ">"
-          ],
-          "values": [
-            40
-          ],
-          "topk": 5,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "important",
           "entities": {
@@ -390,7 +316,7 @@
       {
         "question": "What features matter most for people with age over 50?",
         "expected_action": "important",
-        "actual_action": "important",
+        "actual_action": null,
         "expected_entities": {
           "features": [
             "age"
@@ -402,18 +328,7 @@
             50
           ]
         },
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": [
-            ">"
-          ],
-          "values": [
-            50
-          ],
-          "topk": null,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "important",
           "entities": {
@@ -433,7 +348,7 @@
       {
         "question": "For people with high glucose levels above 150, what are the most important features?",
         "expected_action": "important",
-        "actual_action": "important",
+        "actual_action": null,
         "expected_entities": {
           "features": [
             "glucose"
@@ -445,18 +360,7 @@
             150
           ]
         },
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": [
-            ">"
-          ],
-          "values": [
-            150
-          ],
-          "topk": null,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "important",
           "entities": {
@@ -483,39 +387,15 @@
         "action": "explain"
       },
       "actual": {
-        "generation": "parsed: interact[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "interact",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "interact",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": null,
           "values": null,
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "interact"
-        ],
-        "final_action": "interact",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": true,
@@ -540,39 +420,15 @@
         "action": "explain"
       },
       "actual": {
-        "generation": "parsed: important[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "important",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "important",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": null,
           "values": null,
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "important"
-        ],
-        "final_action": "important",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": true,
@@ -585,91 +441,6 @@
           "features": null,
           "operators": null,
           "values": null,
-          "topk": null,
-          "target_values": null
-        }
-      }
-    },
-    {
-      "question": "How likely is diabetes when blood pressure from the data is greater than 100?",
-      "expected": {
-        "entities": {
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            100
-          ]
-        },
-        "action": "predict"
-      },
-      "actual": {
-        "generation": "parsed: filter[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "filter",
-          "entities": {
-            "patient_id": null,
-            "features": [
-              "BloodPressure"
-            ],
-            "operators": [
-              ">"
-            ],
-            "values": [
-              100
-            ],
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
-          "patient_id": null,
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            100
-          ],
-          "topk": null,
-          "target_values": null
-        },
-        "action_list": [
-          "filter"
-        ],
-        "final_action": "filter",
-        "validation_passed": false,
-        "identified_issues": []
-      },
-      "action_match": false,
-      "entities_match": true,
-      "overall_match": false,
-      "error": "",
-      "initial_extraction": {
-        "action": "predict",
-        "entities": {
-          "patient_id": null,
-          "features": [
-            "BloodPressure"
-          ],
-          "operators": [
-            ">"
-          ],
-          "values": [
-            100
-          ],
           "topk": null,
           "target_values": null
         }
@@ -692,32 +463,8 @@
         "action": "predict"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "explain",
-          "entities": {
-            "patient_id": null,
-            "features": [
-              "Insulin"
-            ],
-            "operators": [
-              "="
-            ],
-            "values": [
-              20
-            ],
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "explain",
+        "entities": {
           "patient_id": null,
           "features": [
             "Insulin"
@@ -729,14 +476,10 @@
             20
           ],
           "topk": null,
-          "target_values": null
-        },
-        "action_list": [
-          "explain"
-        ],
-        "final_action": "explain",
-        "validation_passed": false,
-        "identified_issues": []
+          "target_values": [
+            1
+          ]
+        }
       },
       "action_match": false,
       "entities_match": true,
@@ -754,6 +497,63 @@
           ],
           "values": [
             20
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "question": "What are the chances someone will develop diabetes with bmi 10 points lower?",
+      "expected": {
+        "entities": {
+          "features": [
+            "bmi"
+          ],
+          "operators": [
+            "-"
+          ],
+          "values": [
+            10
+          ]
+        },
+        "action": "whatif"
+      },
+      "actual": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "BMI"
+          ],
+          "operators": [
+            "-"
+          ],
+          "values": [
+            10
+          ],
+          "topk": null,
+          "target_values": null
+        }
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": "",
+      "initial_extraction": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "BMI"
+          ],
+          "operators": [
+            "-"
+          ],
+          "values": [
+            10
           ],
           "topk": null,
           "target_values": null
@@ -778,32 +578,8 @@
         "action": "whatif"
       },
       "actual": {
-        "generation": "parsed: predict[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "predict",
-          "entities": {
-            "patient_id": 33,
-            "features": [
-              "Glucose"
-            ],
-            "operators": [
-              "+"
-            ],
-            "values": [
-              100
-            ],
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "predict",
+        "entities": {
           "patient_id": 33,
           "features": [
             "Glucose"
@@ -816,13 +592,7 @@
           ],
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "predict"
-        ],
-        "final_action": "predict",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": true,
@@ -847,6 +617,134 @@
       }
     },
     {
+      "question": "For the data points for people older than 76, what would the predictions be if their glucose levels went down 20?",
+      "expected": {
+        "entities": {
+          "features": [
+            "age",
+            "glucose"
+          ],
+          "operators": [
+            ">",
+            "-"
+          ],
+          "values": [
+            76,
+            20
+          ]
+        },
+        "action": "whatif"
+      },
+      "actual": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Glucose",
+            "Age"
+          ],
+          "operators": [
+            "-",
+            ">"
+          ],
+          "values": [
+            20,
+            76
+          ],
+          "topk": null,
+          "target_values": null
+        }
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": "",
+      "initial_extraction": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Glucose",
+            "Age"
+          ],
+          "operators": [
+            "-",
+            ">"
+          ],
+          "values": [
+            20,
+            76
+          ],
+          "topk": null,
+          "target_values": null
+        }
+      }
+    },
+    {
+      "question": "Reduce glucose levels by 20 for all data points older than 76 and show me the predictions.",
+      "expected": {
+        "entities": {
+          "features": [
+            "age",
+            "glucose"
+          ],
+          "operators": [
+            ">",
+            "-"
+          ],
+          "values": [
+            76,
+            20
+          ]
+        },
+        "action": "whatif"
+      },
+      "actual": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Glucose",
+            "Age"
+          ],
+          "operators": [
+            "-",
+            ">"
+          ],
+          "values": [
+            20,
+            76
+          ],
+          "topk": null,
+          "target_values": null
+        }
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": "",
+      "initial_extraction": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Glucose",
+            "Age"
+          ],
+          "operators": [
+            "-",
+            ">"
+          ],
+          "values": [
+            20,
+            76
+          ],
+          "topk": null,
+          "target_values": null
+        }
+      }
+    },
+    {
       "question": "Is age a more big part than BMI enduring people in the data were three years more prepared?",
       "expected": {
         "entities": {
@@ -863,33 +761,8 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: whatif[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "whatif",
-          "entities": {
-            "patient_id": null,
-            "features": [
-              "Age",
-              "BMI"
-            ],
-            "operators": [
-              ">"
-            ],
-            "values": [
-              3
-            ],
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "whatif",
+        "entities": {
           "patient_id": null,
           "features": [
             "Age",
@@ -903,13 +776,7 @@
           ],
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "whatif"
-        ],
-        "final_action": "whatif",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": false,
@@ -951,31 +818,8 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: explain[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "explain",
-          "entities": {
-            "patient_id": null,
-            "features": [
-              "Age",
-              "BMI"
-            ],
-            "operators": null,
-            "values": [
-              3
-            ],
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "explain",
+        "entities": {
           "patient_id": null,
           "features": [
             "Age",
@@ -987,13 +831,7 @@
           ],
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "explain"
-        ],
-        "final_action": "explain",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": false,
@@ -1034,30 +872,8 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: important[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "important",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": [
-              ">"
-            ],
-            "values": [
-              40
-            ],
-            "topk": 5,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "important",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": [
@@ -1068,13 +884,7 @@
           ],
           "topk": 5,
           "target_values": null
-        },
-        "action_list": [
-          "important"
-        ],
-        "final_action": "important",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": true,
       "entities_match": false,
@@ -1114,30 +924,8 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: important[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "important",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": [
-              ">"
-            ],
-            "values": [
-              40
-            ],
-            "topk": 5,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "important",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": [
@@ -1148,13 +936,7 @@
           ],
           "topk": 5,
           "target_values": null
-        },
-        "action_list": [
-          "important"
-        ],
-        "final_action": "important",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": true,
       "entities_match": false,
@@ -1194,30 +976,8 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: important[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "important",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": [
-              ">"
-            ],
-            "values": [
-              40
-            ],
-            "topk": 5,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "important",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": [
@@ -1228,13 +988,7 @@
           ],
           "topk": 5,
           "target_values": null
-        },
-        "action_list": [
-          "important"
-        ],
-        "final_action": "important",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": true,
       "entities_match": false,
@@ -1273,30 +1027,8 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: important[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "important",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": [
-              ">"
-            ],
-            "values": [
-              50
-            ],
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "important",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": [
@@ -1307,13 +1039,7 @@
           ],
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "important"
-        ],
-        "final_action": "important",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": true,
       "entities_match": false,
@@ -1352,30 +1078,8 @@
         "action": "important"
       },
       "actual": {
-        "generation": "parsed: important[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "important",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": [
-              ">"
-            ],
-            "values": [
-              150
-            ],
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "important",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": [
@@ -1386,13 +1090,7 @@
           ],
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "important"
-        ],
-        "final_action": "important",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": true,
       "entities_match": false,
@@ -1421,39 +1119,15 @@
         "action": "mistake"
       },
       "actual": {
-        "generation": "parsed: self[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "self",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "self",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": null,
           "values": null,
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "self"
-        ],
-        "final_action": "self",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": true,
@@ -1478,39 +1152,15 @@
         "action": "mistake"
       },
       "actual": {
-        "generation": "parsed: self[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "self",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "self",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": null,
           "values": null,
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "self"
-        ],
-        "final_action": "self",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": true,
@@ -1529,57 +1179,67 @@
       }
     },
     {
-      "question": "What are examples of your mistakes when predicting whether people have diabetes?",
+      "question": "Can you tell me the average age of folks whose bmi is over 35 and have had more than one pregnancy?",
       "expected": {
-        "entities": {},
-        "action": "mistake"
+        "entities": {
+          "features": [
+            "age",
+            "bmi",
+            "pregnancies"
+          ],
+          "operators": [
+            null,
+            ">",
+            ">"
+          ],
+          "values": [
+            null,
+            35,
+            1
+          ]
+        },
+        "action": "statistic"
       },
       "actual": {
-        "generation": "parsed: self[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "self",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "statistic",
+        "entities": {
           "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
+          "features": [
+            "BMI",
+            "Pregnancies"
+          ],
+          "operators": [
+            ">",
+            ">"
+          ],
+          "values": [
+            35,
+            1
+          ],
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "self"
-        ],
-        "final_action": "self",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
-      "action_match": false,
-      "entities_match": true,
+      "action_match": true,
+      "entities_match": false,
       "overall_match": false,
       "error": "",
       "initial_extraction": {
-        "action": "self",
+        "action": "statistic",
         "entities": {
           "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
+          "features": [
+            "BMI",
+            "Pregnancies"
+          ],
+          "operators": [
+            ">",
+            ">"
+          ],
+          "values": [
+            35,
+            1
+          ],
           "topk": null,
           "target_values": null
         }

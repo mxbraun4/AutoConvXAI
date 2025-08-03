@@ -1,16 +1,16 @@
 {
   "report": {
-    "total_cases": 20,
-    "action_accuracy": 0.9,
+    "total_cases": 40,
+    "action_accuracy": 0.925,
     "entity_accuracy": 1.0,
-    "overall_accuracy": 0.9,
+    "overall_accuracy": 0.925,
     "error_rate": 0.0,
-    "both_correct": 18,
-    "both_correct_rate": 0.9,
+    "both_correct": 37,
+    "both_correct_rate": 0.925,
     "action_correct_entity_wrong": 0,
     "action_correct_entity_wrong_rate": 0.0,
-    "action_wrong_entity_correct": 2,
-    "action_wrong_entity_correct_rate": 0.1,
+    "action_wrong_entity_correct": 3,
+    "action_wrong_entity_correct_rate": 0.075,
     "both_wrong": 0,
     "both_wrong_rate": 0.0,
     "action_breakdown": {
@@ -25,8 +25,13 @@
         "accuracy": 1.0
       },
       "predict": {
-        "total": 5,
-        "correct": 5,
+        "total": 15,
+        "correct": 14,
+        "accuracy": 0.9333333333333333
+      },
+      "filter": {
+        "total": 10,
+        "correct": 10,
         "accuracy": 1.0
       }
     },
@@ -34,16 +39,9 @@
       {
         "question": "What effect do the features have those predictions made by the model on the training information?",
         "expected_action": "explain",
-        "actual_action": "interact",
+        "actual_action": null,
         "expected_entities": {},
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "interact",
           "entities": {
@@ -59,16 +57,9 @@
       {
         "question": "Can you explain which features influenced these predictions?",
         "expected_action": "explain",
-        "actual_action": "important",
+        "actual_action": null,
         "expected_entities": {},
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "important",
           "entities": {
@@ -78,6 +69,42 @@
             "values": null,
             "topk": null,
             "target_values": null
+          }
+        }
+      },
+      {
+        "question": "How does the model predict diabetes when insulin levels are equal to 20?",
+        "expected_action": "predict",
+        "actual_action": null,
+        "expected_entities": {
+          "features": [
+            "insulin"
+          ],
+          "operators": [
+            "="
+          ],
+          "values": [
+            20
+          ]
+        },
+        "actual_entities": {},
+        "initial_extraction": {
+          "action": "explain",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Insulin"
+            ],
+            "operators": [
+              "="
+            ],
+            "values": [
+              20
+            ],
+            "topk": null,
+            "target_values": [
+              1
+            ]
           }
         }
       }
@@ -92,39 +119,15 @@
         "action": "explain"
       },
       "actual": {
-        "generation": "parsed: interact[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "interact",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "interact",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": null,
           "values": null,
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "interact"
-        ],
-        "final_action": "interact",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": true,
@@ -149,39 +152,15 @@
         "action": "explain"
       },
       "actual": {
-        "generation": "parsed: important[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "important",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "important",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": null,
           "values": null,
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "important"
-        ],
-        "final_action": "important",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": true,
@@ -196,6 +175,65 @@
           "values": null,
           "topk": null,
           "target_values": null
+        }
+      }
+    },
+    {
+      "question": "How does the model predict diabetes when insulin levels are equal to 20?",
+      "expected": {
+        "entities": {
+          "features": [
+            "insulin"
+          ],
+          "operators": [
+            "="
+          ],
+          "values": [
+            20
+          ]
+        },
+        "action": "predict"
+      },
+      "actual": {
+        "action": "explain",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Insulin"
+          ],
+          "operators": [
+            "="
+          ],
+          "values": [
+            20
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        }
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": "",
+      "initial_extraction": {
+        "action": "explain",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Insulin"
+          ],
+          "operators": [
+            "="
+          ],
+          "values": [
+            20
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
         }
       }
     }

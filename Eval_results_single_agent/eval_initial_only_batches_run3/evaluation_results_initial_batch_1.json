@@ -34,16 +34,9 @@
       {
         "question": "What effect do the features have those predictions made by the model on the training information?",
         "expected_action": "explain",
-        "actual_action": "interact",
+        "actual_action": null,
         "expected_entities": {},
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "interact",
           "entities": {
@@ -59,16 +52,9 @@
       {
         "question": "Can you explain which features influenced these predictions?",
         "expected_action": "explain",
-        "actual_action": "important",
+        "actual_action": null,
         "expected_entities": {},
-        "actual_entities": {
-          "patient_id": null,
-          "features": null,
-          "operators": null,
-          "values": null,
-          "topk": null,
-          "target_values": null
-        },
+        "actual_entities": {},
         "initial_extraction": {
           "action": "important",
           "entities": {
@@ -92,39 +78,15 @@
         "action": "explain"
       },
       "actual": {
-        "generation": "parsed: interact[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "interact",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "interact",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": null,
           "values": null,
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "interact"
-        ],
-        "final_action": "interact",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": true,
@@ -149,39 +111,15 @@
         "action": "explain"
       },
       "actual": {
-        "generation": "parsed: important[e]",
-        "confidence": 0.7200000000000001,
-        "method": "autogen_partial_pipeline",
-        "action_response": {
-          "action": "important",
-          "entities": {
-            "patient_id": null,
-            "features": null,
-            "operators": null,
-            "values": null,
-            "topk": null,
-            "target_values": null
-          },
-          "confidence": 0.7200000000000001
-        },
-        "agent_reasoning": {
-          "action_analysis": "",
-          "validation_results": "Validation agent response unavailable"
-        },
-        "command_structure": {
+        "action": "important",
+        "entities": {
           "patient_id": null,
           "features": null,
           "operators": null,
           "values": null,
           "topk": null,
           "target_values": null
-        },
-        "action_list": [
-          "important"
-        ],
-        "final_action": "important",
-        "validation_passed": false,
-        "identified_issues": []
+        }
       },
       "action_match": false,
       "entities_match": true,

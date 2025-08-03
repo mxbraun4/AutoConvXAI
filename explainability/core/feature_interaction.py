@@ -202,17 +202,22 @@ class FeatureInteraction:
             updated_dataset = copy.deepcopy(data)
             updated_dataset[i] = unique_value
 
-            # compute predictions on updated data
-            predictions = self.prediction_fn(updated_dataset.to_numpy())
+            # compute predictions on updated data (preserve DataFrame to avoid sklearn warnings)
+            predictions = self.prediction_fn(updated_dataset)
             # compute the average prediction
             average_prediction = np.mean(predictions, axis=0)
             pdp[unique_value] = average_prediction
 
         feature_vals = np.array(list(pdp.keys()))
         dependence = np.array([pdp[val] for val in feature_vals])
-        sorted_vals = np.argsort(feature_vals)
-
-        feature_vals = feature_vals[sorted_vals]
-        dependence = dependence[sorted_vals]
+        
+        # Handle mixed data types in feature values (avoid sorting issues)
+        try:
+            sorted_vals = np.argsort(feature_vals)
+            feature_vals = feature_vals[sorted_vals]
+            dependence = dependence[sorted_vals]
+        except TypeError:
+            # If values can't be sorted (mixed types), keep original order
+            pass
 
         return feature_vals, dependence

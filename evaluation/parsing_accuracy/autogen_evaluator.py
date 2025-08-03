@@ -326,7 +326,7 @@ class AutoGenEvaluator:
 
 
     def evaluate_single_case_initial_only(self, test_case: Dict[str, Any]) -> EvaluationResult:
-        """Evaluate a single test case using ONLY the initial extraction (first agent output)."""
+            """Evaluate a single test case using ONLY the initial extraction (first agent output)."""
             question = test_case['question']
             expected_json = test_case['expected_json']
             
@@ -589,109 +589,109 @@ class AutoGenEvaluator:
         print(f"Results saved to {output_file}")
 
 
-    def evaluate_all_cases_initial_only():
-        """Run evaluation on all test cases using ONLY initial extraction (first agent output)."""
-        # Check for API key
-        api_key = os.getenv('OPENAI_API_KEY')
-        if not api_key:
-            print("Error: OPENAI_API_KEY environment variable not set.")
-            print("Please set your OpenAI API key to run the evaluation.")
-            return
-        
-        # Initialize evaluator with smart rate limiting
-        test_cases_file = '/app/evaluation/parsing_accuracy/converted_test_cases_curated.json'
-        evaluator = AutoGenEvaluator(test_cases_file, api_key, delay_between_calls=2)
-        
-        total_cases = len(evaluator.test_cases)
-        batch_size = 20
-        num_batches = (total_cases + batch_size - 1) // batch_size
-        
-        print(f"Starting AutoGen INITIAL EXTRACTION ONLY evaluation on all {total_cases} test cases...")
-        print(f"Processing in {num_batches} batches of {batch_size} cases each")
-        print("Evaluating ONLY the first agent's output (before validation)")
-        
-        # Estimate time including batch breaks
-        test_time = total_cases * 0.1  # 0.1s per call, sequential
-        break_time = (num_batches - 1) * 10  # 10s break between batches
-        estimated_time = test_time + break_time
-        print(f"Estimated time: {estimated_time:.0f} seconds ({estimated_time/60:.1f} minutes)\n")
-        
-        # Create results directory
-        results_dir = 'eval_initial_only_batches'
-        os.makedirs(results_dir, exist_ok=True)
-        
-        start_time = time.time()
-        all_results = []
-        
-        # Process in batches
-        for batch_num in range(num_batches):
-            batch_start = batch_num * batch_size
-            batch_end = min(batch_start + batch_size, total_cases)
-            batch_cases = evaluator.test_cases[batch_start:batch_end]
-            
-            print(f"\nBatch {batch_num + 1}/{num_batches}: Tests {batch_start + 1}-{batch_end}")
-            print("-" * 50)
-            
-            # Evaluate batch using initial extraction only
-            batch_results = evaluator.evaluate_parallel_initial_only(batch_cases, max_workers=1, batch_refresh=True)
-            all_results.extend(batch_results)
-            
-            # Save intermediate results
-            intermediate_file = os.path.join(results_dir, f'evaluation_results_initial_batch_{batch_num + 1}.json')
-            temp_report = evaluator.generate_report(all_results)
-            evaluator.save_results(all_results, temp_report, intermediate_file)
-            
-            # Show batch summary with detailed breakdown
-            batch_matches = sum(1 for r in batch_results if r.overall_match)
-            batch_action_matches = sum(1 for r in batch_results if r.action_match)
-            batch_entity_matches = sum(1 for r in batch_results if r.entities_match)
-            print(f"Batch {batch_num + 1} complete: {batch_matches}/{len(batch_results)} overall, {batch_action_matches} actions, {batch_entity_matches} entities (Initial Only)")
-            
-            # Add 10-second break between batches (except after the last batch)
-            if batch_num < num_batches - 1:
-                print("Waiting 10 seconds before next batch to allow rate limits to reset...")
-                time.sleep(10)
-        
-        # Generate final report
-        report = evaluator.generate_report(all_results)
-        
-        # Calculate actual time taken
-        total_time = time.time() - start_time
-        
-        # Print summary
-        print("\n" + "="*60)
-        print("AUTOGEN INITIAL EXTRACTION ONLY EVALUATION RESULTS")
-        print("="*60)
-        print(f"Total Cases Evaluated: {report['total_cases']}")
-        print(f"Action Accuracy: {report['action_accuracy']:.2%}")
-        print(f"Entity Accuracy: {report['entity_accuracy']:.2%}")
-        print(f"Overall Accuracy: {report['overall_accuracy']:.2%}")
-        print(f"Error Rate: {report['error_rate']:.2%}")
-        
-        print(f"\nDETAILED BREAKDOWN:")
-        print(f"  Both Correct (Action ✓ & Entity ✓): {report['both_correct']} ({report['both_correct_rate']:.2%})")
-        print(f"  Action Correct, Entity Wrong (Action ✓ & Entity ✗): {report['action_correct_entity_wrong']} ({report['action_correct_entity_wrong_rate']:.2%})")
-        print(f"  Action Wrong, Entity Correct (Action ✗ & Entity ✓): {report['action_wrong_entity_correct']} ({report['action_wrong_entity_correct_rate']:.2%})")
-        print(f"  Both Wrong (Action ✗ & Entity ✗): {report['both_wrong']} ({report['both_wrong_rate']:.2%})")
-        
-        print(f"Total Time: {total_time:.0f} seconds ({total_time/60:.1f} minutes)")
-        print(f"Average Time per Test: {total_time/total_cases:.2f} seconds")
-        
-        print("\nAction Breakdown:")
-        for action, data in report['action_breakdown'].items():
-            print(f"  {action}: {data['correct']}/{data['total']} ({data['accuracy']:.2%})")
-        
-        if report['action_mismatches']:
-            print("\nTop 10 Action Mismatches:")
-            for i, mismatch in enumerate(report['action_mismatches'][:10], 1):
-                print(f"{i}. Expected: {mismatch['expected_action']} | Actual: {mismatch['actual_action']}")
-                print(f"   Question: {mismatch['question'][:60]}...")
-        
-        # Save final results
-        evaluator.save_results(all_results, report, 'evaluation_results_initial_only_final.json')
-        
-        print(f"\nDetailed results saved to evaluation_results_initial_only_final.json")
-        print(f"Intermediate batch results saved as evaluation_results_initial_batch_*.json")
+def evaluate_all_cases_initial_only():
+     """Run evaluation on all test cases using ONLY initial extraction (first agent output)."""
+     # Check for API key
+     api_key = os.getenv('OPENAI_API_KEY')
+     if not api_key:
+         print("Error: OPENAI_API_KEY environment variable not set.")
+         print("Please set your OpenAI API key to run the evaluation.")
+         return
+     
+     # Initialize evaluator with smart rate limiting
+     test_cases_file = '/app/evaluation/parsing_accuracy/converted_test_cases_curated.json'
+     evaluator = AutoGenEvaluator(test_cases_file, api_key, delay_between_calls=2)
+     
+     total_cases = len(evaluator.test_cases)
+     batch_size = 20
+     num_batches = (total_cases + batch_size - 1) // batch_size
+     
+     print(f"Starting AutoGen INITIAL EXTRACTION ONLY evaluation on all {total_cases} test cases...")
+     print(f"Processing in {num_batches} batches of {batch_size} cases each")
+     print("Evaluating ONLY the first agent's output (before validation)")
+     
+     # Estimate time including batch breaks
+     test_time = total_cases * 0.1  # 0.1s per call, sequential
+     break_time = (num_batches - 1) * 10  # 10s break between batches
+     estimated_time = test_time + break_time
+     print(f"Estimated time: {estimated_time:.0f} seconds ({estimated_time/60:.1f} minutes)\n")
+     
+     # Create results directory
+     results_dir = 'eval_initial_only_batches'
+     os.makedirs(results_dir, exist_ok=True)
+     
+     start_time = time.time()
+     all_results = []
+     
+     # Process in batches
+     for batch_num in range(num_batches):
+         batch_start = batch_num * batch_size
+         batch_end = min(batch_start + batch_size, total_cases)
+         batch_cases = evaluator.test_cases[batch_start:batch_end]
+         
+         print(f"\nBatch {batch_num + 1}/{num_batches}: Tests {batch_start + 1}-{batch_end}")
+         print("-" * 50)
+         
+         # Evaluate batch using initial extraction only
+         batch_results = evaluator.evaluate_parallel_initial_only(batch_cases, max_workers=1, batch_refresh=True)
+         all_results.extend(batch_results)
+         
+         # Save intermediate results
+         intermediate_file = os.path.join(results_dir, f'evaluation_results_initial_batch_{batch_num + 1}.json')
+         temp_report = evaluator.generate_report(all_results)
+         evaluator.save_results(all_results, temp_report, intermediate_file)
+         
+         # Show batch summary with detailed breakdown
+         batch_matches = sum(1 for r in batch_results if r.overall_match)
+         batch_action_matches = sum(1 for r in batch_results if r.action_match)
+         batch_entity_matches = sum(1 for r in batch_results if r.entities_match)
+         print(f"Batch {batch_num + 1} complete: {batch_matches}/{len(batch_results)} overall, {batch_action_matches} actions, {batch_entity_matches} entities (Initial Only)")
+         
+         # Add 10-second break between batches (except after the last batch)
+         if batch_num < num_batches - 1:
+             print("Waiting 10 seconds before next batch to allow rate limits to reset...")
+             time.sleep(10)
+     
+     # Generate final report
+     report = evaluator.generate_report(all_results)
+     
+     # Calculate actual time taken
+     total_time = time.time() - start_time
+     
+     # Print summary
+     print("\n" + "="*60)
+     print("AUTOGEN INITIAL EXTRACTION ONLY EVALUATION RESULTS")
+     print("="*60)
+     print(f"Total Cases Evaluated: {report['total_cases']}")
+     print(f"Action Accuracy: {report['action_accuracy']:.2%}")
+     print(f"Entity Accuracy: {report['entity_accuracy']:.2%}")
+     print(f"Overall Accuracy: {report['overall_accuracy']:.2%}")
+     print(f"Error Rate: {report['error_rate']:.2%}")
+     
+     print(f"\nDETAILED BREAKDOWN:")
+     print(f"  Both Correct (Action ✓ & Entity ✓): {report['both_correct']} ({report['both_correct_rate']:.2%})")
+     print(f"  Action Correct, Entity Wrong (Action ✓ & Entity ✗): {report['action_correct_entity_wrong']} ({report['action_correct_entity_wrong_rate']:.2%})")
+     print(f"  Action Wrong, Entity Correct (Action ✗ & Entity ✓): {report['action_wrong_entity_correct']} ({report['action_wrong_entity_correct_rate']:.2%})")
+     print(f"  Both Wrong (Action ✗ & Entity ✗): {report['both_wrong']} ({report['both_wrong_rate']:.2%})")
+     
+     print(f"Total Time: {total_time:.0f} seconds ({total_time/60:.1f} minutes)")
+     print(f"Average Time per Test: {total_time/total_cases:.2f} seconds")
+     
+     print("\nAction Breakdown:")
+     for action, data in report['action_breakdown'].items():
+         print(f"  {action}: {data['correct']}/{data['total']} ({data['accuracy']:.2%})")
+     
+     if report['action_mismatches']:
+         print("\nTop 10 Action Mismatches:")
+         for i, mismatch in enumerate(report['action_mismatches'][:10], 1):
+             print(f"{i}. Expected: {mismatch['expected_action']} | Actual: {mismatch['actual_action']}")
+             print(f"   Question: {mismatch['question'][:60]}...")
+     
+     # Save final results
+     evaluator.save_results(all_results, report, 'evaluation_results_initial_only_final.json')
+     
+     print(f"\nDetailed results saved to evaluation_results_initial_only_final.json")
+     print(f"Intermediate batch results saved as evaluation_results_initial_batch_*.json")
 
 
 

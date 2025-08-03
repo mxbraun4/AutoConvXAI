@@ -1,0 +1,280 @@
+{
+  "report": {
+    "total_cases": 20,
+    "action_accuracy": 0.85,
+    "entity_accuracy": 1.0,
+    "overall_accuracy": 0.85,
+    "error_rate": 0.0,
+    "both_correct": 17,
+    "both_correct_rate": 0.85,
+    "action_correct_entity_wrong": 0,
+    "action_correct_entity_wrong_rate": 0.0,
+    "action_wrong_entity_correct": 3,
+    "action_wrong_entity_correct_rate": 0.15,
+    "both_wrong": 0,
+    "both_wrong_rate": 0.0,
+    "action_breakdown": {
+      "explain": {
+        "total": 14,
+        "correct": 11,
+        "accuracy": 0.7857142857142857
+      },
+      "mistake": {
+        "total": 1,
+        "correct": 1,
+        "accuracy": 1.0
+      },
+      "predict": {
+        "total": 5,
+        "correct": 5,
+        "accuracy": 1.0
+      }
+    },
+    "action_mismatches": [
+      {
+        "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
+        "expected_action": "explain",
+        "actual_action": null,
+        "expected_entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        },
+        "actual_entities": {},
+        "initial_extraction": {
+          "action": "predict",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              ">"
+            ],
+            "values": [
+              120
+            ],
+            "topk": null,
+            "target_values": [
+              1
+            ]
+          }
+        }
+      },
+      {
+        "question": "How do you determine if people with glucose levels above 120 have diabetes?",
+        "expected_action": "explain",
+        "actual_action": null,
+        "expected_entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        },
+        "actual_entities": {},
+        "initial_extraction": {
+          "action": "predict",
+          "entities": {
+            "patient_id": null,
+            "features": [
+              "Glucose"
+            ],
+            "operators": [
+              ">"
+            ],
+            "values": [
+              120
+            ],
+            "topk": null,
+            "target_values": [
+              1
+            ]
+          }
+        }
+      },
+      {
+        "question": "What effect do the features have those predictions made by the model on the training information?",
+        "expected_action": "explain",
+        "actual_action": null,
+        "expected_entities": {},
+        "actual_entities": {},
+        "initial_extraction": {
+          "action": "important",
+          "entities": {
+            "patient_id": null,
+            "features": null,
+            "operators": null,
+            "values": null,
+            "topk": null,
+            "target_values": null
+          }
+        }
+      }
+    ],
+    "entity_mismatches": []
+  },
+  "detailed_results": [
+    {
+      "question": "What method would you use to figure out if people with glucose levels over 120 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        }
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": "",
+      "initial_extraction": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "question": "How do you determine if people with glucose levels above 120 have diabetes?",
+      "expected": {
+        "entities": {
+          "features": [
+            "glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ]
+        },
+        "action": "explain"
+      },
+      "actual": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        }
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": "",
+      "initial_extraction": {
+        "action": "predict",
+        "entities": {
+          "patient_id": null,
+          "features": [
+            "Glucose"
+          ],
+          "operators": [
+            ">"
+          ],
+          "values": [
+            120
+          ],
+          "topk": null,
+          "target_values": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "question": "What effect do the features have those predictions made by the model on the training information?",
+      "expected": {
+        "entities": {},
+        "action": "explain"
+      },
+      "actual": {
+        "action": "important",
+        "entities": {
+          "patient_id": null,
+          "features": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "target_values": null
+        }
+      },
+      "action_match": false,
+      "entities_match": true,
+      "overall_match": false,
+      "error": "",
+      "initial_extraction": {
+        "action": "important",
+        "entities": {
+          "patient_id": null,
+          "features": null,
+          "operators": null,
+          "values": null,
+          "topk": null,
+          "target_values": null
+        }
+      }
+    }
+  ]
+}
