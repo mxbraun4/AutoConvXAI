@@ -28,13 +28,11 @@ venv
 .DS_Store
 Thumbs.db
 
-# Documentation
+# Documentation (exclude from container)
 README.md
 CITATION.cff
 LICENSE
-
-# Test files (include for now)
-# tests/
+docs/
 
 # Cache directories
 cache/
@@ -47,48 +45,18 @@ cache/
 *.tmp
 *.temp
 
-# Exclude the original complex parsing system
-parsing/
-experiments/
-tutorials/
-
-# Exclude unnecessary config files
-global_config.gin
-configs/compas-config.gin
-configs/diabetes-config.gin
-configs/german-config.gin
-
-# Exclude old flask app
-flask_app.py
-
-# Exclude unnecessary requirements (keep requirements.txt)
-# requirements.txt
-
-# Exclude specific data files not needed for diabetes model
-data/german*
-data/compas*
-data/derm*
-data/train_*
-data/background_derm.csv
-data/dataset_derm.csv
-
-# Exclude unnecessary explain modules (only keep what we need)
-explain/parser.py
-explain/grammar.py
-explain/decoder.py
-explain/complete.py
-explain/logic.py
-
-# Exclude build artifacts and development files
+# Build artifacts
 node_modules/
-*.egg-info/
 build/
 dist/
 *.whl
 
-# Exclude development scripts
-get-pip.py
-
-# Exclude docker files themselves from context
+# Docker files themselves
 Dockerfile*
 docker-compose*
+
+# Evaluation results (large files, regenerated in container)
+evaluation/results/
+Eval_results_*/
+eval_*_batches*/
+evaluation_results_*.json

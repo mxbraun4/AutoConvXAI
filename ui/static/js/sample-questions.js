@@ -5,8 +5,7 @@
  * @param {string} rawAction - The action type to generate a sample for
  */
 function doSample(rawAction) {
-    let username = currentUserId; // Will be set from template
-    let dataPackage = {action: rawAction, thisUserName: username}
+    let dataPackage = {action: rawAction}
 
     const result = $.ajax({
         type: 'POST',

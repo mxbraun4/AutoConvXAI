@@ -88,7 +88,7 @@ function addToChat(side, text, logText) {
  * @param {string} rawText - User's input text
  */
 function botResponse(rawText) {
-    let dataPackage = {userInput: rawText, userName: currentUserId}; // currentUserId will be set from template
+    let dataPackage = {userInput: rawText};
     
     const result = $.ajax({
         type: 'POST',

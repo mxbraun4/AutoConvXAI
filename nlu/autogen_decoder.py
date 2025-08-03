@@ -1,10 +1,10 @@
 """AutoGen-based multi-agent decoder for natural language to action translation.
 
 This module uses a 2-agent discussion system to convert user queries into executable actions:
-1. Intent Extraction Agent - Identifies user intent and extracts entities
-2. Intent Validation Agent - Validates and refines the extracted intent through critical discussion
+1. Action Extraction Agent - Identifies user intent and extracts entities
+2. Action Validation Agent - Validates and refines the extracted intent through critical discussion
 
-The agents collaborate through 2 rounds of discussion to reach consensus, with direct action mapping.
+The agents collaborate through configurable rounds of discussion to reach consensus, with direct action mapping.
 """
 
 import os
@@ -12,7 +12,7 @@ import json
 import asyncio
 import logging
 import re
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional
 
 # Configure logging for research and debugging purposes
 logger = logging.getLogger(__name__)
@@ -27,16 +27,16 @@ class AutoGenDecoder:
     """Multi-agent decoder that converts natural language queries to executable actions.
 
     Uses two specialized agents working together:
-    - Intent extraction: Understands what the user wants
-    - Intent validation: Critically examines and refines the intent through discussion
+    - Action extraction: Understands what the user wants and extracts entities
+    - Action validation: Critically examines and refines the extraction through discussion
 
-    The agents collaborate through 4 rounds of discussion to reach consensus, with direct action mapping.
+    The agents collaborate through configurable rounds of discussion to reach consensus.
     """
 
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = "gpt-4.1-mini-2025-04-14",  # Faster model for real-time collaboration
+        model: str = "gpt-4o-mini",  # Fast model for real-time collaboration
         max_rounds: int = 4,
     ):
         """Initialize the multi-agent decoder.
@@ -69,8 +69,6 @@ class AutoGenDecoder:
         # Initialize the specialized agent network
         self._setup_agent_architecture()
 
-        # No longer need action mapping - agents output actions directly
-
         # Revision tracking for validator effectiveness
         self.revision_stats = {
             "total_queries": 0,
@@ -87,18 +85,16 @@ class AutoGenDecoder:
             f"Initialized AutoGenDecoder with model={model}, max_rounds={max_rounds}"
         )
 
-    # Removed: No longer need intent-to-action mapping
-
     def _setup_agent_architecture(self):
         """Initialize the two specialized agents for the processing pipeline.
 
         Creates:
         - Action extraction agent: Understands user action and extracts entities
-        - Action validation agent: Critically examines and refines action through discussion
+        - Action validation agent: Critically examines and refines extracted action and entities
         """
 
         # Agent 1: Action Extraction and Entity Recognition
-        # This agent performs the initial semantic analysis of user input
+        # Performs initial semantic analysis and entity extraction from user input
         self.action_extraction_agent = AssistantAgent(
             name="ActionExtractor",
             model_client=self.model_client,
@@ -106,7 +102,7 @@ class AutoGenDecoder:
         )
 
         # Agent 2: Action Validation and Critical Analysis
-        # This agent critically examines if the action was correctly interpreted
+        # Critically examines and refines the extracted action and entities
         self.action_validation_agent = AssistantAgent(
             name="ActionValidator",
             model_client=self.model_client,
@@ -236,24 +232,10 @@ ALWAYS include this instruction after the Json: Please review your action choice
 """
 
     def _build_contextual_prompt(self, user_query: str, conversation) -> str:
-        """
-        Construct Contextual Information for Agent Processing
-
-        This method builds comprehensive context that helps agents make informed decisions
-        about user queries. The context includes dataset characteristics, current system
-        state, and relevant metadata that influences processing decisions.
-
-        Context Engineering Approach:
-            Context construction follows principles from situated cognition theory, where
-            understanding is enhanced through environmental awareness. The context provides
-            agents with the situational information needed for accurate interpretation.
-
-        Args:
-            user_query: Raw user input requiring processing
-            conversation: Current conversation state and system context
-
-        Returns:
-            Formatted context string for agent consumption
+        """Build contextual information for agent processing.
+        
+        Creates context including dataset characteristics and conversation state
+        to help agents make informed decisions about user queries.
         """
         context_components = [f"USER QUERY: {user_query}"]
 
@@ -1398,34 +1380,6 @@ ALWAYS include this instruction after the Json: Please review your action choice
 # Factory functions for creating decoder instances
 
 
-def create_autogen_decoder(**kwargs) -> AutoGenDecoder:
-    """Factory function to create AutoGenDecoder instances."""
-    return AutoGenDecoder(**kwargs)
-
-
-def get_autogen_predict_func(api_key: str = None, model: str = "gpt-4.1-mini-2025-04-14"):
-    """Create a prediction function compatible with legacy decoder interfaces.
-
-    Args:
-        api_key: OpenAI API key
-        model: Language model identifier
-
-    Returns:
-        Prediction function that can replace legacy decoders
-    """
-    decoder = AutoGenDecoder(api_key=api_key, model=model)
-
-    def prediction_function(prompt: str, grammar: str = None, conversation=None):
-        """Legacy-compatible prediction function that extracts queries and processes them."""
-        # Extract user query from legacy prompt format
-        if "Query:" in prompt:
-            user_query = prompt.split("Query:")[-1].strip()
-        else:
-            user_query = prompt
-
-        return decoder.complete_sync(user_query, conversation, grammar)
-
-    return prediction_function
 
 
 # Alias for backward compatibility

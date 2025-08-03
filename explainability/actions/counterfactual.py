@@ -95,11 +95,3 @@ def counterfactual_operation(conversation, parse_text, i, **kwargs):
         return {'type': 'error', 'message': f'Error generating counterfactuals: {str(e)}'}, 0
 
 
-def alternatives_operation(conversation, parse_text, i, **kwargs):
-    """Alias for counterfactual_operation to handle 'alternatives' queries."""
-    return counterfactual_operation(conversation, parse_text, i, **kwargs)
-
-
-def scenarios_operation(conversation, parse_text, i, **kwargs):
-    """Alias for counterfactual_operation to handle 'scenarios' queries."""
-    return counterfactual_operation(conversation, parse_text, i, **kwargs)

@@ -9,14 +9,21 @@ logger = logging.getLogger(__name__)
 
 main_bp = Blueprint('main', __name__)
 
-# This will be initialized from main.py
-conversation = None
-action_dispatcher = None
-formatter = None
-dataset = None
+# Global variables initialized from main.py
+conversation = None  # Conversation context manager
+action_dispatcher = None  # Action dispatcher for query processing
+formatter = None  # Response formatter
+dataset = None  # Dataset for basic info
 
 def init_routes(conv, dispatcher, fmt, data):
-    """Initialize route dependencies"""
+    """Initialize route dependencies from main application.
+    
+    Args:
+        conv: Conversation instance
+        dispatcher: Action dispatcher instance
+        fmt: Response formatter instance
+        data: Dataset for basic info
+    """
     global conversation, action_dispatcher, formatter, dataset
     conversation = conv
     action_dispatcher = dispatcher
@@ -25,7 +32,7 @@ def init_routes(conv, dispatcher, fmt, data):
 
 @main_bp.route('/')
 def home():
-    """Render the main conversational interface"""
+    """Render the main conversational interface with dataset info."""
     return render_template('index.html', 
                          datasetObjective="predict diabetes based on patient health metrics",
                          dataset_size=len(dataset),
@@ -33,9 +40,13 @@ def home():
 
 @main_bp.route('/query', methods=['POST'])
 def process_query():
-    """Handle API queries - returns JSON response"""
+    """Handle API queries and return structured JSON response.
+    
+    Accepts: JSON or form data with 'query' field
+    Returns: JSON with response, action_used, and raw_result
+    """
     try:
-        # Get query
+        # Extract query from JSON or form data
         if request.is_json:
             user_query = request.get_json().get('query', '')
         else:
@@ -46,6 +57,7 @@ def process_query():
         
         logger.info(f"API query: {user_query}")
         
+        # Process query through core logic
         action_name, action_result, formatted_response = process_user_query(
             user_query, conversation, action_dispatcher, formatter
         )
@@ -64,13 +76,17 @@ def process_query():
 
 @main_bp.route('/sample_prompt', methods=['POST'])
 def sample_prompt():
-    """Generate sample prompts for the suggestion buttons"""
+    """Generate sample prompts for UI suggestion buttons.
+    
+    Accepts: JSON/form with 'action' field specifying category
+    Returns: Random sample prompt as plain text
+    """
     try:
-        # Get action from JSON or form data
+        # Extract action category from request
         data = request.get_json() if request.is_json else {}
         action = data.get('action', '') if data else request.form.get('action', 'important')
         
-        # Simple sample prompts for different categories
+        # Pre-defined sample prompts organized by action category
         samples = {
             'data': [
                 "Tell me about this dataset",
@@ -213,7 +229,7 @@ def sample_prompt():
             ]
         }
         
-        # Return a random sample from the selected category
+        # Return random sample from requested category or default to 'important'
         selected_samples = samples.get(action, samples['important'])
         return Response(random.choice(selected_samples), mimetype='text/plain')
         
@@ -223,9 +239,13 @@ def sample_prompt():
 
 @main_bp.route('/get_bot_response', methods=['POST'])
 def get_bot_response():
-    """Handle chat messages - this is the main conversational endpoint"""
+    """Handle chat messages from the conversational interface.
+    
+    Accepts: JSON with 'userInput' or form with 'msg'
+    Returns: Response in format 'message<>log_info' as plain text
+    """
     try:
-        # Get message from the chat interface - frontend sends JSON with userInput
+        # Extract message from chat interface (JSON userInput or form msg)
         data = request.get_json() if request.is_json else {}
         user_query = data.get('userInput', '') if data else request.form.get('msg', '')
         
@@ -234,13 +254,14 @@ def get_bot_response():
         
         logger.info(f"Chat query: {user_query}")
         
+        # Process chat query through core logic
         action_name, action_result, formatted_response = process_user_query(
             user_query, conversation, action_dispatcher, formatter
         )
         
         logger.info(f"Chat response generated using action: {action_name}")
         
-        # Return in the format expected by the frontend: "response<>log_info"
+        # Format response for chat frontend: 'response<>log_info'
         log_info = f"Action: {action_name}"
         response_text = f"{formatted_response}<>{log_info}"
         return Response(response_text, mimetype='text/plain')
@@ -252,8 +273,13 @@ def get_bot_response():
 
 @main_bp.route('/log_feedback', methods=['POST'])
 def log_feedback():
-    """Log user feedback (simplified implementation)"""
+    """Log user feedback for analytics (simplified implementation).
+    
+    Accepts: Form data with 'feedback' field
+    Returns: JSON status response
+    """
     try:
+        # Log feedback for analytics
         feedback = request.form.get('feedback', '')
         logger.info(f"User feedback: {feedback}")
         return jsonify({"status": "logged"})

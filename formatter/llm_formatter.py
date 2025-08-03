@@ -1,23 +1,47 @@
-"""Response formatting components for converting structured results to natural language."""
+"""LLM-powered response formatter for natural language responses.
+
+Uses OpenAI GPT models to convert structured action results into
+conversational responses tailored to user queries.
+"""
 import logging
 import openai
 
 logger = logging.getLogger(__name__)
 
 class LLMFormatter:
-    """Intelligent LLM-based formatter that creates question-tailored responses"""
+    """LLM-powered formatter for context-aware conversational responses.
     
-    # Configuration constants
-    MAX_TOKENS = 150
-    TEMPERATURE = 0.3
-    CONCEPTUAL_ACTIONS = {'predict', 'whatif', 'define', 'model', 'self', 'new_estimate'}
+    Uses OpenAI API to generate natural language responses from structured
+    action results, with conversation context and query-specific tailoring.
+    """
+    
+    # LLM generation parameters
+    MAX_TOKENS = 150  # Keep responses concise
+    TEMPERATURE = 0.3  # Low temperature for consistent, factual responses
+    CONCEPTUAL_ACTIONS = {'predict', 'whatif', 'define', 'model', 'self', 'new_estimate'}  # Actions that don't need data context
     
     def __init__(self, api_key, model='gpt-4o-mini'):
+        """Initialize LLM formatter with OpenAI client.
+        
+        Args:
+            api_key: OpenAI API key
+            model: Model name (default: gpt-4o-mini for cost efficiency)
+        """
         self.client = openai.OpenAI(api_key=api_key)
         self.model = model
     
     def format_response(self, user_query, action_name, action_result, conversation=None):
-        """Format action result into natural, question-tailored language"""
+        """Convert structured action result to natural language response.
+        
+        Args:
+            user_query: Original user question
+            action_name: Type of action performed
+            action_result: Structured result data
+            conversation: Context for filter state and history
+            
+        Returns:
+            str: Natural language response
+        """
         
         format_prompt = self._create_intelligent_prompt(user_query, action_name, action_result, conversation)
         

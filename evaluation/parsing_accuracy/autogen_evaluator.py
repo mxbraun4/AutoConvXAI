@@ -13,7 +13,6 @@ import time
 import asyncio
 from typing import Dict, List, Any, Tuple, Optional
 from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor
 import threading
 
 # Add the parent directory to sys.path to import the AutoGenDecoder
@@ -93,7 +92,12 @@ class MockModel:
 
 
 class AutoGenEvaluator:
-    """Evaluator for AutoGen decoder performance."""
+    """
+    Evaluator for AutoGen decoder performance.
+    
+    Tests the AutoGen multi-agent system against curated test cases,
+    comparing action and entity extraction accuracy.
+    """
     
     def __init__(self, test_cases_file: str, api_key: str = None, delay_between_calls: float = 0.5):
         """Initialize evaluator with test cases and API key."""
@@ -128,7 +132,7 @@ class AutoGenEvaluator:
         logging.getLogger('httpx').setLevel(logging.WARNING)
     
     def _create_fresh_decoder(self):
-        """Create a fresh decoder instance by completely replacing the old one."""
+        """Create fresh decoder instance to prevent state contamination between batches."""
         # Simply replace the decoder without trying to clean up the old one
         # Let Python's garbage collector handle the cleanup naturally
         if self.decoder:
@@ -144,7 +148,7 @@ class AutoGenEvaluator:
         self.decoder = AutoGenDecoder(api_key=self.api_key, model="gpt-4o-mini")
     
     def evaluate_action_match(self, expected: Dict[str, Any], actual: Dict[str, Any]) -> bool:
-        """Check if actions match."""
+        """Check if extracted action matches expected action."""
         expected_action = expected.get('action', '')
         
         # Check multiple possible locations for action in AutoGen output
@@ -159,7 +163,7 @@ class AutoGenEvaluator:
         return expected_action == actual_action
     
     def evaluate_entities_match(self, expected: Dict[str, Any], actual: Dict[str, Any]) -> bool:
-        """Check if entities match with proper validation of empty expected entities."""
+        """Check if extracted entities match expected entities with flexible empty handling."""
         expected_entities = expected.get('entities', {})
         
         # Get entities from AutoGen output - FIXED: Prioritize final validated entities
@@ -225,7 +229,7 @@ class AutoGenEvaluator:
         return True
     
     def _normalize_related_arrays(self, entities: Dict[str, Any]) -> Dict[str, Any]:
-        """Normalize related arrays (features, operators, values) by sorting them together."""
+        """Sort related arrays (features, operators, values) together for consistent comparison."""
         if not entities:
             return entities
         
@@ -267,7 +271,7 @@ class AutoGenEvaluator:
         return normalized
     
     def evaluate_single_case(self, test_case: Dict[str, Any]) -> EvaluationResult:
-        """Evaluate a single test case using shared decoder with fresh conversation context."""
+        """Evaluate single test case with full multi-agent processing."""
         question = test_case['question']
         expected_json = test_case['expected_json']
         
@@ -326,7 +330,7 @@ class AutoGenEvaluator:
 
 
     def evaluate_single_case_initial_only(self, test_case: Dict[str, Any]) -> EvaluationResult:
-            """Evaluate a single test case using ONLY the initial extraction (first agent output)."""
+            """Evaluate test case using only first agent output (no validation agent)."""
             question = test_case['question']
             expected_json = test_case['expected_json']
             
@@ -400,7 +404,7 @@ class AutoGenEvaluator:
 
 
     def evaluate_subset(self, max_cases: int = 50) -> List[EvaluationResult]:
-        """Evaluate a subset of test cases."""
+        """Evaluate limited subset of test cases for quick testing."""
         self.logger.info(f"Evaluating {min(max_cases, len(self.test_cases))} test cases...")
         
         results = []
@@ -417,7 +421,7 @@ class AutoGenEvaluator:
         return results
     
     def evaluate_parallel(self, test_cases: List[Dict[str, Any]], max_workers: int = 1, batch_refresh: bool = True) -> List[EvaluationResult]:
-        """Evaluate test cases using shared decoder with optional batch refresh."""
+        """Evaluate test cases sequentially with rate limiting and optional decoder refresh."""
         # Create fresh decoder at start of batch if requested
         if batch_refresh:
             self._create_fresh_decoder()
@@ -439,7 +443,7 @@ class AutoGenEvaluator:
         return results
     
     def evaluate_parallel_initial_only(self, test_cases: List[Dict[str, Any]], max_workers: int = 1, batch_refresh: bool = True) -> List[EvaluationResult]:
-            """Evaluate test cases using ONLY initial extraction (first agent output)."""
+            """Evaluate test cases using only first agent output for comparison."""
             # Create fresh decoder at start of batch if requested
             if batch_refresh:
                 self._create_fresh_decoder()
@@ -461,7 +465,7 @@ class AutoGenEvaluator:
             return results
 
     def generate_report(self, results: List[EvaluationResult]) -> Dict[str, Any]:
-        """Generate evaluation report."""
+        """Generate comprehensive evaluation report with accuracy metrics and breakdowns."""
         total_cases = len(results)
         action_matches = sum(1 for r in results if r.action_match)
         entity_matches = sum(1 for r in results if r.entities_match)
@@ -555,7 +559,7 @@ class AutoGenEvaluator:
     
     def save_results(self, results: List[EvaluationResult], report: Dict[str, Any], 
                     output_file: str = None) -> None:
-        """Save evaluation results to file."""
+        """Save evaluation results and report to JSON file."""
         if output_file is None:
             output_file = 'evaluation_results.json'  # Write to current directory instead
         
@@ -590,7 +594,7 @@ class AutoGenEvaluator:
 
 
 def evaluate_all_cases_initial_only():
-     """Run evaluation on all test cases using ONLY initial extraction (first agent output)."""
+     """Run full evaluation using only first agent output (bypasses validation agent)."""
      # Check for API key
      api_key = os.getenv('OPENAI_API_KEY')
      if not api_key:
@@ -610,17 +614,11 @@ def evaluate_all_cases_initial_only():
      print(f"Processing in {num_batches} batches of {batch_size} cases each")
      print("Evaluating ONLY the first agent's output (before validation)")
      
-     # Estimate time including batch breaks
-     test_time = total_cases * 0.1  # 0.1s per call, sequential
-     break_time = (num_batches - 1) * 10  # 10s break between batches
-     estimated_time = test_time + break_time
-     print(f"Estimated time: {estimated_time:.0f} seconds ({estimated_time/60:.1f} minutes)\n")
      
      # Create results directory
      results_dir = 'eval_initial_only_batches'
      os.makedirs(results_dir, exist_ok=True)
      
-     start_time = time.time()
      all_results = []
      
      # Process in batches
@@ -655,8 +653,6 @@ def evaluate_all_cases_initial_only():
      # Generate final report
      report = evaluator.generate_report(all_results)
      
-     # Calculate actual time taken
-     total_time = time.time() - start_time
      
      # Print summary
      print("\n" + "="*60)
@@ -674,8 +670,6 @@ def evaluate_all_cases_initial_only():
      print(f"  Action Wrong, Entity Correct (Action ✗ & Entity ✓): {report['action_wrong_entity_correct']} ({report['action_wrong_entity_correct_rate']:.2%})")
      print(f"  Both Wrong (Action ✗ & Entity ✗): {report['both_wrong']} ({report['both_wrong_rate']:.2%})")
      
-     print(f"Total Time: {total_time:.0f} seconds ({total_time/60:.1f} minutes)")
-     print(f"Average Time per Test: {total_time/total_cases:.2f} seconds")
      
      print("\nAction Breakdown:")
      for action, data in report['action_breakdown'].items():
@@ -696,7 +690,7 @@ def evaluate_all_cases_initial_only():
 
 
 def evaluate_all_cases():
-    """Run evaluation on all test cases with batch processing and parallel execution."""
+    """Run full evaluation with complete multi-agent processing in batches."""
     # Check for API key
     api_key = os.getenv('OPENAI_API_KEY')
     if not api_key:
@@ -716,17 +710,11 @@ def evaluate_all_cases():
     print(f"Processing in {num_batches} batches of {batch_size} cases each")
     print("Using sequential processing with 0.1s rate limiting and 10s breaks between batches")
     
-    # Estimate time including batch breaks
-    test_time = total_cases * 0.1  # 0.1s per call, sequential
-    break_time = (num_batches - 1) * 10  # 10s break between batches
-    estimated_time = test_time + break_time
-    print(f"Estimated time: {estimated_time:.0f} seconds ({estimated_time/60:.1f} minutes)\n")
     
     # Create results directory
     results_dir = 'eval_20_batches'
     os.makedirs(results_dir, exist_ok=True)
     
-    start_time = time.time()
     all_results = []
     
     # Process in batches
@@ -769,8 +757,6 @@ def evaluate_all_cases():
     # Generate final report
     report = evaluator.generate_report(all_results)
     
-    # Calculate actual time taken
-    total_time = time.time() - start_time
     
     # Print summary
     print("\n" + "="*50)
@@ -796,8 +782,6 @@ def evaluate_all_cases():
     print(f"  Action Wrong, Entity Correct (Action ✗ & Entity ✓): {report['action_wrong_entity_correct']} ({report['action_wrong_entity_correct_rate']:.2%})")
     print(f"  Both Wrong (Action ✗ & Entity ✗): {report['both_wrong']} ({report['both_wrong_rate']:.2%})")
     
-    print(f"Total Time: {total_time:.0f} seconds ({total_time/60:.1f} minutes)")
-    print(f"Average Time per Test: {total_time/total_cases:.2f} seconds")
     
     print("\nAction Breakdown:")
     for action, data in report['action_breakdown'].items():
@@ -823,7 +807,7 @@ def evaluate_all_cases():
     print(f"Intermediate batch results saved as evaluation_results_batch_*.json")
 
 def main():
-    """Main evaluation function - backward compatibility."""
+    """Main evaluation function for quick testing (20 cases subset)."""
     # Check for API key
     api_key = os.getenv('OPENAI_API_KEY')
     if not api_key:
